@@ -1,6 +1,7 @@
 package com.sigha.converter.model
 
 import android.content.Context
+import androidx.annotation.StringRes
 import java.io.File
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CancellationException
@@ -20,11 +21,14 @@ import kotlinx.coroutines.withContext
  */
 object ModelPacks {
 
-    /** What the pack card renders; [licenseUrl] is opened by the screen's license button. */
+    /**
+     * What the pack card renders. Title and description are string resource ids because the
+     * screen (not the model) knows the locale; [licenseUrl] is opened by the license button.
+     */
     data class PackInfo(
         val id: String,
-        val title: String,
-        val description: String,
+        @StringRes val titleRes: Int,
+        @StringRes val descriptionRes: Int,
         val sizeBytes: Long,
         val license: String,
         val licenseUrl: String

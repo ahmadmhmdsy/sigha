@@ -16,10 +16,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
@@ -52,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -148,24 +152,26 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(Modifier.height(4.dp))
-                    OutputModeRow(
-                        title = stringResource(R.string.output_mode_downloads),
-                        description = stringResource(R.string.output_mode_downloads_desc),
-                        selected = settings.outputMode == OutputMode.DOWNLOADS,
-                        onClick = { scope.launch { Repo.settings.setOutputMode(OutputMode.DOWNLOADS) } }
-                    )
-                    OutputModeRow(
-                        title = stringResource(R.string.output_mode_folder),
-                        description = stringResource(R.string.output_mode_folder_desc),
-                        selected = settings.outputMode == OutputMode.FOLDER,
-                        onClick = {
-                            if (settings.outputFolderUri.isNullOrBlank()) {
-                                folderPicker.launchSaf(null, showPickerMissing)
-                            } else {
-                                scope.launch { Repo.settings.setOutputMode(OutputMode.FOLDER) }
+                    Column(modifier = Modifier.selectableGroup()) {
+                        OutputModeRow(
+                            title = stringResource(R.string.output_mode_downloads),
+                            description = stringResource(R.string.output_mode_downloads_desc),
+                            selected = settings.outputMode == OutputMode.DOWNLOADS,
+                            onClick = { scope.launch { Repo.settings.setOutputMode(OutputMode.DOWNLOADS) } }
+                        )
+                        OutputModeRow(
+                            title = stringResource(R.string.output_mode_folder),
+                            description = stringResource(R.string.output_mode_folder_desc),
+                            selected = settings.outputMode == OutputMode.FOLDER,
+                            onClick = {
+                                if (settings.outputFolderUri.isNullOrBlank()) {
+                                    folderPicker.launchSaf(null, showPickerMissing)
+                                } else {
+                                    scope.launch { Repo.settings.setOutputMode(OutputMode.FOLDER) }
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Row(
                         modifier = Modifier
@@ -191,6 +197,7 @@ fun SettingsScreen(
                             modifier = Modifier.weight(1f)
                         )
                         TextButton(
+                            modifier = Modifier.heightIn(min = 48.dp),
                             onClick = {
                                 folderPicker.launchSaf(
                                     settings.outputFolderUri?.let { raw -> runCatching { Uri.parse(raw) }.getOrNull() },
@@ -268,25 +275,25 @@ fun SettingsScreen(
             onDismissRequest = { showOcrDialog = false },
             title = { Text(stringResource(R.string.settings_ocr_language)) },
             text = {
-                Column {
+                Column(modifier = Modifier.selectableGroup()) {
                     OCR_LANGUAGES.forEach { option ->
+                        val selected = settings.ocrLanguage == option.first
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable {
-                                    showOcrDialog = false
-                                    scope.launch { Repo.settings.setOcrLanguage(option.first) }
-                                }
+                                .selectable(
+                                    selected = selected,
+                                    role = Role.RadioButton,
+                                    onClick = {
+                                        showOcrDialog = false
+                                        scope.launch { Repo.settings.setOcrLanguage(option.first) }
+                                    }
+                                )
+                                .heightIn(min = 48.dp)
                                 .padding(vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RadioButton(
-                                selected = settings.ocrLanguage == option.first,
-                                onClick = {
-                                    showOcrDialog = false
-                                    scope.launch { Repo.settings.setOcrLanguage(option.first) }
-                                }
-                            )
+                            RadioButton(selected = selected, onClick = null)
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 text = stringResource(option.second),
@@ -309,6 +316,7 @@ fun SettingsScreen(
 @Composable
 private fun ThemeSelector(selected: ThemeMode, onSelect: (ThemeMode) -> Unit) {
     FlowRow(
+        modifier = Modifier.selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -346,11 +354,17 @@ private fun OutputModeRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .selectable(
+                selected = selected,
+                role = Role.RadioButton,
+                onClick = onClick
+            )
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RadioButton(selected = selected, onClick = onClick)
+        // The row owns the click and the state; the radio is only its visual representation,
+        // so TalkBack sees one focus stop that announces "selected, radio button".
+        RadioButton(selected = selected, onClick = null)
         Spacer(Modifier.width(4.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, style = MaterialTheme.typography.bodyMedium)
@@ -374,7 +388,7 @@ private fun SettingsNavRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)

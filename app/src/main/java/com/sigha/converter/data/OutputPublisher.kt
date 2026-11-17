@@ -249,11 +249,14 @@ class OutputPublisher(private val context: Context) {
                 ConversionFailureKind.SAVE_FAILED
             )
         }
+        // The SAF tree hides its real filesystem path; the folder's display name plus the file
+        // name is the most specific destination the queue and history can honestly show.
+        val folderName = directory.name?.takeIf { it.isNotBlank() }
         return PublishedOutput(
             fileName = displayName,
             mime = mime,
             uri = document.uri,
-            displayPath = null,
+            displayPath = if (folderName != null) folderName + "/" + displayName else displayName,
             sizeBytes = source.length()
         )
     }

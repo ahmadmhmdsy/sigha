@@ -40,7 +40,10 @@
     <string name="workbench_empty_title">Your files, converted on this phone</string>
     <string name="workbench_empty_body">Add images, PDFs, media, archives and more. Nothing is uploaded — everything happens on your device.</string>
     <string name="workbench_empty_supported">Images · PDF · Documents · Audio · Video · Archives</string>
-    <string name="workbench_files_count">%1$d selected</string>
+    <plurals name="workbench_files_count">
+        <item quantity="one">%1$d file selected</item>
+        <item quantity="other">%1$d files selected</item>
+    </plurals>
     <string name="workbench_clear_selection">Clear selection</string>
     <string name="workbench_selected_section">Selected files</string>
     <string name="workbench_add_more">Add more</string>
@@ -56,8 +59,12 @@
     <string name="option_pages">PDF pages</string>
     <string name="option_pages_hint">e.g. 1-3, 5</string>
     <string name="option_pages_helper">Leave empty to convert every page.</string>
+    <string name="option_pages_error">Enter pages like 1-3 or 5, 8.</string>
     <string name="workbench_convert">Convert</string>
-    <string name="workbench_convert_files">Convert %1$d files</string>
+    <plurals name="workbench_convert_files">
+        <item quantity="one">Convert %1$d file</item>
+        <item quantity="other">Convert %1$d files</item>
+    </plurals>
     <string name="workbench_converting">Converting…</string>
     <string name="workbench_progress_title">Progress</string>
     <string name="workbench_open_queue">View results</string>
@@ -65,10 +72,25 @@
     <string name="workbench_unsupported">Unsupported file: %1$s</string>
     <string name="workbench_storage_permission_message">Allow storage access so converted files can be saved to Downloads.</string>
     <string name="workbench_storage_permission_denied">Storage access was denied, so files can’t be saved to Downloads.</string>
-    <string name="workbench_conversion_summary">%1$d converted · %2$d failed</string>
+    <!-- The two counts are separate plurals; workbench_summary joins their phrases. -->
+    <string name="workbench_summary">%1$s · %2$s</string>
+    <plurals name="workbench_summary_done">
+        <item quantity="one">%1$d file converted</item>
+        <item quantity="other">%1$d files converted</item>
+    </plurals>
+    <plurals name="workbench_summary_failed">
+        <item quantity="one">%1$d failed</item>
+        <item quantity="other">%1$d failed</item>
+    </plurals>
+    <plurals name="workbench_files_added">
+        <item quantity="one">%1$d file added</item>
+        <item quantity="other">%1$d files added</item>
+    </plurals>
     <string name="workbench_all_done">All files converted</string>
     <string name="workbench_cancelled">Conversion cancelled</string>
     <string name="workbench_no_target_selected">Choose a target format first.</string>
+    <string name="workbench_ocr_install">Install OCR pack (%1$s)</string>
+    <string name="workbench_ocr_installing">Installing the OCR pack…</string>
 
     <!-- Queue -->
     <string name="queue_title">Queue</string>
@@ -90,7 +112,10 @@
     <!-- History -->
     <string name="history_title">History</string>
     <string name="history_empty_title">No conversions yet</string>
-    <string name="history_empty_body">Your last 50 conversions appear here. Files stay on your device.</string>
+    <plurals name="history_empty_body">
+        <item quantity="one">Your last %1$d conversion appears here. Files stay on your device.</item>
+        <item quantity="other">Your last %1$d conversions appear here. Files stay on your device.</item>
+    </plurals>
     <string name="history_clear_title">Clear history?</string>
     <string name="history_clear_body">This only clears the list. Converted files stay in your storage.</string>
     <string name="history_cleared">History cleared</string>
@@ -156,6 +181,9 @@
     <string name="model_packs_license">License: %1$s</string>
     <string name="model_packs_license_unknown">Unknown license</string>
     <string name="model_packs_no_packs">No model packs are available yet.</string>
+    <!-- Pack copy is resolved by pack id (PackCatalog.titleRes/descriptionRes). -->
+    <string name="pack_ocr_title">OCR: English + Arabic</string>
+    <string name="pack_ocr_description">Reads text from photos and scanned PDFs in English and Arabic. Downloads once, then needs no network.</string>
     <string name="model_packs_upscale_title">AI upscaling</string>
     <string name="model_packs_upscale_coming_soon">Not available yet</string>
     <string name="model_packs_upscale_body">Sharpen and enlarge photos on-device with a small AI model. Not part of this build yet.</string>

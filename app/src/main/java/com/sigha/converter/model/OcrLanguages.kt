@@ -39,4 +39,12 @@ object OcrLanguages {
     /** "eng+ara" for the Tesseract API; empty when no supported language is selected. */
     fun code(languages: Collection<String>): String =
         SUPPORTED.filter { it in languages }.joinToString("+")
+
+    /**
+     * First-run OCR language for a device language tag (`Locale.getLanguage()` / the first
+     * locale in the configuration): Arabic devices start with the Arabic pack, everything else
+     * with English. A preference the user saved later always wins over this.
+     */
+    fun defaultForLanguage(language: String?): String =
+        if (language?.trim()?.lowercase() == "ar") "ara" else DEFAULT
 }

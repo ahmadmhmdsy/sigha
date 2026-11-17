@@ -28,42 +28,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sigha.converter.R
 import com.sigha.converter.work.QueueStatus
 
-/** Top bar with an optional subtitle and back arrow; title stays on the start edge in RTL. */
+/**
+ * Single-line top bar with an optional back arrow; the title stays on the start edge in RTL.
+ * It deliberately carries one line: a second line does not fit a Material 3 top bar once the
+ * font scale is raised, so secondary copy belongs in the content instead.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SighaTopAppBar(
     title: String,
     modifier: Modifier = Modifier,
-    subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
         title = {
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (subtitle != null) {
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         },
         modifier = modifier,
         navigationIcon = {
@@ -97,13 +93,20 @@ fun SectionHeader(
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .semantics { heading() }
         )
         trailing?.invoke()
     }
 }
 
-/** Compose-shape empty state: no bitmap assets, scales with the theme and RTL. */
+/**
+ * Compose-shape empty state: no bitmap assets, scales with the theme and RTL.
+ * Below 480dp of window height (landscape phones) it switches to a compact variant so the
+ * whole state — title, body and action — still fits on screen instead of dead-ending above
+ * the fold.
+ */
 @Composable
 fun EmptyState(
     icon: ImageVector,
@@ -113,19 +116,23 @@ fun EmptyState(
     footnote: String? = null,
     action: (@Composable () -> Unit)? = null
 ) {
+    val compact = LocalConfiguration.current.screenHeightDp < 480
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 32.dp, vertical = 40.dp),
+            .padding(
+                horizontal = if (compact) 24.dp else 32.dp,
+                vertical = if (compact) 12.dp else 40.dp
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Box(
             modifier = Modifier
-                .size(112.dp)
+                .size(if (compact) 56.dp else 112.dp)
                 .background(
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(32.dp)
+                    shape = RoundedCornerShape(if (compact) 16.dp else 32.dp)
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -133,16 +140,16 @@ fun EmptyState(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(if (compact) 26.dp else 48.dp)
             )
         }
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(if (compact) 8.dp else 24.dp))
         Text(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(if (compact) 6.dp else 12.dp))
         Text(
             text = body,
             style = MaterialTheme.typography.bodyMedium,
@@ -150,11 +157,11 @@ fun EmptyState(
             textAlign = TextAlign.Center
         )
         if (action != null) {
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(if (compact) 12.dp else 28.dp))
             action()
         }
         if (footnote != null) {
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(if (compact) 8.dp else 20.dp))
             Text(
                 text = footnote,
                 style = MaterialTheme.typography.labelMedium,
@@ -184,15 +191,32 @@ fun statusColor(status: QueueStatus): Color = when (status) {
     QueueStatus.QUEUED, QueueStatus.RUNNING -> MaterialTheme.colorScheme.secondary
 }
 
+/**
+ * Status chip on tonal Material 3 containers rather than accent-on-its-own-tint: the tone
+ * pairs measure 5.8:1-13.4:1 across both themes (the old tinted-accent version bottomed out at
+ * 3.99:1 in light theme) and the label is exposed as a state description so TalkBack announces
+ * it as a status.
+ */
 @Composable
 fun StatusPill(status: QueueStatus, modifier: Modifier = Modifier) {
-    val color = statusColor(status)
+    val label = statusLabel(status)
+    val (container, content) = when (status) {
+        QueueStatus.DONE -> MaterialTheme.colorScheme.primaryContainer to
+            MaterialTheme.colorScheme.onPrimaryContainer
+        QueueStatus.FAILED -> MaterialTheme.colorScheme.errorContainer to
+            MaterialTheme.colorScheme.onErrorContainer
+        QueueStatus.CANCELLED -> MaterialTheme.colorScheme.surfaceContainerHighest to
+            MaterialTheme.colorScheme.onSurfaceVariant
+        QueueStatus.QUEUED, QueueStatus.RUNNING -> MaterialTheme.colorScheme.secondaryContainer to
+            MaterialTheme.colorScheme.onSecondaryContainer
+    }
     Text(
-        text = statusLabel(status),
+        text = label,
         style = MaterialTheme.typography.labelMedium,
-        color = color,
+        color = content,
         modifier = modifier
-            .background(color.copy(alpha = 0.12f), RoundedCornerShape(8.dp))
+            .semantics { stateDescription = label }
+            .background(container, RoundedCornerShape(8.dp))
             .padding(horizontal = 8.dp, vertical = 2.dp)
     )
 }

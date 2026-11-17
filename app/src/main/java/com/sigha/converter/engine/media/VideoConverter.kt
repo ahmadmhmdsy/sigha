@@ -6,6 +6,7 @@ import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
 import com.sigha.converter.core.Converter
 import com.sigha.converter.core.FileFormat
+import com.sigha.converter.core.Note
 import kotlinx.coroutines.CancellationException
 
 /**
@@ -43,7 +44,11 @@ internal class VideoConverter(app: Application) : Converter {
             val inputPath = media.file.absolutePath
             val outputPath = request.outputFile.absolutePath
 
-            var note: String? = if (gifPlan?.capped == true) GIF_CAP_NOTE else null
+            var note: Note? = if (gifPlan?.capped == true) {
+                Note.GifTrimmed((FfmpegArgs.GIF_MAX_DURATION_MS / 1_000L).toInt())
+            } else {
+                null
+            }
             var result = runner.execute(
                 request,
                 FfmpegArgs.videoArgs(inputPath, outputPath, target, params),
@@ -57,7 +62,9 @@ internal class VideoConverter(app: Application) : Converter {
                     FfmpegArgs.videoArgs(inputPath, outputPath, target, params, softwareEncoder = true),
                     plannedDuration
                 )
-                if (result.success) note = SOFTWARE_ENCODER_NOTE
+                if (result.success) {
+                    note = Note.combine(listOfNotNull(note, Note.SoftwareEncoder))
+                }
             }
             runner.finish(result, request, request.to.label)
             ConversionResult(outputs = listOf(request.outputFile), note = note)
@@ -67,8 +74,5 @@ internal class VideoConverter(app: Application) : Converter {
     private companion object {
         val TARGET_IDS = setOf("mp4", "webm", "mkv", "gif")
         val SOFTWARE_FALLBACK_TARGETS = setOf("mp4", "mkv")
-        const val GIF_CAP_NOTE = "GIFs are limited to 30 seconds, so the rest of the video was skipped."
-        const val SOFTWARE_ENCODER_NOTE =
-            "Hardware video encoding was unavailable, so the software encoder was used."
     }
 }

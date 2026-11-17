@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark cold-start window colour: matches SighaNight so dark-mode launches do not flash white. -->
+    <style name="Theme.Sigha" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">#0F1513</item>
+    </style>
+</resources>

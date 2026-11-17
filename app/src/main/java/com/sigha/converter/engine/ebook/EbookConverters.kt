@@ -6,6 +6,7 @@ import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
 import com.sigha.converter.core.Converter
 import com.sigha.converter.core.FileFormat
+import com.sigha.converter.core.Note
 import com.sigha.converter.engine.office.OfficeIo
 import com.sigha.converter.engine.office.OoxmlXml
 import com.sigha.converter.engine.office.SafePackage
@@ -37,10 +38,12 @@ private class EpubToTxt : Converter {
             request.onProgress(1f)
             ConversionResult(
                 listOf(request.outputFile),
-                buildString {
-                    append("Images and styling are not exported; chapters are separated by a blank line.")
-                    if (book.truncated) append(" The book is very long, so only the first part was converted.")
-                }
+                Note.combine(
+                    listOf(
+                        Note.EpubTextOnly,
+                        if (book.truncated) Note.BookTruncated else null
+                    )
+                )
             )
         }
 }
@@ -69,10 +72,12 @@ private class EpubToHtml : Converter {
             request.onProgress(1f)
             ConversionResult(
                 listOf(request.outputFile),
-                buildString {
-                    append("One HTML file with each chapter as a heading; images and styles are omitted.")
-                    if (book.truncated) append(" The book is very long, so only the first part was converted.")
-                }
+                Note.combine(
+                    listOf(
+                        Note.EpubHtmlOnly,
+                        if (book.truncated) Note.BookTruncated else null
+                    )
+                )
             )
         }
 }

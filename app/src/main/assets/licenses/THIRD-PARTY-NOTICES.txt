@@ -1,6 +1,6 @@
 # Third-party notices — Sigha (صيغة)
 
-**Applies to:** Sigha 0.2.0 (build 2), debug and release builds, package `com.sigha.converter`.
+**Applies to:** Sigha 0.2.1 (build 3), debug and release builds, package `com.sigha.converter`. The dependency set is unchanged from 0.2.0 (build 2); 0.2.1 is a UI/UX fix pass with no new libraries.
 **Last updated:** 2026-11-17.
 
 This file lists the third-party components that are **actually shipped inside the APK**. It is

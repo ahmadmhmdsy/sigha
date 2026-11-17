@@ -11,6 +11,7 @@ import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
 import com.sigha.converter.core.Converter
 import com.sigha.converter.core.FileFormat
+import com.sigha.converter.core.Note
 import com.sigha.converter.model.OcrPageRange
 import java.io.File
 import java.io.IOException
@@ -48,14 +49,16 @@ internal class PdfTextConverter(
             )
             try {
                 copyToCache(context, request.input, source)
-                var note: String? = null
+                var note: Note? = null
                 val text = StringBuilder()
                 openRenderer(source).use { renderer ->
                     val pageCount = renderer.pageCount
                     val selection = OcrPageRange.select(request.options.pages, pageCount)
                     note = selection.note
                     if (selection.pages.isEmpty()) {
-                        throw ConversionException(selection.note ?: "This PDF has no pages to read")
+                        // The English message is a developer diagnostic (details only); the
+                        // localized headline comes from the failure kind.
+                        throw ConversionException("This PDF has no pages to read")
                     }
                     OcrEngine(datapath, language).use { engine ->
                         for ((index, pageNumber) in selection.pages.withIndex()) {

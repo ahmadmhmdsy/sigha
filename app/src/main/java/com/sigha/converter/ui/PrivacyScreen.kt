@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,17 +32,19 @@ import androidx.compose.ui.unit.dp
 import com.sigha.converter.R
 import com.sigha.converter.ui.components.SighaCard
 import com.sigha.converter.ui.components.SighaTopAppBar
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
  * Privacy screen (WS4).
  *
- * The policy is a single Markdown document shipped as an asset so that the text in the app and the
- * text hosted on the public URL cannot drift: app/src/main/assets/legal/privacy-policy.md is the
- * same content as docs/legal/privacy-policy.md. It is rendered with a deliberately small parser —
- * headings, bullets and paragraphs — because the document is written for this screen, not the other
- * way round.
+ * The policy is a Markdown document shipped as an asset so that the text in the app and the text
+ * hosted on the public URL cannot drift: app/src/main/assets/legal/privacy-policy.md is the same
+ * content as docs/legal/privacy-policy.md, and privacy-policy.ar.md is its faithful Arabic
+ * translation. Arabic devices read the Arabic asset, every other locale reads English. It is
+ * rendered with a deliberately small parser — headings, bullets and paragraphs — because the
+ * document is written for this screen, not the other way round.
  */
 private sealed interface PolicyBlock {
     data class Heading(val text: String) : PolicyBlock
@@ -52,7 +53,12 @@ private sealed interface PolicyBlock {
     data class Bullet(val text: String) : PolicyBlock
 }
 
-private const val POLICY_ASSET = "legal/privacy-policy.md"
+private const val POLICY_ASSET_EN = "legal/privacy-policy.md"
+private const val POLICY_ASSET_AR = "legal/privacy-policy.ar.md"
+
+/** The Arabic policy is selected from the device locale; everything else reads English. */
+private fun policyAsset(): String =
+    if (Locale.getDefault().language == "ar") POLICY_ASSET_AR else POLICY_ASSET_EN
 
 private val BOLD = Regex("\\*\\*(.+?)\\*\\*")
 private val INLINE_CODE = Regex("\\x60([^\\x60]+)\\x60")
@@ -107,11 +113,12 @@ private fun parsePolicy(markdown: String): List<PolicyBlock> {
 @Composable
 fun PrivacyScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val markdown by produceState<String?>(initialValue = null, key1 = POLICY_ASSET) {
+    val asset = remember { policyAsset() }
+    val markdown by produceState<String?>(initialValue = null, key1 = asset) {
         value = withContext(Dispatchers.IO) {
             runCatching {
                 context.applicationContext.assets
-                    .open(POLICY_ASSET)
+                    .open(asset)
                     .bufferedReader(Charsets.UTF_8)
                     .use { it.readText() }
             }.getOrNull()
@@ -132,8 +139,7 @@ fun PrivacyScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .navigationBarsPadding(),
+                .padding(innerPadding),
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {

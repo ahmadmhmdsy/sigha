@@ -110,7 +110,11 @@ fun FormatIcon(format: FileFormat, modifier: Modifier = Modifier, size: Dp = 44.
     }
 }
 
-/** Small "JPG"/"PDF" chip tinted with the category accent. */
+/**
+ * Small "JPG"/"PDF" chip on the category accent's tint. The accent fills the background but
+ * the text is neutral: accent-on-its-own-tint only reached 3.76-4.37:1 in light theme, below
+ * the 4.5:1 WCAG AA floor for 12sp text. The 44dp [FormatIcon] keeps carrying the hue.
+ */
 @Composable
 fun FormatBadge(format: FileFormat, modifier: Modifier = Modifier) {
     val accent = categoryAccent(format.category)
@@ -118,7 +122,7 @@ fun FormatBadge(format: FileFormat, modifier: Modifier = Modifier) {
         text = format.label,
         style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.SemiBold,
-        color = accent,
+        color = MaterialTheme.colorScheme.onSurface,
         modifier = modifier
             .background(accent.copy(alpha = 0.12f), RoundedCornerShape(8.dp))
             .padding(horizontal = 8.dp, vertical = 3.dp)

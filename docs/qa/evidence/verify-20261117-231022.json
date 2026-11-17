@@ -1,0 +1,148 @@
+{
+  "generatedAt": "2026-11-17T23:10:22.3390415+03:00",
+  "root": "E:\\android_apps\\digital_converter",
+  "steps": [
+    {
+      "step": "gradle clean+test+assembleDebug",
+      "ok": true,
+      "detail": "exit=0"
+    },
+    {
+      "step": "unit tests",
+      "ok": true,
+      "detail": "tests=137 failures=0 errors=0"
+    },
+    {
+      "step": "debug APK exists",
+      "ok": true,
+      "detail": "115117750 B C2E7C5762F41516A645BEA14A7E3CC2AA10567FAAE4139FD5F0CD856A1C793E1 (app-universal-debug.apk)"
+    },
+    {
+      "step": "debug APK splits",
+      "ok": true,
+      "detail": "app-arm64-v8a-debug.apk=68795074, app-universal-debug.apk=115117750, app-x86_64-debug.apk=75909618"
+    },
+    {
+      "step": "native libs stored (uncompressed)",
+      "ok": true,
+      "detail": "so=32 stored=32 deflated=0"
+    },
+    {
+      "step": "ELF 16 KB page alignment (arm64)",
+      "ok": true,
+      "detail": "checked=16 minPAlign=16384"
+    },
+    {
+      "step": "zipalign -c -P 16",
+      "ok": true,
+      "detail": "exit=0"
+    },
+    {
+      "step": "gradle assembleRelease",
+      "ok": true,
+      "detail": "exit=0"
+    },
+    {
+      "step": "gradle bundleRelease",
+      "ok": true,
+      "detail": "exit=0"
+    },
+    {
+      "step": "gradle lintDebug",
+      "ok": true,
+      "detail": "exit=0"
+    },
+    {
+      "step": "release APKs",
+      "ok": true,
+      "detail": "app-arm64-v8a-release.apk, app-universal-release.apk, app-x86_64-release.apk"
+    },
+    {
+      "step": "release APK signatures",
+      "ok": true,
+      "detail": "unsigned: "
+    },
+    {
+      "step": "release AAB",
+      "ok": true,
+      "detail": "app-release.aab"
+    },
+    {
+      "step": "lint error count",
+      "ok": true,
+      "detail": "errors=0 warnings=58"
+    },
+    {
+      "step": "claim drift (no stale numbers in public docs)",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "facts": {
+    "unitTests": {
+      "classes": 16,
+      "tests": 137,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "debugApk": {
+      "path": "E:\\android_apps\\digital_converter\\app\\build\\outputs\\apk\\debug\\app-universal-debug.apk",
+      "sizeBytes": 115117750,
+      "sha256": "C2E7C5762F41516A645BEA14A7E3CC2AA10567FAAE4139FD5F0CD856A1C793E1",
+      "soEntries": 32,
+      "soStored": 32,
+      "soDeflated": 0,
+      "elfArm64Checked": 16,
+      "elfMinPAlign": 16384.0
+    },
+    "debugApks": [
+      {
+        "name": "app-arm64-v8a-debug.apk",
+        "sizeBytes": 68795074,
+        "sha256": "7D65FB7192780C2A7D00CBCF3679022BEC842AD001AA464359368A70ADBBAEBE"
+      },
+      {
+        "name": "app-universal-debug.apk",
+        "sizeBytes": 115117750,
+        "sha256": "C2E7C5762F41516A645BEA14A7E3CC2AA10567FAAE4139FD5F0CD856A1C793E1"
+      },
+      {
+        "name": "app-x86_64-debug.apk",
+        "sizeBytes": 75909618,
+        "sha256": "959CD0ACF195885D842843EE8867FB623CC8DFB222D67B0BCA0D77BE3D4D9824"
+      }
+    ],
+    "releaseApks": [
+      {
+        "name": "app-arm64-v8a-release.apk",
+        "sizeBytes": 49815043,
+        "sha256": "D9B357D28E03CF45AB782D98230C2801D23E13321521E57333F708A148545963"
+      },
+      {
+        "name": "app-universal-release.apk",
+        "sizeBytes": 96137719,
+        "sha256": "5F4A04D4AAEECC65122771AFD86B5C5D4C5222E3A3DACD403C4A55AB65BCF87A"
+      },
+      {
+        "name": "app-x86_64-release.apk",
+        "sizeBytes": 56929587,
+        "sha256": "19E7A56B18DC4F94EF53D492848D6C26E2D89EBABF266634890B7EAB28D1625B"
+      }
+    ],
+    "releaseAab": [
+      {
+        "name": "app-release.aab",
+        "sizeBytes": 51154859,
+        "sha256": "44FBDBA358ED03615CB659053FDDAB63104C3095EE0C4FC052EE17F6B8978EAC"
+      }
+    ],
+    "lint": {
+      "errors": 0,
+      "warnings": 58,
+      "report": "E:\\android_apps\\digital_converter\\app\\build\\reports\\lint-results-debug.txt"
+    },
+    "claimDrift": []
+  },
+  "failures": []
+}

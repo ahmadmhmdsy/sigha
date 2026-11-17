@@ -71,12 +71,12 @@ HONEST LIMITS
 • Photos and videos cannot be compressed to a size you choose; you can re-encode at a chosen quality or bitrate.
 • HEIC needs Android 9 or newer; AVIF needs Android 12 or newer.
 
-Version 0.2.0 is a closed-test build. The four things we build next — many images into one PDF, scanned pages into one PDF, PDF merge/split/compress, and compressing photos and videos to a shareable size — are not in this build yet.
+Version 0.2.1 is a closed-test build. The four things we build next — many images into one PDF, scanned pages into one PDF, PDF merge/split/compress, and compressing photos and videos to a shareable size — are not in this build yet.
 
 Sigha requires Android 8.0 or newer.
 ```
 
-**Before the production listing:** delete the "Version 0.2.0 is a closed-test build…" paragraph.
+**Before the production listing:** delete the "Version 0.2.1 is a closed-test build…" paragraph.
 It is true for the closed test and false algorithmically once production users install the app.
 Keep the "HONEST LIMITS" block in every version.
 
@@ -108,7 +108,7 @@ Keep the "HONEST LIMITS" block in every version.
 • لا يمكن ضغط الصور والفيديو إلى حجم تختاره؛ يمكنك إعادة الترميز بجودة أو معدل بت محدد.
 • يتطلب HEIC نظام أندرويد 9 أو أحدث، ويتطلب AVIF نظام أندرويد 12 أو أحدث.
 
-الإصدار 0.2.0 إصدار اختبار مغلق. الأمور الأربعة التي نبنيها تاليًا — دمج عدة صور في PDF واحد، وتحويل الصفحات الممسوحة إلى PDF واحد، ودمج/تقسيم/ضغط PDF، وضغط الصور والفيديو إلى حجم قابل للمشاركة — ليست في هذا الإصدار بعد.
+الإصدار 0.2.1 إصدار اختبار مغلق. الأمور الأربعة التي نبنيها تاليًا — دمج عدة صور في PDF واحد، وتحويل الصفحات الممسوحة إلى PDF واحد، ودمج/تقسيم/ضغط PDF، وضغط الصور والفيديو إلى حجم قابل للمشاركة — ليست في هذا الإصدار بعد.
 
 يتطلب Sigha أندرويد 8.0 أو أحدث.
 ```
@@ -123,29 +123,32 @@ Keep the "HONEST LIMITS" block in every version.
 4. RTL: the Arabic listing must be reviewed on a device; mixed-direction lines (format names,
    "Download/Sigha") must render correctly.
 
-## 3. What's new — 0.2.0 (closed test)
+## 3. What's new — 0.2.1 (closed test, first upload)
 
-Release notes must fit 500 characters per language.
+Release notes must fit 500 characters per language. The 0.2.0 build was never uploaded, so these
+notes describe the first closed-test upload; they are user-visible changes only.
 
-### English (327/500)
+### English (399/500)
 
 ```
 First closed-test build.
 • Convert documents, images, PDFs, audio, video, archives and data files on your phone.
 • Arabic and English interface with right-to-left layout.
-• Optional OCR pack for scanned PDFs and photos (English and Arabic).
+• Arabic privacy policy, and every status note now speaks Arabic.
+• Install the OCR pack from the convert screen for scanned PDFs and photos.
 • Batch queue, history, and a choice of output folder.
 No uploads, no ads, no account.
 ```
 
-### Arabic (318/500)
+### Arabic (366/500)
 
 ```
 أول إصدار للاختبار المغلق.
 • حوّل المستندات والصور وملفات PDF والصوت والفيديو والأرشيفات والبيانات على هاتفك.
 • واجهة عربية وإنجليزية مع تخطيط من اليمين إلى اليسار.
-• حزمة OCR اختيارية لملفات PDF الممسوحة ضوئيًا والصور (الإنجليزية والعربية).
-• قائمة تحويل دفعية وسجل وخيار مجلد الإخراج.
+• سياسة خصوصية عربية، وكل ملاحظات الحالة أصبحت بالعربية.
+• ثبّت حزمة OCR من شاشة التحويل لملفات PDF الممسوحة ضوئيًا والصور.
+• قائمة تحويل دفعة وسجل وخيار مجلد الإخراج.
 دون رفع، دون إعلانات، دون حساب.
 ```
 

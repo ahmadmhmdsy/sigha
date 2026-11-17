@@ -6,6 +6,7 @@ import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
 import com.sigha.converter.core.Converter
 import com.sigha.converter.core.FileFormat
+import com.sigha.converter.core.Note
 import com.sigha.converter.engine.data.Csv
 import com.sigha.converter.engine.text.EngineFormats
 import com.sigha.converter.engine.text.ParagraphStyle
@@ -55,7 +56,7 @@ private class DocxToTxt : Converter {
             request.onProgress(1f)
             ConversionResult(
                 listOf(request.outputFile),
-                "Tables are flattened; images and formatting are not exported."
+                Note.OfficeTextOnly
             )
         }
 }
@@ -75,7 +76,7 @@ private class DocxToHtml : Converter {
             request.onProgress(1f)
             ConversionResult(
                 listOf(request.outputFile),
-                "Basic formatting only; tables and images are not converted."
+                Note.OfficeTextOnly
             )
         }
 }
@@ -102,7 +103,7 @@ private class DocxToPdf : Converter {
             }
             ConversionResult(
                 listOf(request.outputFile),
-                "Images and tables are not rendered; headings and lists are kept."
+                Note.OfficeImagesOmitted
             )
         }
 }
@@ -159,7 +160,7 @@ private class XlsxToPdf : Converter {
             }
             ConversionResult(
                 listOf(request.outputFile),
-                "A simple text table; styles, formulas and images are not rendered."
+                Note.OfficeSimpleTable
             )
         }
 
@@ -190,7 +191,7 @@ private class CsvToXlsx : Converter {
             request.onProgress(1f)
             ConversionResult(
                 listOf(request.outputFile),
-                "The first row is the header; " + rows + " rows were written."
+                Note.CsvRowsWritten(rows)
             )
         }
 }
@@ -211,7 +212,7 @@ private class PptxToTxt : Converter {
             request.onProgress(1f)
             ConversionResult(
                 listOf(request.outputFile),
-                "Slide text only; images, notes and layout are not exported."
+                Note.PptxTextOnly
             )
         }
 }
@@ -231,7 +232,7 @@ private class OdtToTxt : Converter {
             request.onProgress(1f)
             ConversionResult(
                 listOf(request.outputFile),
-                "Basic text only; tables and images are flattened."
+                Note.OfficeTextOnly
             )
         }
 }
@@ -264,7 +265,7 @@ private class OdsToCsv : Converter {
             request.onProgress(1f)
             ConversionResult(
                 listOf(request.outputFile),
-                "Only the first sheet is exported, with displayed cell text."
+                Note.combine(listOf(Note.FirstSheetOnly, Note.DisplayedCellText))
             )
         }
 }
@@ -292,11 +293,12 @@ private fun convertSheet(request: ConversionRequest, delimiter: Char): Conversio
     }
     if (rows == 0) throw ConversionException("The worksheet has no data to convert.")
     request.onProgress(1f)
-    val note = if (sheetNames.size > 1) {
-        "Only the first sheet was exported; dates stay as Excel serial numbers."
-    } else {
-        "Dates stay as Excel serial numbers."
-    }
+    val note = Note.combine(
+        listOfNotNull(
+            Note.FirstSheetOnly.takeIf { sheetNames.size > 1 },
+            Note.DatesAsSerial
+        )
+    )
     return ConversionResult(listOf(request.outputFile), note)
 }
 

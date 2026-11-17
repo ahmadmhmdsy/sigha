@@ -3,6 +3,7 @@ package com.sigha.converter.engine.ocr
 import com.sigha.converter.core.ConversionException
 import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
+import com.sigha.converter.core.Note
 
 /** Writes recognised text as UTF-8 and rejects empty results with a useful message. */
 internal object OcrFiles {
@@ -11,7 +12,7 @@ internal object OcrFiles {
         request: ConversionRequest,
         raw: String,
         emptyMessage: String,
-        note: String? = null
+        note: Note? = null
     ): ConversionResult {
         val text = OcrText.normalize(raw)
         if (text.isBlank()) throw ConversionException(emptyMessage)

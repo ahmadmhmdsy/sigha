@@ -6,6 +6,7 @@ import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
 import com.sigha.converter.core.Converter
 import com.sigha.converter.core.FileFormat
+import com.sigha.converter.core.Note
 import com.sigha.converter.engine.text.EngineFormats
 import com.sigha.converter.engine.text.TextIo
 import kotlinx.coroutines.Dispatchers
@@ -64,7 +65,7 @@ private class CsvToJson : Converter {
             request.onProgress(1f)
             ConversionResult(
                 listOf(request.outputFile),
-                if (rows == 0) "The CSV had a header but no data rows." else "All values are written as JSON strings."
+                if (rows == 0) Note.CsvHeaderOnly else Note.JsonValuesAsStrings
             )
         }
 }
@@ -87,7 +88,7 @@ private class JsonToCsvConverter : Converter {
             request.onProgress(1f)
             ConversionResult(
                 listOf(request.outputFile),
-                rows.toString() + " objects exported; nested values are not supported."
+                Note.JsonObjectsExported(rows)
             )
         }
 }

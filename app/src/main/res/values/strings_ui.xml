@@ -16,9 +16,69 @@
     <string name="ui_details_show">Show technical details</string>
     <string name="ui_details_hide">Hide technical details</string>
     <string name="ui_note_label">Note: %1$s</string>
+    <string name="ui_conversion_from_to">%1$s to %2$s</string>
 
     <!-- Notes and queue messages -->
     <string name="ui_note_output_folder_fallback">Saved to Downloads because the chosen folder is no longer available.</string>
+
+    <!-- Localized engine notes; core/Notes.kt carries the facts, ui/NoteUi.kt the wording. -->
+    <string name="note_pages_missing">None of the selected pages exist in this PDF.</string>
+    <string name="note_software_encoder">Hardware video encoding was unavailable, so the software encoder was used.</string>
+    <string name="note_tar_gz_output">The .gz output is a gzip-compressed tar archive (.tar.gz).</string>
+    <string name="note_office_text_only">Tables and images were not exported; text only.</string>
+    <string name="note_office_images_omitted">Images and tables were not rendered; headings and lists were kept.</string>
+    <string name="note_office_simple_table">A simple text table; styles, formulas and images were not rendered.</string>
+    <string name="note_pptx_text_only">Slide text only; images, notes and layout were not exported.</string>
+    <string name="note_first_sheet_only">Only the first sheet was exported.</string>
+    <string name="note_displayed_cell_text">Cell values are the displayed text.</string>
+    <string name="note_dates_as_serial">Dates stay as Excel serial numbers.</string>
+    <string name="note_markdown_simplified">Markdown is simplified in the PDF; images and raw HTML were omitted.</string>
+    <string name="note_ocr_fallback">No text layer was found, so OCR was used.</string>
+    <plurals name="note_pages_limited">
+        <item quantity="one">Only the first %1$d of %2$d page was read.</item>
+        <item quantity="other">Only the first %1$d of %2$d pages were read.</item>
+    </plurals>
+    <plurals name="note_pages_unparsed">
+        <item quantity="one">The page range was not understood. The first %1$d page was read.</item>
+        <item quantity="other">The page range was not understood. The first %1$d pages were read.</item>
+    </plurals>
+    <plurals name="note_pages_capped">
+        <item quantity="one">Only the first %1$d selected page was read.</item>
+        <item quantity="other">Only the first %1$d selected pages were read.</item>
+    </plurals>
+    <plurals name="note_text_truncated">
+        <item quantity="one">Only the first %1$d line was exported.</item>
+        <item quantity="other">Only the first %1$d lines were exported.</item>
+    </plurals>
+    <plurals name="note_gif_trimmed">
+        <item quantity="one">GIFs are limited to %1$d second, so the rest of the video was skipped.</item>
+        <item quantity="other">GIFs are limited to %1$d seconds, so the rest of the video was skipped.</item>
+    </plurals>
+    <plurals name="note_archive_duplicates">
+        <item quantity="one">%1$d duplicate entry was skipped.</item>
+        <item quantity="other">%1$d duplicate entries were skipped.</item>
+    </plurals>
+    <plurals name="note_archive_symlinks">
+        <item quantity="one">%1$d symbolic link was skipped.</item>
+        <item quantity="other">%1$d symbolic links were skipped.</item>
+    </plurals>
+    <plurals name="note_archive_deleted_entries">
+        <item quantity="one">%1$d deleted entry was skipped.</item>
+        <item quantity="other">%1$d deleted entries were skipped.</item>
+    </plurals>
+    <plurals name="note_csv_rows_written">
+        <item quantity="one">The first row is the header; %1$d row was written.</item>
+        <item quantity="other">The first row is the header; %1$d rows were written.</item>
+    </plurals>
+    <string name="note_csv_header_only">The CSV had a header row but no data rows.</string>
+    <string name="note_json_values_as_strings">Every value is written as a JSON string.</string>
+    <plurals name="note_json_objects_exported">
+        <item quantity="one">%1$d object was exported; nested values are not supported.</item>
+        <item quantity="other">%1$d objects were exported; nested values are not supported.</item>
+    </plurals>
+    <string name="note_epub_text_only">Images and styling are not exported; chapters are separated by a blank line.</string>
+    <string name="note_epub_html_only">One HTML file with each chapter as a heading; images and styles are omitted.</string>
+    <string name="note_book_truncated">The book is very long, so only its first part was converted.</string>
     <string name="ui_interrupted_batch">The last batch was interrupted. Files that were not converted can be added again.</string>
     <string name="ui_queue_busy">A conversion is already running. Wait for it to finish or cancel it.</string>
     <string name="ui_unsupported_files">Some files could not be read and were skipped.</string>

@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.sigha.converter.model.OcrLanguages
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -35,6 +36,10 @@ data class AppSettings(
     val ocrLanguage: String = DEFAULT_OCR_LANGUAGE
 ) {
     companion object {
+        /**
+         * Last-resort fallback, used when a stored value is blank or the locale is unknown.
+         * The first-run default actually follows the device language (see SettingsStore).
+         */
         const val DEFAULT_OCR_LANGUAGE = "eng"
     }
 }
@@ -51,10 +56,25 @@ class SettingsStore(context: Context) {
 
     private val store = context.applicationContext.settingsDataStore
 
+    /**
+     * First-run OCR language follows the device language, so an Arabic phone starts with the
+     * Arabic traineddata instead of silently reading Arabic scans as English. A value the user
+     * picked is stored and wins from then on.
+     */
+    private val defaultOcrLanguage: String = run {
+        val configuration = context.applicationContext.resources.configuration
+        val languages = configuration.locales
+        OcrLanguages.defaultForLanguage(if (languages.isEmpty) null else languages[0].language)
+    }
+
     val settings: StateFlow<AppSettings> = store.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> read(preferences) }
-        .stateIn(AppScope, SharingStarted.Eagerly, AppSettings())
+        .stateIn(
+            AppScope,
+            SharingStarted.Eagerly,
+            AppSettings(ocrLanguage = defaultOcrLanguage)
+        )
 
     suspend fun setThemeMode(mode: ThemeMode) {
         store.edit { it[KEY_THEME] = mode.name }
@@ -100,7 +120,7 @@ class SettingsStore(context: Context) {
             outputFolderUri = preferences[KEY_OUTPUT_FOLDER]?.takeIf { it.isNotBlank() },
             ocrLanguage = preferences[KEY_OCR_LANGUAGE]
                 ?.takeIf { it.isNotBlank() }
-                ?: AppSettings.DEFAULT_OCR_LANGUAGE
+                ?: defaultOcrLanguage
         )
     }
 

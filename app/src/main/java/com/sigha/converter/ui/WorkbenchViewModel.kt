@@ -7,6 +7,7 @@ import com.sigha.converter.AppGraph
 import com.sigha.converter.R
 import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.ConversionOptions
+import com.sigha.converter.core.Note
 import com.sigha.converter.core.FileFormat
 import com.sigha.converter.core.FormatCategory
 import com.sigha.converter.model.ModelPacks
@@ -14,8 +15,10 @@ import com.sigha.converter.data.ConversionInput
 import com.sigha.converter.data.ConversionRunner
 import com.sigha.converter.data.IncomingFilesBus
 import com.sigha.converter.work.QueueEntry
+import com.sigha.converter.data.PackDownloadState
 import com.sigha.converter.data.Repo
 import com.sigha.converter.data.takePersistableReadPermission
+import com.sigha.converter.engine.pdf.parsePageSpans
 import com.sigha.converter.work.QueueStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -39,7 +42,7 @@ data class ProgressRow(
     /** English diagnostic, shown as details only. */
     val errorMessage: String?,
     val errorKind: ConversionFailureKind,
-    val note: String?,
+    val note: Note?,
     val outputUri: Uri?,
     val outputName: String?,
     val displayPath: String?
@@ -57,7 +60,13 @@ data class WorkbenchUiState(
     val showBitrate: Boolean = false,
     val showPages: Boolean = false,
     /** True while OCR targets are hidden because the optional OCR pack is not installed. */
-    val showOcrHint: Boolean = false
+    val showOcrHint: Boolean = false,
+    /** True once the OCR model pack is fully installed, so its targets are reachable. */
+    val ocrPackInstalled: Boolean = false,
+    /** Live state of the OCR pack download, mirrored so the workbench can offer the install. */
+    val ocrPackState: PackDownloadState = PackDownloadState.Idle,
+    /** True when the typed page selection cannot be parsed as pages or ranges. */
+    val pagesError: Boolean = false
 )
 
 /**
@@ -77,6 +86,10 @@ class WorkbenchViewModel : ViewModel() {
     private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 8)
     val messages: SharedFlow<String> = _messages.asSharedFlow()
 
+    /** Fires when files arrive from another app, so the host can show the workbench. */
+    private val _openWorkbench = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val openWorkbench: SharedFlow<Unit> = _openWorkbench.asSharedFlow()
+
     private var batchIds: List<String> = emptyList()
     private var batchSummarised = false
 
@@ -93,6 +106,10 @@ class WorkbenchViewModel : ViewModel() {
             queue.entries.collect { entries -> syncProgress(entries) }
         }
         viewModelScope.launch {
+            // Installing the OCR pack unlocks OCR targets, so the derived state follows it live.
+            Repo.packDownloads.states.collect { _state.update { current -> withDerived(current) } }
+        }
+        viewModelScope.launch {
             if (Repo.settings.takeInterruptedBatch()) {
                 _messages.tryEmit(context.getString(R.string.ui_interrupted_batch))
             }
@@ -103,6 +120,7 @@ class WorkbenchViewModel : ViewModel() {
     fun addFiles(uris: List<Uri>) {
         val incoming = uris.distinct().filter { it.scheme != null }
         if (incoming.isEmpty()) return
+        _openWorkbench.tryEmit(Unit)
         viewModelScope.launch {
             _state.update { it.copy(isLoadingFiles = true) }
             val detected = withContext(Dispatchers.IO) {
@@ -111,18 +129,31 @@ class WorkbenchViewModel : ViewModel() {
                     runCatching { AppGraph.formats.detect(context, uri) }.getOrNull()
                 }
             }
+            var addedCount = 0
             _state.update { current ->
                 val existing = current.files.map { it.uri }.toSet()
                 val added = detected
                     .filter { it.uri !in existing }
                     .map { ConversionInput(it.uri, it.displayName, it.size, it.format) }
+                addedCount = added.size
                 withDerived(current.copy(files = current.files + added, isLoadingFiles = false))
             }
             val skipped = incoming.size - detected.size
             if (detected.isEmpty()) {
                 _messages.tryEmit(context.getString(R.string.workbench_detect_failed))
-            } else if (skipped > 0) {
-                _messages.tryEmit(context.getString(R.string.ui_unsupported_files))
+            } else {
+                if (addedCount > 0) {
+                    _messages.tryEmit(
+                        context.resources.getQuantityString(
+                            R.plurals.workbench_files_added,
+                            addedCount,
+                            addedCount
+                        )
+                    )
+                }
+                if (skipped > 0) {
+                    _messages.tryEmit(context.getString(R.string.ui_unsupported_files))
+                }
             }
         }
     }
@@ -160,7 +191,12 @@ class WorkbenchViewModel : ViewModel() {
     }
 
     fun setPages(value: String) {
-        _state.update { it.copy(options = it.options.copy(pages = value.trim().ifBlank { null })) }
+        _state.update { current ->
+            val options = current.options.copy(
+                pages = normalisePageSelection(value).trim().ifBlank { null }
+            )
+            withDerived(current.copy(options = options))
+        }
     }
 
     fun convert() {
@@ -188,6 +224,16 @@ class WorkbenchViewModel : ViewModel() {
 
     fun cancelConversion() {
         queue.cancelAll()
+    }
+
+    /** Starts the optional OCR pack download from the workbench hint. */
+    fun installOcrPack() {
+        Repo.packDownloads.start(ModelPacks.OCR_PACK_ID)
+    }
+
+    /** Cancels the OCR pack download; downloaded bytes stay on disk for a resume. */
+    fun cancelOcrPackDownload() {
+        Repo.packDownloads.cancel()
     }
 
     fun clearProgress() {
@@ -226,7 +272,19 @@ class WorkbenchViewModel : ViewModel() {
             val message = when {
                 cancelled -> context.getString(R.string.workbench_cancelled)
                 failed == 0 -> context.getString(R.string.workbench_all_done)
-                else -> context.getString(R.string.workbench_conversion_summary, done, failed)
+                else -> {
+                    val doneText = context.resources.getQuantityString(
+                        R.plurals.workbench_summary_done,
+                        done,
+                        done
+                    )
+                    val failedText = context.resources.getQuantityString(
+                        R.plurals.workbench_summary_failed,
+                        failed,
+                        failed
+                    )
+                    context.getString(R.string.workbench_summary, doneText, failedText)
+                }
             }
             _messages.tryEmit(message)
         }
@@ -247,6 +305,9 @@ class WorkbenchViewModel : ViewModel() {
         val showOcrHint = !ocrInstalled && state.files.any { file ->
             file.format.category == FormatCategory.IMAGE || file.format.category == FormatCategory.PDF
         }
+        val pagesError = showPages && state.options.pages?.let { pages ->
+            runCatching { parsePageSpans(pages) }.isFailure
+        } == true
         val defaults = ConversionOptions()
         var options = state.options
         if (!showQuality && options.quality != defaults.quality) {
@@ -265,8 +326,29 @@ class WorkbenchViewModel : ViewModel() {
             showQuality = showQuality,
             showBitrate = showBitrate,
             showPages = showPages,
-            showOcrHint = showOcrHint
+            showOcrHint = showOcrHint,
+            ocrPackInstalled = ocrInstalled,
+            ocrPackState = Repo.packDownloads.stateOf(ModelPacks.OCR_PACK_ID),
+            pagesError = pagesError
         )
+    }
+
+    /**
+     * Accepts Arabic punctuation and Arabic-Indic digits in the pages field, so "\u0661-\u0663\u060C \u0665"
+     * becomes "1-3, 5" before it reaches the converters, which only understand ASCII digits.
+     */
+    private fun normalisePageSelection(raw: String): String = buildString(raw.length) {
+        for (char in raw) {
+            append(
+                when (char) {
+                    in '\u0660'..'\u0669' -> '0' + (char - '\u0660')
+                    in '\u06F0'..'\u06F9' -> '0' + (char - '\u06F0')
+                    '\u060C', '\u066C', '\u061B' -> ','
+                    '\u2013', '\u2014', '\u2212' -> '-'
+                    else -> char
+                }
+            )
+        }
     }
 
     /**

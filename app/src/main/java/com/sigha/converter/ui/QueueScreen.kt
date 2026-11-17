@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,6 +46,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -95,9 +96,7 @@ fun QueueScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         bottomBar = {
             if (active.isNotEmpty()) {
                 Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding(),
+                    modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 12.dp
                 ) {
@@ -175,6 +174,9 @@ private fun QueueRow(entry: QueueEntry, showMessage: (String) -> Unit) {
     val fromFormat = AppGraph.formats.get(entry.fromId)
     val toFormat = AppGraph.formats.get(entry.toId)
     val mime = toFormat?.mimeOrDefault() ?: "*/*"
+    val fromLabel = fromFormat?.label ?: entry.fromId
+    val toLabel = toFormat?.label ?: entry.toId
+    val routeDescription = stringResource(R.string.ui_conversion_from_to, fromLabel, toLabel)
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -212,6 +214,7 @@ private fun QueueRow(entry: QueueEntry, showMessage: (String) -> Unit) {
                     )
                     Spacer(Modifier.height(6.dp))
                     Row(
+                        modifier = Modifier.semantics { contentDescription = routeDescription },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
@@ -262,12 +265,14 @@ private fun QueueRow(entry: QueueEntry, showMessage: (String) -> Unit) {
                     }
                 }
             }
-            if (!entry.note.isNullOrBlank()) {
-                Text(
-                    text = stringResource(R.string.ui_note_label, entry.note.orEmpty()),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            entry.note?.let { note ->
+                noteText(note)?.let { body ->
+                    Text(
+                        text = stringResource(R.string.ui_note_label, body),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
             val output = entry.outputUri
             if (entry.status == QueueStatus.DONE && output != null) {

@@ -6,6 +6,7 @@ import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
 import com.sigha.converter.core.Converter
 import com.sigha.converter.core.FileFormat
+import com.sigha.converter.core.Note
 import com.sigha.converter.engine.text.EngineFormats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -66,7 +67,7 @@ private class ZipToTarGz : Converter {
                 request.onProgress(1f)
                 ConversionResult(
                     listOf(request.outputFile),
-                    "The .gz output is a gzip-compressed tar archive (.tar.gz)."
+                    Note.TarGzOutput
                 )
             } catch (error: IOException) {
                 throw ConversionException("The ZIP archive could not be converted.", error)
@@ -219,7 +220,7 @@ private class TarGzToZip : Converter {
                     )
                 }
                 request.onProgress(1f)
-                ConversionResult(listOf(request.outputFile), stats.note())
+                ConversionResult(listOf(request.outputFile), stats.toNote())
             } finally {
                 ArchiveIo.deleteQuietly(temp)
             }
@@ -418,13 +419,12 @@ private class SevenZipToZip : Converter {
         return SevenZipScan(count, total)
     }
 
-    private fun buildNote(duplicates: Int, skipped: Int): String? {
-        if (duplicates == 0 && skipped == 0) return null
-        val parts = ArrayList<String>(2)
-        if (duplicates > 0) parts.add(duplicates.toString() + " duplicate entries were skipped")
-        if (skipped > 0) parts.add(skipped.toString() + " deleted entries were skipped")
-        return parts.joinToString("; ") + "."
-    }
+    private fun buildNote(duplicates: Int, skipped: Int): Note? = Note.combine(
+        listOf(
+            duplicates.takeIf { it > 0 }?.let(Note::ArchiveDuplicates),
+            skipped.takeIf { it > 0 }?.let(Note::ArchiveDeletedEntries)
+        )
+    )
 }
 
 private fun copyFully(
@@ -450,13 +450,10 @@ private fun copyFully(
 private data class SevenZipScan(val entries: Int, val totalBytes: Long)
 
 private data class TarStats(val entries: Int, val duplicates: Int, val links: Int) {
-    fun note(): String? = when {
-        duplicates == 0 && links == 0 -> null
-        else -> buildString {
-            if (duplicates > 0) append(duplicates).append(" duplicate entries were skipped")
-            if (duplicates > 0 && links > 0) append("; ")
-            if (links > 0) append(links).append(" symbolic links were skipped")
-            append('.')
-        }
-    }
+    fun toNote(): Note? = Note.combine(
+        listOf(
+            duplicates.takeIf { it > 0 }?.let(Note::ArchiveDuplicates),
+            links.takeIf { it > 0 }?.let(Note::ArchiveSymlinks)
+        )
+    )
 }

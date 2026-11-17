@@ -1,4 +1,4 @@
-# Permissions rationale — Sigha 0.2.0
+# Permissions rationale — Sigha 0.2.1
 
 Every permission Sigha requests, why it exists, what happens when the user or the OS withholds it,
 and what the app deliberately does **not** request. Checked against
@@ -61,7 +61,7 @@ same change — otherwise the listing review can truthfully be called deceptive.
 - **Reason:** conversions are CPU/IO-heavy and can take minutes (video, large PDFs). Without a
   foreground service Android would kill the batch shortly after the app is backgrounded. The
   service is user-started, short-lived (it stops when the queue is idle) and shows progress.
-- **Type:** `dataSync` in `0.2.0` (short, user-initiated file processing with a visible
+- **Type:** `dataSync` in `0.2.x` (short, user-initiated file processing with a visible
   notification). Android 15 limits `dataSync` runs to 6 hours per 24 hours; a batch is expected to
   finish far sooner, and the service stops when the queue empties.
 - **Policy risk to resolve before production:** Google Play and Android 15/16 define a
@@ -113,7 +113,7 @@ notes for the release commit (open item for the build workstream).
 | Not requested | Why not |
 |---|---|
 | `READ_EXTERNAL_STORAGE` / `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` / `READ_MEDIA_AUDIO` | Files are chosen by the user through SAF or shared in; the app reads only what the user selected, through the returned content URI grant. |
-| `CAMERA` | No camera capture in `0.2.0`. Scanning is a roadmap outcome (see `PRODUCT.md`); if it ships, the camera permission and its Play declaration are a separate, visible product decision. |
+| `CAMERA` | No camera capture in `0.2.x`. Scanning is a roadmap outcome (see `PRODUCT.md`); if it ships, the camera permission and its Play declaration are a separate, visible product decision. |
 | `RECORD_AUDIO`, `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION` | No feature needs them. |
 | `MANAGE_EXTERNAL_STORAGE` | Restricted Play permission; unnecessary for a SAF app. |
 | `QUERY_ALL_PACKAGES` | No package enumeration; share/Open-with intents use standard `<intent-filter>` matching. |

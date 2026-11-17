@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!--
+      سياسة الأرقام: تُستخدم الأرقام اللاتينية (0-9) داخل النصوص العربية في كل التطبيق،
+      اتساقًا مع بقية الشاشات ولتبقى قابلة للقراءة في الاتجاهين.
+      لا تُستخدم الأرقام الهندية-العربية (٠-٩).
+    -->
+
     <!-- التطبيق -->
     <string name="app_name">صيغة</string>
     <string name="app_tagline">حوّل على هاتفك. لا تُرفَع ملفاتك.</string>
@@ -40,7 +46,14 @@
     <string name="workbench_empty_title">ملفاتك، تُحوَّل على هذا الهاتف</string>
     <string name="workbench_empty_body">أضف صورًا وملفات PDF ووسائط وأرشيفات والمزيد. لا يُرفع أي شيء — كل شيء يحدث على جهازك.</string>
     <string name="workbench_empty_supported">الصور · PDF · المستندات · الصوت · الفيديو · الأرشيف</string>
-    <string name="workbench_files_count">%1$d محددة</string>
+    <plurals name="workbench_files_count">
+        <item quantity="zero">لم تُحدَّد ملفات</item>
+        <item quantity="one">ملف واحد محدد</item>
+        <item quantity="two">ملفان محددان</item>
+        <item quantity="few">%1$d ملفات محددة</item>
+        <item quantity="many">%1$d ملفًا محددًا</item>
+        <item quantity="other">%1$d ملف محدد</item>
+    </plurals>
     <string name="workbench_clear_selection">مسح الاختيار</string>
     <string name="workbench_selected_section">الملفات المحددة</string>
     <string name="workbench_add_more">إضافة المزيد</string>
@@ -56,8 +69,16 @@
     <string name="option_pages">صفحات PDF</string>
     <string name="option_pages_hint">مثال: 1-3، 5</string>
     <string name="option_pages_helper">اتركه فارغًا لتحويل كل الصفحات.</string>
+    <string name="option_pages_error">أدخل أرقام صفحات مثل 1-3 أو 5، 8.</string>
     <string name="workbench_convert">تحويل</string>
-    <string name="workbench_convert_files">تحويل %1$d ملفات</string>
+    <plurals name="workbench_convert_files">
+        <item quantity="zero">لا ملفات للتحويل</item>
+        <item quantity="one">حوّل ملفًا واحدًا</item>
+        <item quantity="two">حوّل ملفين</item>
+        <item quantity="few">حوّل %1$d ملفات</item>
+        <item quantity="many">حوّل %1$d ملفًا</item>
+        <item quantity="other">حوّل %1$d ملف</item>
+    </plurals>
     <string name="workbench_converting">جارٍ التحويل…</string>
     <string name="workbench_progress_title">التقدّم</string>
     <string name="workbench_open_queue">عرض النتائج</string>
@@ -65,10 +86,37 @@
     <string name="workbench_unsupported">ملف غير مدعوم: %1$s</string>
     <string name="workbench_storage_permission_message">اسمح بالوصول إلى التخزين ليتم حفظ الملفات المحوّلة في التنزيلات.</string>
     <string name="workbench_storage_permission_denied">رُفض الوصول إلى التخزين، لذا لا يمكن حفظ الملفات في التنزيلات.</string>
-    <string name="workbench_conversion_summary">%1$d نُجحت · %2$d فشلت</string>
+    <!-- العدّان صيغتان منفصلتان؛ workbench_summary يجمع العبارتين. -->
+    <string name="workbench_summary">%1$s · %2$s</string>
+    <plurals name="workbench_summary_done">
+        <item quantity="zero">لم يُحوَّل أي ملف</item>
+        <item quantity="one">حُوِّل ملف واحد</item>
+        <item quantity="two">حُوِّل ملفان</item>
+        <item quantity="few">حُوِّل %1$d ملفات</item>
+        <item quantity="many">حُوِّل %1$d ملفًا</item>
+        <item quantity="other">حُوِّل %1$d ملف</item>
+    </plurals>
+    <plurals name="workbench_summary_failed">
+        <item quantity="zero">لم يفشل أي ملف</item>
+        <item quantity="one">فشل ملف واحد</item>
+        <item quantity="two">فشل ملفان</item>
+        <item quantity="few">فشل %1$d ملفات</item>
+        <item quantity="many">فشل %1$d ملفًا</item>
+        <item quantity="other">فشل %1$d ملف</item>
+    </plurals>
+    <plurals name="workbench_files_added">
+        <item quantity="zero">لم تُضَف ملفات</item>
+        <item quantity="one">أُضيف ملف واحد</item>
+        <item quantity="two">أُضيف ملفان</item>
+        <item quantity="few">أُضيفت %1$d ملفات</item>
+        <item quantity="many">أُضيف %1$d ملفًا</item>
+        <item quantity="other">أُضيف %1$d ملف</item>
+    </plurals>
     <string name="workbench_all_done">اكتمل تحويل جميع الملفات</string>
     <string name="workbench_cancelled">أُلغي التحويل</string>
     <string name="workbench_no_target_selected">اختر صيغة الهدف أولًا.</string>
+    <string name="workbench_ocr_install">ثبّت حزمة OCR (%1$s)</string>
+    <string name="workbench_ocr_installing">جارٍ تثبيت حزمة OCR…</string>
 
     <!-- قائمة الانتظار -->
     <string name="queue_title">قائمة الانتظار</string>
@@ -90,7 +138,14 @@
     <!-- السجل -->
     <string name="history_title">السجل</string>
     <string name="history_empty_title">لا تحويلات بعد</string>
-    <string name="history_empty_body">تظهر هنا آخر 50 عملية تحويل. تبقى الملفات على جهازك.</string>
+    <plurals name="history_empty_body">
+        <item quantity="zero">لا تحويلات بعد. تبقى الملفات على جهازك.</item>
+        <item quantity="one">يظهر هنا آخر تحويل واحد. تبقى الملفات على جهازك.</item>
+        <item quantity="two">يظهر هنا آخر تحويلين. تبقى الملفات على جهازك.</item>
+        <item quantity="few">تظهر هنا آخر %1$d تحويلات. تبقى الملفات على جهازك.</item>
+        <item quantity="many">يظهر هنا آخر %1$d تحويلًا. تبقى الملفات على جهازك.</item>
+        <item quantity="other">يظهر هنا آخر %1$d تحويل. تبقى الملفات على جهازك.</item>
+    </plurals>
     <string name="history_clear_title">مسح السجل؟</string>
     <string name="history_clear_body">سيمسح هذا القائمة فقط. الملفات المحوّلة تبقى في التخزين.</string>
     <string name="history_cleared">مُسح السجل</string>
@@ -156,6 +211,9 @@
     <string name="model_packs_license">الترخيص: %1$s</string>
     <string name="model_packs_license_unknown">ترخيص غير معروف</string>
     <string name="model_packs_no_packs">لا توجد حزم نماذج متاحة بعد.</string>
+    <!-- نص الحزمة يُحلّ من معرّفها (PackCatalog.titleRes/descriptionRes). -->
+    <string name="pack_ocr_title">OCR: الإنجليزية + العربية</string>
+    <string name="pack_ocr_description">يقرأ النص من الصور وملفات PDF الممسوحة بالإنجليزية والعربية. يُنزَّل مرة واحدة ثم لا يحتاج إلى اتصال.</string>
     <string name="model_packs_upscale_title">تكبير بالذكاء الاصطناعي</string>
     <string name="model_packs_upscale_coming_soon">غير متاح بعد</string>
     <string name="model_packs_upscale_body">حِدّة وتكبير للصور على الجهاز بنموذج صغير. ليس جزءًا من هذا الإصدار بعد.</string>

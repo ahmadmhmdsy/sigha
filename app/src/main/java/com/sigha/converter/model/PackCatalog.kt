@@ -1,5 +1,7 @@
 package com.sigha.converter.model
 
+import com.sigha.converter.R
+
 /**
  * Every pack the app can download. Nothing is fetched until the user taps Download.
  *
@@ -29,9 +31,8 @@ object PackCatalog {
 
     val OCR = ModelPack(
         id = ModelPacks.OCR_PACK_ID,
-        title = "OCR: English + Arabic",
-        description = "Reads text from photos and scanned PDFs in English and Arabic. " +
-            "Downloads once, then needs no network.",
+        titleRes = R.string.pack_ocr_title,
+        descriptionRes = R.string.pack_ocr_description,
         license = "Apache-2.0",
         licenseUrl = "https://github.com/tesseract-ocr/tessdata_best/blob/main/LICENSE",
         files = listOf(ENG, ARA),

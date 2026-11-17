@@ -1,11 +1,14 @@
 package com.sigha.converter.model
 
+import com.sigha.converter.core.Note
+
 /**
  * Turns the optional "pages" conversion option into the list of PDF pages to OCR.
  *
  * Users may type "1-5", "3" or "1-5,8". Unparseable input falls back to the default window,
  * while a valid range that lies outside the document selects nothing - both cases say so in
- * the note, so a typo never silently reads a different page.
+ * the typed [Note], so a typo never silently reads a different page. The engine never writes
+ * user-facing text; the UI localizes the note.
  */
 object OcrPageRange {
 
@@ -15,8 +18,8 @@ object OcrPageRange {
     /** Absolute ceiling, even for an explicit selection. */
     const val HARD_MAX_PAGES: Int = 500
 
-    /** [pages] are 1-based; [note] is user-facing and null when nothing was skipped. */
-    data class Selection(val pages: List<Int> = emptyList(), val note: String? = null)
+    /** [pages] are 1-based; [note] explains a skipped window and is null when nothing was skipped. */
+    data class Selection(val pages: List<Int> = emptyList(), val note: Note? = null)
 
     fun select(
         spec: String?,
@@ -29,7 +32,7 @@ object OcrPageRange {
             return Selection(
                 pages = (1..max).toList(),
                 note = if (pageCount > max) {
-                    "Only the first $max of $pageCount pages were read."
+                    Note.PagesLimited(read = max, total = pageCount)
                 } else {
                     null
                 }
@@ -40,19 +43,19 @@ object OcrPageRange {
             val max = defaultMax.coerceIn(1, pageCount)
             return Selection(
                 pages = (1..max).toList(),
-                note = "The page range was not understood. The first $max pages were read."
+                note = Note.PagesUnparsed(read = max)
             )
         }
         if (requested.isEmpty()) {
             return Selection(
                 pages = emptyList(),
-                note = "None of the selected pages exist in this PDF."
+                note = Note.PagesMissing
             )
         }
         if (requested.size > HARD_MAX_PAGES) {
             return Selection(
                 pages = requested.take(HARD_MAX_PAGES),
-                note = "Only the first $HARD_MAX_PAGES selected pages were read."
+                note = Note.PagesCapped(read = HARD_MAX_PAGES)
             )
         }
         return Selection(requested)

@@ -10,6 +10,7 @@ import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.ConversionOptions
 import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.FileFormat
+import com.sigha.converter.core.Note
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -27,8 +28,8 @@ import kotlin.coroutines.coroutineContext
  * One item never throws for conversion failures - it returns a failed [ConversionItemResult]
  * so the queue can keep going with the remaining files. Coroutine cancellation is honoured.
  *
- * The result carries the engine's informational note and a language-independent failure kind,
- * so the UI can show a localized headline and keep the English diagnostic as details.
+ * The result carries the engine's typed informational [Note] and a language-independent
+ * failure kind, so the UI can show localized text and keep the English diagnostic as details.
  */
 class ConversionRunner(
     private val context: Context,
@@ -65,7 +66,7 @@ class ConversionRunner(
             var currentUri: Uri = input.uri
             var currentFormat: FileFormat = input.format
             var finalFiles: List<File> = emptyList()
-            val notes = ArrayList<String>()
+            val notes = ArrayList<Note>()
 
             for ((index, converter) in route.withIndex()) {
                 coroutineContext.ensureActive()
@@ -99,7 +100,7 @@ class ConversionRunner(
                 )
                 val produced = try {
                     val result = converter.convert(request)
-                    result.note?.takeIf { it.isNotBlank() }?.let { note -> notes += note }
+                    result.note?.let { note -> notes += note }
                     result.outputs.filter { it.isFile && it.length() > 0L }
                 } catch (cancelled: CancellationException) {
                     throw cancelled
@@ -134,7 +135,7 @@ class ConversionRunner(
                     if (publisher.hasWriteAccess(target0)) {
                         target0
                     } else {
-                        notes += context.getString(R.string.ui_note_output_folder_fallback)
+                        notes += Note.FolderFallback
                         PublishTarget.Downloads
                     }
                 }
@@ -155,7 +156,7 @@ class ConversionRunner(
                 success = true,
                 outputs = published,
                 errorMessage = null,
-                note = notes.distinct().joinToString(" ").takeIf { it.isNotBlank() },
+                note = Note.combine(notes),
                 durationMs = SystemClock.elapsedRealtime() - startedAt
             )
         } catch (cancelled: CancellationException) {

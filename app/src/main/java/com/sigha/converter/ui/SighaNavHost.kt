@@ -1,17 +1,25 @@
 package com.sigha.converter.ui
 
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -36,7 +44,13 @@ private object Routes {
 
 private val TOP_LEVEL_ROUTES = setOf(Routes.WORKBENCH, Routes.HISTORY, Routes.SETTINGS)
 
-/** Bottom navigation with the three main tabs; sub-screens push on top and keep it hidden. */
+/**
+ * Single owner of the window: this is the only composable that knows about the system
+ * bars and the keyboard. Screens keep their own Scaffold/TopAppBar (so they own the top
+ * inset and their snackbar hosts), while this root supplies the bottom-bar slot height,
+ * the horizontal safe area (landscape 3-button nav, cutout), the bottom safe area when
+ * the bottom bar is hidden (gesture pill / 3-button nav), and IME avoidance.
+ */
 @Composable
 fun SighaNavHost(workbenchViewModel: WorkbenchViewModel, modifier: Modifier = Modifier) {
     val navController = rememberNavController()
@@ -44,12 +58,26 @@ fun SighaNavHost(workbenchViewModel: WorkbenchViewModel, modifier: Modifier = Mo
     val currentRoute = backStackEntry?.destination?.route
     val showBottomBar = currentRoute == null || currentRoute in TOP_LEVEL_ROUTES
 
+    // A share from another app is added to the workbench ViewModel while the user may be on
+    // any other tab or sub-screen; bring the workbench forward so the files are visible
+    // instead of silently landing behind the current screen.
+    LaunchedEffect(workbenchViewModel) {
+        workbenchViewModel.openWorkbench.collect {
+            if (navController.currentBackStackEntry?.destination?.route != Routes.WORKBENCH) {
+                navController.navigate(Routes.WORKBENCH) {
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        }
+    }
+
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize().imePadding(),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar {
+                NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                     NavigationBarItem(
                         selected = currentRoute == Routes.WORKBENCH,
                         onClick = { navigateTopLevel(navController, Routes.WORKBENCH) },
@@ -87,10 +115,27 @@ fun SighaNavHost(workbenchViewModel: WorkbenchViewModel, modifier: Modifier = Mo
             }
         }
     ) { innerPadding ->
+        // Screens own the top inset via their TopAppBar; the NavHost only carries the
+        // bottom-bar slot height, the horizontal safe area, and the bottom safe area when
+        // no bar is showing. Insets consumed here are removed for descendants, so screens
+        // that still call navigationBarsPadding() become no-ops instead of double-padding.
+        val navHostModifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = innerPadding.calculateBottomPadding())
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+            .then(
+                if (showBottomBar) {
+                    Modifier
+                } else {
+                    Modifier.windowInsetsPadding(
+                        WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
+                    )
+                }
+            )
         NavHost(
             navController = navController,
             startDestination = Routes.WORKBENCH,
-            modifier = Modifier.padding(innerPadding)
+            modifier = navHostModifier
         ) {
             composable(Routes.WORKBENCH) {
                 WorkbenchScreen(

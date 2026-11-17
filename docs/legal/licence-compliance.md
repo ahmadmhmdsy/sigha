@@ -1,7 +1,7 @@
-# Licence compliance record — Sigha 0.2.0 (build 2)
+# Licence compliance record — Sigha 0.2.1 (build 3)
 
 **Created:** 2026-11-17 · **Owner:** policy-guardian (WS4) · **Status:** working compliance record, not a legal opinion.
-**Scope:** the APK distributed with package `com.sigha.converter`, versionName 0.2.0 / versionCode 2, all ABIs (arm64-v8a, x86_64, universal). It records what is satisfied today, what becomes satisfied only after a publisher action, and what is unresolved. Counsel sign-off is blocker **B7** in [docs/legal/release-blockers.md](release-blockers.md).
+**Scope:** the APK distributed with package `com.sigha.converter`, versionName 0.2.1 / versionCode 3, all ABIs (arm64-v8a, x86_64, universal). The dependency set and shipped licence texts are identical to the 0.2.0 (build 2) record; the 0.2.1 pass changed app code and UI resources only, added no library, and added one app asset (`assets/legal/privacy-policy.ar.md`, first-party text). It records what is satisfied today, what becomes satisfied only after a publisher action, and what is unresolved. Counsel sign-off is blocker **B7** in [docs/legal/release-blockers.md](release-blockers.md).
 
 **Companion files**
 - `NOTICE.md` — published notices; shipped byte-identical as `app/src/main/assets/licenses/THIRD-PARTY-NOTICES.txt` and shown in **Settings → Licenses → Full third-party notices** (SHA-256 equality verified, see §7).

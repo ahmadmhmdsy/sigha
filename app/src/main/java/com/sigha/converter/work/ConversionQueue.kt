@@ -6,6 +6,7 @@ import com.sigha.converter.R
 import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.ConversionOptions
 import com.sigha.converter.core.FileFormat
+import com.sigha.converter.core.Note
 import com.sigha.converter.data.AppScope
 import com.sigha.converter.data.AppSettings
 import com.sigha.converter.data.ConversionInput
@@ -46,8 +47,8 @@ data class QueueEntry(
     val errorMessage: String? = null,
     /** Drives the localized failure headline. */
     val errorKind: ConversionFailureKind = ConversionFailureKind.UNKNOWN,
-    /** Engine note (page cap, OCR fallback, truncation, ...). */
-    val note: String? = null,
+    /** Typed engine note (page cap, OCR fallback, truncation, ...); the UI localizes it. */
+    val note: Note? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val finishedAt: Long? = null
 )

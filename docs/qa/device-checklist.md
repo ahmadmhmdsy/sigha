@@ -1,4 +1,4 @@
-# Sigha — physical-device QA checklist (0.2.0)
+# Sigha — physical-device QA checklist (0.2.1)
 
 The automated gate (`scripts/verify.ps1` + `scripts/device-smoke.ps1`) proves the build, the
 tests, packaging, signing and a crash-free cold start on an emulator. It cannot prove that real

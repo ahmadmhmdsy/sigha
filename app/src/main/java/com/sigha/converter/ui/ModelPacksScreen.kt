@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -119,7 +118,13 @@ fun ModelPacksScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
             title = { Text(stringResource(R.string.ui_pack_download_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.ui_pack_download_body, pack.title, size))
+                    Text(
+                        stringResource(
+                            R.string.ui_pack_download_body,
+                            stringResource(pack.titleRes),
+                            size
+                        )
+                    )
                     if (metered) {
                         Text(
                             text = stringResource(R.string.ui_pack_metered_note, size),
@@ -166,8 +171,7 @@ fun ModelPacksScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .navigationBarsPadding(),
+                .padding(innerPadding),
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -275,11 +279,11 @@ private fun PackRow(
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = pack.title,
+                    text = stringResource(pack.titleRes),
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = pack.description,
+                    text = stringResource(pack.descriptionRes),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -354,9 +358,9 @@ private fun InstalledPill() {
     Text(
         text = stringResource(R.string.model_packs_installed),
         style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape)
+            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
             .padding(horizontal = 10.dp, vertical = 3.dp)
     )
 }
@@ -374,9 +378,9 @@ private fun UpscaleCard() {
                 Text(
                     text = stringResource(R.string.model_packs_upscale_coming_soon),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier
-                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f), CircleShape)
+                        .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape)
                         .padding(horizontal = 10.dp, vertical = 3.dp)
                 )
             }

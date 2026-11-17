@@ -1,7 +1,7 @@
 package com.sigha.converter.model
 
+import com.sigha.converter.core.Note
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -12,7 +12,7 @@ class OcrPageRangeTest {
     fun noSpecReadsTheDefaultWindow() {
         val selection = OcrPageRange.select(null, 120)
         assertEquals((1..50).toList(), selection.pages)
-        assertNotNull(selection.note)
+        assertTrue(selection.note is Note.PagesLimited)
 
         val short = OcrPageRange.select(null, 10)
         assertEquals((1..10).toList(), short.pages)
@@ -36,15 +36,14 @@ class OcrPageRangeTest {
     fun aRangePastTheEndSelectsNothingWithAnExplanation() {
         val selection = OcrPageRange.select("20-30", 10)
         assertTrue(selection.pages.isEmpty())
-        assertNotNull(selection.note)
+        assertTrue(selection.note is Note.PagesMissing)
     }
 
     @Test
     fun unparseableInputFallsBackToTheDefaultWindow() {
         val selection = OcrPageRange.select("abc", 10)
         assertEquals((1..10).toList(), selection.pages)
-        assertNotNull(selection.note)
-        assertTrue(selection.note!!.contains("not understood"))
+        assertTrue(selection.note is Note.PagesUnparsed)
     }
 
     @Test
@@ -53,7 +52,7 @@ class OcrPageRangeTest {
         assertEquals(OcrPageRange.HARD_MAX_PAGES, selection.pages.size)
         assertEquals(1, selection.pages.first())
         assertEquals(OcrPageRange.HARD_MAX_PAGES, selection.pages.last())
-        assertNotNull(selection.note)
+        assertTrue(selection.note is Note.PagesCapped)
     }
 
     @Test

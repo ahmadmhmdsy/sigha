@@ -37,6 +37,11 @@ class PackCatalogTest {
             assertEquals(pack.files.sumOf { it.sizeBytes }, pack.sizeBytes)
             assertEquals(pack.sizeBytes, pack.info().sizeBytes)
             assertTrue(pack.sizeBytes > 0L)
+            // Pack copy ships as resources so both app languages are covered.
+            assertTrue(pack.titleRes != 0)
+            assertTrue(pack.descriptionRes != 0)
+            assertEquals(pack.titleRes, pack.info().titleRes)
+            assertEquals(pack.descriptionRes, pack.info().descriptionRes)
         }
     }
 

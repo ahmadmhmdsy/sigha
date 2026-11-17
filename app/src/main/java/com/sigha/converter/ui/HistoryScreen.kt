@@ -2,6 +2,8 @@ package com.sigha.converter.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,13 +41,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sigha.converter.AppGraph
 import com.sigha.converter.R
 import com.sigha.converter.core.ConversionFailureKind
+import com.sigha.converter.data.HistoryCodec
 import com.sigha.converter.data.HistoryEntry
 import com.sigha.converter.data.Repo
 import com.sigha.converter.ui.components.ConfirmDialog
@@ -97,7 +103,11 @@ fun HistoryScreen(modifier: Modifier = Modifier) {
                 EmptyState(
                     icon = Icons.Outlined.History,
                     title = stringResource(R.string.history_empty_title),
-                    body = stringResource(R.string.history_empty_body)
+                    body = pluralStringResource(
+                        R.plurals.history_empty_body,
+                        HistoryCodec.MAX_ENTRIES,
+                        HistoryCodec.MAX_ENTRIES
+                    )
                 )
             }
         } else {
@@ -157,13 +167,16 @@ fun HistoryScreen(modifier: Modifier = Modifier) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun HistoryRow(entry: HistoryEntry, onOpen: () -> Unit, onShare: () -> Unit) {
     val context = LocalContext.current
     val toFormat = AppGraph.formats.get(entry.toId)
     val fromFormat = AppGraph.formats.get(entry.fromId)
     val accent = if (entry.success) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
+    val fromLabel = fromFormat?.label ?: entry.fromId
+    val toLabel = toFormat?.label ?: entry.toId
+    val routeDescription = stringResource(R.string.ui_conversion_from_to, fromLabel, toLabel)
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -199,6 +212,7 @@ private fun HistoryRow(entry: HistoryEntry, onOpen: () -> Unit, onShare: () -> U
                 )
                 Spacer(Modifier.height(6.dp))
                 Row(
+                    modifier = Modifier.semantics { contentDescription = routeDescription },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
@@ -212,9 +226,11 @@ private fun HistoryRow(entry: HistoryEntry, onOpen: () -> Unit, onShare: () -> U
                     toFormat?.let { FormatBadge(format = it) }
                 }
                 Spacer(Modifier.height(4.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                // FlowRow keeps the date and the size atomic: Arabic needs a second line for
+                // the size instead of splitting "10 كيلوبايت" across the wrap.
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     Text(
                         text = formatDateTime(entry.timestamp),
@@ -229,13 +245,14 @@ private fun HistoryRow(entry: HistoryEntry, onOpen: () -> Unit, onShare: () -> U
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    if (!entry.success) {
-                        Text(
-                            text = stringResource(R.string.history_failed),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
+                }
+                if (!entry.success) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = stringResource(R.string.history_failed),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
                 if (!entry.success) {
                     val kind = entry.errorKind
@@ -245,20 +262,19 @@ private fun HistoryRow(entry: HistoryEntry, onOpen: () -> Unit, onShare: () -> U
                     Text(
                         text = stringResource(kind.headlineRes()),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
-                if (!entry.note.isNullOrBlank()) {
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = stringResource(R.string.ui_note_label, entry.note.orEmpty()),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                entry.note?.let { note ->
+                    val body = noteText(note)
+                    if (body != null) {
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.ui_note_label, body),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
             if (entry.success) {

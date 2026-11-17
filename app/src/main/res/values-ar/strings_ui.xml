@@ -12,9 +12,109 @@
     <string name="ui_details_show">إظهار التفاصيل التقنية</string>
     <string name="ui_details_hide">إخفاء التفاصيل التقنية</string>
     <string name="ui_note_label">ملاحظة: %1$s</string>
+    <string name="ui_conversion_from_to">%1$s إلى %2$s</string>
 
     <!-- Notes and queue messages -->
     <string name="ui_note_output_folder_fallback">حُفظ في التنزيلات لأن المجلد المختار لم يعد متاحًا.</string>
+
+    <!-- ملاحظات المحرّكات بعد تعريبها؛ الحقائق في core/Notes.kt والصياغة في ui/NoteUi.kt. -->
+    <string name="note_pages_missing">لا توجد أي صفحة من الصفحات المحددة في ملف PDF هذا.</string>
+    <string name="note_software_encoder">تعذّر ترميز الفيديو بالعتاد، لذا استُخدم المُرمِّز البرمجي.</string>
+    <string name="note_tar_gz_output">ملف .gz الناتج هو أرشيف tar مضغوط بـ gzip ‏(.tar.gz).</string>
+    <string name="note_office_text_only">لم تُصدَّر الجداول والصور؛ النص فقط.</string>
+    <string name="note_office_images_omitted">لم تُعرض الصور والجداول؛ احتُفظ بالعناوين والقوائم.</string>
+    <string name="note_office_simple_table">جدول نصي مبسّط؛ لم تُعرض الأنماط والمعادلات والصور.</string>
+    <string name="note_pptx_text_only">نص الشرائح فقط؛ لم تُصدَّر الصور والملاحظات والتنسيق.</string>
+    <string name="note_first_sheet_only">صُدِّر أول ورقة عمل فقط.</string>
+    <string name="note_displayed_cell_text">قيم الخلايا هي النص المعروض.</string>
+    <string name="note_dates_as_serial">تبقى التواريخ أرقامًا تسلسلية في Excel.</string>
+    <string name="note_markdown_simplified">يُبسَّط Markdown في ملف PDF؛ حُذفت الصور وHTML الخام.</string>
+    <string name="note_ocr_fallback">لم توجد طبقة نصية، لذا استُخدم OCR.</string>
+    <plurals name="note_pages_limited">
+        <item quantity="zero">لم تُقرأ أي صفحة.</item>
+        <item quantity="one">قُرئت الصفحة الأولى من أصل صفحة واحدة.</item>
+        <item quantity="two">قُرئت أول صفحة من أصل صفحتين.</item>
+        <item quantity="few">قُرئت أول %1$d صفحات من أصل %2$d.</item>
+        <item quantity="many">قُرئت أول %1$d صفحة من أصل %2$d.</item>
+        <item quantity="other">قُرئت أول %1$d صفحة من أصل %2$d.</item>
+    </plurals>
+    <plurals name="note_pages_unparsed">
+        <item quantity="zero">لم يُفهم نطاق الصفحات، ولم تُقرأ أي صفحة.</item>
+        <item quantity="one">لم يُفهم نطاق الصفحات. قُرئت الصفحة الأولى فقط.</item>
+        <item quantity="two">لم يُفهم نطاق الصفحات. قُرئت أول صفحتين فقط.</item>
+        <item quantity="few">لم يُفهم نطاق الصفحات. قُرئت أول %1$d صفحات فقط.</item>
+        <item quantity="many">لم يُفهم نطاق الصفحات. قُرئت أول %1$d صفحة فقط.</item>
+        <item quantity="other">لم يُفهم نطاق الصفحات. قُرئت أول %1$d صفحة فقط.</item>
+    </plurals>
+    <plurals name="note_pages_capped">
+        <item quantity="zero">لم تُقرأ أي صفحة من الصفحات المحددة.</item>
+        <item quantity="one">قُرئت أول صفحة محددة فقط.</item>
+        <item quantity="two">قُرئت أول صفحتين محددتين فقط.</item>
+        <item quantity="few">قُرئت أول %1$d صفحات محددة فقط.</item>
+        <item quantity="many">قُرئت أول %1$d صفحة محددة فقط.</item>
+        <item quantity="other">قُرئت أول %1$d صفحة محددة فقط.</item>
+    </plurals>
+    <plurals name="note_text_truncated">
+        <item quantity="zero">لم يُصدَّر أي سطر.</item>
+        <item quantity="one">صُدِّر السطر الأول فقط.</item>
+        <item quantity="two">صُدِّر أول سطرين فقط.</item>
+        <item quantity="few">صُدِّرت أول %1$d أسطر فقط.</item>
+        <item quantity="many">صُدِّر أول %1$d سطرًا فقط.</item>
+        <item quantity="other">صُدِّر أول %1$d سطر فقط.</item>
+    </plurals>
+    <plurals name="note_gif_trimmed">
+        <item quantity="zero">لا يوجد حد زمني لمقاطع GIF.</item>
+        <item quantity="one">مقاطع GIF محدودة بثانية واحدة، لذا يُتخطّى باقي الفيديو.</item>
+        <item quantity="two">مقاطع GIF محدودة بثانيتين، لذا يُتخطّى باقي الفيديو.</item>
+        <item quantity="few">مقاطع GIF محدودة بـ%1$d ثوانٍ، لذا يُتخطّى باقي الفيديو.</item>
+        <item quantity="many">مقاطع GIF محدودة بـ%1$d ثانية، لذا يُتخطّى باقي الفيديو.</item>
+        <item quantity="other">مقاطع GIF محدودة بـ%1$d ثانية، لذا يُتخطّى باقي الفيديو.</item>
+    </plurals>
+    <plurals name="note_archive_duplicates">
+        <item quantity="zero">لم تُتخطَّ أي مدخلات مكررة.</item>
+        <item quantity="one">تُخطّي مدخل مكرر واحد.</item>
+        <item quantity="two">تُخطّي مدخلان مكرران.</item>
+        <item quantity="few">تُخطّيت %1$d مدخلات مكررة.</item>
+        <item quantity="many">تُخطّي %1$d مدخلًا مكررًا.</item>
+        <item quantity="other">تُخطّي %1$d مدخل مكرر.</item>
+    </plurals>
+    <plurals name="note_archive_symlinks">
+        <item quantity="zero">لم يُتخطَّ أي رابط رمزي.</item>
+        <item quantity="one">تُخطّي رابط رمزي واحد.</item>
+        <item quantity="two">تُخطّي رابطان رمزيان.</item>
+        <item quantity="few">تُخطّيت %1$d روابط رمزية.</item>
+        <item quantity="many">تُخطّي %1$d رابطًا رمزيًا.</item>
+        <item quantity="other">تُخطّي %1$d رابط رمزي.</item>
+    </plurals>
+    <plurals name="note_archive_deleted_entries">
+        <item quantity="zero">لم تُتخطَّ أي مدخلات محذوفة.</item>
+        <item quantity="one">تُخطّي مدخل محذوف واحد.</item>
+        <item quantity="two">تُخطّي مدخلان محذوفان.</item>
+        <item quantity="few">تُخطّيت %1$d مدخلات محذوفة.</item>
+        <item quantity="many">تُخطّي %1$d مدخلًا محذوفًا.</item>
+        <item quantity="other">تُخطّي %1$d مدخل محذوف.</item>
+    </plurals>
+    <plurals name="note_csv_rows_written">
+        <item quantity="zero">اعتُبر الصف الأول رأسًا للجدول، ولم يُكتب أي صف.</item>
+        <item quantity="one">اعتُبر الصف الأول رأسًا للجدول، وكُتب صف واحد.</item>
+        <item quantity="two">اعتُبر الصف الأول رأسًا للجدول، وكُتب صفان.</item>
+        <item quantity="few">اعتُبر الصف الأول رأسًا للجدول، وكُتبت %1$d صفوف.</item>
+        <item quantity="many">اعتُبر الصف الأول رأسًا للجدول، وكُتب %1$d صفًا.</item>
+        <item quantity="other">اعتُبر الصف الأول رأسًا للجدول، وكُتب %1$d صف.</item>
+    </plurals>
+    <string name="note_csv_header_only">لا يحتوي ملف CSV على صفوف بيانات، بل صف رؤوس فقط.</string>
+    <string name="note_json_values_as_strings">تُكتب كل قيمة في JSON كنص.</string>
+    <plurals name="note_json_objects_exported">
+        <item quantity="zero">لم يُصدَّر أي كائن؛ القيم المتداخلة غير مدعومة.</item>
+        <item quantity="one">صُدِّر كائن واحد؛ القيم المتداخلة غير مدعومة.</item>
+        <item quantity="two">صُدِّر كائنان؛ القيم المتداخلة غير مدعومة.</item>
+        <item quantity="few">صُدِّر %1$d كائنات؛ القيم المتداخلة غير مدعومة.</item>
+        <item quantity="many">صُدِّر %1$d كائنًا؛ القيم المتداخلة غير مدعومة.</item>
+        <item quantity="other">صُدِّر %1$d كائن؛ القيم المتداخلة غير مدعومة.</item>
+    </plurals>
+    <string name="note_epub_text_only">لا تُصدَّر الصور والتنسيقات، وتُفصل الفصول بسطر فارغ.</string>
+    <string name="note_epub_html_only">ملف HTML واحد وكل فصل عنوان؛ تُحذف الصور والأنماط.</string>
+    <string name="note_book_truncated">الكتاب طويل جدًا، لذا حُوِّل الجزء الأول فقط.</string>
     <string name="ui_interrupted_batch">توقّفت الدفعة الأخيرة. يمكنك إضافة الملفات التي لم تُحوَّل مرة أخرى.</string>
     <string name="ui_queue_busy">هناك تحويل قيد التنفيذ. انتظر انتهاءه أو ألغِه.</string>
     <string name="ui_unsupported_files">تعذّرت قراءة بعض الملفات وتم تجاوزها.</string>
@@ -29,7 +129,7 @@
 
     <!-- Model pack download -->
     <string name="ui_pack_download_title">تنزيل حزمة النماذج؟</string>
-    <string name="ui_pack_download_body">تُنزَّل %1$s (%2$s) مرة واحدة ثم تعمل دون اتصال.</string>
+    <string name="ui_pack_download_body">تُنزَّل حزمة «%1$s» (%2$s) مرة واحدة ثم تعمل دون اتصال.</string>
     <string name="ui_pack_metered_note">أنت تستخدم بيانات الجوال. حجم التنزيل نحو %1$s.</string>
     <string name="ui_pack_download_confirm">تنزيل</string>
     <string name="ui_pack_resume_note">سيُستأنف التنزيل الجزئي.</string>

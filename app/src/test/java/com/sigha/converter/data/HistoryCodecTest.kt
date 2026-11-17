@@ -1,6 +1,8 @@
 package com.sigha.converter.data
 
+import com.sigha.converter.core.Note
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -75,6 +77,24 @@ class HistoryCodecTest {
         val remaining = HistoryCodec.remove(entries, 7L, "a")
         assertEquals(1, remaining.size)
         assertEquals("b", remaining.first().outputUri)
+    }
+
+    @Test
+    fun typedNotesSurviveRoundTrip() {
+        val noted = entry(5L).copy(note = Note.TextTruncated(100))
+        val decoded = HistoryCodec.decode(HistoryCodec.encode(listOf(noted)))
+        assertEquals(Note.TextTruncated(100), decoded.single().note)
+    }
+
+    @Test
+    fun legacyStringNotesAreDroppedInsteadOfKillingTheEntry() {
+        // 0.2.0 wrote user-facing English into "note" as a plain string. That JSON must still
+        // decode (without the stale note), otherwise an upgrade would wipe the history list.
+        val raw = """{"version":2,"entries":[{"inputName":"a","outputName":"b","fromId":"png","toId":"jpg","note":"Only the first 50 of 120 pages were read."}]}"""
+        val decoded = HistoryCodec.decode(raw)
+        assertEquals(1, decoded.size)
+        assertEquals("b", decoded.single().outputName)
+        assertNull(decoded.single().note)
     }
 
     @Test

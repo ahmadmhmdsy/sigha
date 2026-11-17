@@ -2,9 +2,9 @@
 
 > One file, one target format, converted on the phone. No upload. No account. No ads.
 
-**Status (2026-11-17):** pre-launch. Version `0.2.0` is a **closed-test build**; nothing has been
-published to a store yet. The production-readiness pass is in flight and no device QA has been
-recorded. This file is the one-page definition; the exhaustive capability list is
+**Status (2026-11-17):** pre-launch. Version `0.2.1` is a **closed-test build**; nothing has been
+published to a store yet. The production-readiness pass and the 0.2.1 UI/UX fix pass are landed in
+this tree, no device QA has been recorded, and the Arabic privacy policy awaits native review. This file is the one-page definition; the exhaustive capability list is
 [`docs/product/PRODUCT.md`](docs/product/PRODUCT.md).
 
 **Verification gate:** no sentence in this repository is a release claim until
@@ -38,10 +38,10 @@ predictions, not results.
 ## 3. The wedge: four outcomes
 
 The product is not "many converters". The wedge is four **outcomes** a phone user actually wants.
-None of the four ships in `0.2.0`; `0.2.0` ships the capability catalogue they will be built on.
+None of the four ships in `0.2.0` or `0.2.1`; those releases ship the capability catalogue they will be built on.
 See [ADR-0003](docs/adr/0003-product-wedge.md).
 
-| # | Outcome | Why it is the job | Ships in 0.2.0? | Nearest capability today |
+| # | Outcome | Why it is the job | Ships in 0.2.x? | Nearest capability today |
 |---|---|---|---|---|
 | 1 | Scanned pages → one clean PDF | Receipts, IDs, forms, study notes: the scan is the deliverable | **No (roadmap)** | Image → PDF, one image per PDF. No camera capture, no page assembly, no OCR into the PDF. |
 | 2 | Many images → one PDF | A folder of photos that must be a single document | **No (roadmap)** | Each image becomes its own PDF; multi-file→one-PDF is not implemented. |
@@ -52,7 +52,7 @@ The order is a hypothesis: outcome 2 and 4 are the cheapest to make real and sho
 first (see §7). Building a converter catalogue without an outcome is exactly the failure mode this
 document exists to prevent.
 
-## 4. What ships in 0.2.0
+## 4. What ships in 0.2.1
 
 A local-file workbench: pick files with the system picker or share them in from another app; the
 app offers only targets reachable from the selection; conversion runs on-device in a queue; results
@@ -71,10 +71,12 @@ land in `Download/Sigha` (or a folder the user picks); history keeps the last 50
 - Data, subtitles, e-books, archives: CSV/TSV/JSON interchange, SRT/VTT, EPUB to text/HTML, ZIP and
   TAR.GZ repacking, 7Z to ZIP.
 - OCR: optional English + Arabic pack, a 28,004,325-byte download the user starts explicitly.
+  OCR-only targets stay hidden until the pack is installed; the workbench offers the install inline
+  with the same size and metered-connection confirmation, and the targets appear when it finishes.
 - Arabic and English UI (RTL), light/dark/system theme, no account, no ads, no analytics, no
   tracking SDK.
 
-**Not in 0.2.0:** the four outcomes above, camera scanning, PDF merge/split/compress, image resize
+**Not in 0.2.x:** the four outcomes above, camera scanning, PDF merge/split/compress, image resize
 or DPI control, target-size compression, RAR or 7Z creation, office layout fidelity, upscaling
 (the ONNX model was removed; the upscale family is registered empty), cloud sync, in-app purchases.
 
@@ -103,7 +105,9 @@ Not for lack of ambition; each would change the product's shape or trust story:
   here is text-and-tables extraction, and the UI must say so.
 - RAR and 7Z creation (licence-restricted or no permissive writer), ISO images.
 - PDF editing, annotation, signing, forms, password removal.
-- Cloud storage sync, accounts, subscriptions, in-app purchases in 0.2.0.
+- Cloud storage sync, accounts, subscriptions, in-app purchases in 0.2.x.
+- Tablet, foldable and desktop layouts. 0.2.x targets phones: landscape is supported and must stay
+  usable at 2400×1080 with 200% font scale, but multi-pane/rail layouts are out of scope.
 - AI upscaling and image enhancement until a model ships and is verified on device.
 - Background "watch a folder" automation.
 
@@ -114,7 +118,7 @@ part of the metric.
 
 | Area | Metric | Target | Instrumentation |
 |---|---|---|---|
-| Acquisition | Installs × day-1 retention | D1 ≥ 20% at ≥ 200 installs | Play Console + a consented, opt-out analytics decision (none in 0.2.0) |
+| Acquisition | Installs × day-1 retention | D1 ≥ 20% at ≥ 200 installs | Play Console + a consented, opt-out analytics decision (none in 0.2.x) |
 | Habit | Day-7 retention | ≥ 8% at ≥ 200 installs | same |
 | Wedge proof | Share of successful conversions that are document or compress outcomes | ≥ 35% (G7) | Local counters only, exported by the user; no automatic telemetry |
 | OCR | Document users who install the pack; first-run failure rate | ≥ 20%; < 5% (G9) | Local counters + store reviews |
@@ -141,8 +145,11 @@ should shrink, not add formats.
 
 ## 9. Roadmap (no dates; sequence only)
 
-1. **0.2.0 — production-readiness** (this release): honest docs and listing, foreground-service
-   execution, metadata stripping, typed localized errors, release build rail, closed test.
+1. **0.2.0 — production-readiness**: honest docs and listing, foreground-service execution,
+   metadata stripping, typed localized errors, release build rail, closed test.
+   **0.2.1 — UI/UX fix pass** (landed in this tree, not store-published): OCR pack dead end,
+   landscape empty state, Arabic completeness (localized notes, plural forms, Arabic privacy
+   policy pending native review), single window/theme owner, accessibility semantics and contrast.
 2. **0.3 — first two outcomes:** many images → one PDF; compress photo/video to a target size.
    These are small, testable, and don't need camera permission.
 3. **0.4 — PDF chores:** merge, split, compress PDF.
@@ -167,7 +174,7 @@ memo. Device QA on physical phones is also human-dependent.
 | [`docs/product/PRODUCT.md`](docs/product/PRODUCT.md) | Capability specification: per-family matrix, options, limits |
 | [`docs/product/store-listing.md`](docs/product/store-listing.md) | AR/EN store copy, screenshots, Data safety answers, claims blocklist |
 | [`docs/product/permissions-rationale.md`](docs/product/permissions-rationale.md) | Every permission, why, and denial behaviour |
-| [`CHANGELOG.md`](CHANGELOG.md) | What changed in 0.2.0, in five groups |
+| [`CHANGELOG.md`](CHANGELOG.md) | What changed in 0.2.0 and 0.2.1 |
 | `docs/plan/production-readiness.md` | Workstreams, definition of done, human blockers |
 | `docs/adr/` | Decisions: media engine, execution model, product wedge |
 | `docs/qa/verification.md` | Measured build/test evidence (owned elsewhere; not duplicated here) |

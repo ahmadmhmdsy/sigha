@@ -1,9 +1,10 @@
-# Sigha — capability specification (0.2.0)
+# Sigha — capability specification (0.2.1)
 
 This is the detailed companion to [`PRODUCT.md`](../../PRODUCT.md): the product definition lives
 there, the format-by-format truth lives here. It was checked against the source tree on
-2026-11-17. `0.2.0` is a **closed-test build**; the production-readiness pass is in flight and
-device QA has **not** been run, so nothing below is a release claim until
+2026-11-17. `0.2.1` is a **closed-test build**; the capability set is unchanged from `0.2.0` (0.2.1
+is a UI/UX fix pass), device QA has **not** been run, and the Arabic privacy policy awaits native
+review, so nothing below is a release claim until
 `scripts/verify.ps1`, the JVM suite and the device QA checklist pass on the shipped commit.
 
 ## 1. Three different numbers
@@ -37,7 +38,7 @@ is false and must not appear in any document or store string.
 | PDF | .pdf | yes | yes | See PDF family. Image→PDF writes one image per PDF page on A4. |
 
 Image→image targets are JPG, PNG, WebP. No resize, crop, rotation or DPI control is exposed in the
-UI (the engine has a maximum-dimension parameter that `0.2.0` never sets).
+UI (the engine has a maximum-dimension parameter that `0.2.1` never sets).
 
 ### PDF
 
@@ -45,7 +46,7 @@ UI (the engine has a maximum-dimension parameter that `0.2.0` never sets).
 |---|---|---|
 | PDF → PNG / JPG | Page range (`1-3,5,8-`), DPI fixed at 150, quality for JPG | One image for a single selected page; otherwise `name-pageN`. Pages are rendered by the platform `PdfRenderer`, so unsupported PDF features are rasterised by the OS. |
 | PDF → TXT | Page range | Uses PDFBox with temp-file scratch space, streamed page by page. If the selected pages contain no visible text (a scan), the converter falls back to OCR: with the OCR pack installed it produces the text and records the note "No text layer found; used OCR."; without the pack it fails with a precise instruction. |
-| Image → PDF | — | One image per PDF, A4 page, quality applies to the embedded image. Multi-image → one PDF is **not** available in `0.2.0`. |
+| Image → PDF | — | One image per PDF, A4 page, quality applies to the embedded image. Multi-image → one PDF is **not** available in `0.2.1`. |
 
 Input PDFs are capped at 500 MB; password-protected files fail with a message naming that cause.
 There is no merge, split, page deletion, compression, annotation or password removal.
@@ -95,7 +96,7 @@ only. Audio is also extracted from every supported video container.
 | Option | Values | Notes |
 |---|---|---|
 | Bitrate | Auto (default) or a chosen kbps | Only for lossy output; ignored where the codec does not take a bitrate. |
-| Trim | start/end milliseconds | Exists in the engine; **not exposed** in the `0.2.0` UI. |
+| Trim | start/end milliseconds | Exists in the engine; **not exposed** in the `0.2.1` UI. |
 
 ### Video
 
@@ -105,7 +106,7 @@ any audio output above.
 | Option | Values | Notes |
 |---|---|---|
 | Bitrate | Auto (default) or a chosen kbps | Applies to the video stream; codec choice follows the container. |
-| Trim | start/end milliseconds | Engine support only; not exposed in the `0.2.0` UI. |
+| Trim | start/end milliseconds | Engine support only; not exposed in the `0.2.1` UI. |
 
 All media conversions run through the bundled FFmpeg fork with:
 metadata and chapters stripped (`-map_metadata -1 -map_chapters -1`), a 20-minute per-file timeout,
@@ -132,8 +133,9 @@ TAR, BZ2 and XZ are recognised only; there is no archive creation UI and no RAR 
 
 The pack is a 28,004,325-byte download (eng 15,400,601 + ara 12,603,724), Apache-2.0, fetched only
 when the user taps Download, with a size/licence confirmation and a metered-connection warning.
-Without it the OCR targets are visible but conversion fails with an install instruction. OCR
-accuracy depends on image quality; the app makes no accuracy promise.
+Until it is installed, OCR-only targets are not offered: the workbench shows an inline install card
+with the download size and the same confirmation, and the targets appear as soon as the download
+finishes. OCR accuracy depends on image quality; the app makes no accuracy promise.
 
 ## 3. Routing rules
 
@@ -150,7 +152,7 @@ Each selection is matched to a target format through the conversion graph:
 
 ## 4. Options reference
 
-| Option | Type | Default | UI in 0.2.0? | Applies to |
+| Option | Type | Default | UI in 0.2.1? | Applies to |
 |---|---|---|---|---|
 | `quality` | 20–100 | 85 | yes | Image output, PDF→JPG |
 | `bitrateKbps` | Int? | null = Auto | yes | Audio and video output |
@@ -176,35 +178,36 @@ after the fact.
   to empty rather than crashing).
 - **Intermediate files:** every hop writes into a per-conversion cache directory that is deleted
   afterwards; stale work directories are pruned on the next conversion.
-- **Batch lifetime:** in `0.2.0` a running batch is kept alive by a foreground service with a
+- **Batch lifetime:** in `0.2.1` a running batch is kept alive by a foreground service with a
   progress notification (dataSync type), so backgrounding the app does not kill the queue; a batch
   interrupted by process death is announced on next launch.
 - **Free space:** every public conversion path checks for space before starting where the engine
   supports it; a failure is reported with the device's storage as the likely cause.
 - **No network:** conversion never touches the network. The only request is the OCR pack download
-  (HTTPS GET to the GitHub raw host, SHA-256 pinned, streaming, no resume in `0.2.0`).
+  (HTTPS GET to the GitHub raw host, SHA-256 pinned, streaming; an interrupted download keeps its
+  partial file and resumes with an HTTP Range request).
 
 ## 6. Surfaces
 
 | Surface | What it does |
 |---|---|
 | Convert | Pick files (or receive a share), see reachable targets, choose options, start |
-| Queue | Per-file progress, results, failure reasons, retry; batch continues after a failure |
+| Queue | Per-file progress, results, failure reasons; batch continues after a failure. No per-row retry control in 0.2.x: re-run the batch. |
 | History | Last 50 conversions with source, target, time, path, options |
 | Settings | Theme (light/dark/system), output destination, OCR language |
 | Model packs | OCR pack: size, licence, source, install/remove, metered warning |
 | About | Version, privacy statement, links to licences |
 | Licenses | Full licence texts loaded from bundled assets |
 
-## 7. Known limits in 0.2.0 (honest list)
+## 7. Known limits in 0.2.1 (honest list)
 
 1. No device QA has been run; every performance and codec claim is a target, not a measurement.
 2. The four outcomes in `PRODUCT.md` §3 are not implemented. This is a converter, not yet a
    scanner/compressor/PDF-tool.
 3. Office fidelity is text/tables only; scanned PDFs need the OCR pack to produce text.
 4. HEIC needs Android 9+, AVIF Android 12+; older devices see a precise limit message.
-5. OCR pack download is 28 MB, English + Arabic only, and starts again from zero if interrupted
-   (`0.2.0` has no resume).
+5. OCR pack download is 28 MB, English + Arabic only; an interrupted download resumes from the
+   partial file instead of starting again from zero.
 6. No RAR/7z creation, no archive browsing UI.
 7. No image resize/DPI/target-size controls; compression is a side effect of re-encoding quality.
 8. Upscaling is registered but empty; it must not be advertised.

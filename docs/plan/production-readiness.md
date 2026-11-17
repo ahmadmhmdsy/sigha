@@ -65,12 +65,13 @@
 | WS3 | done | signing config (git-ignored keystore), R8 + resource shrinking, ABI splits + universal, AAB (splits off for bundle), lint gate, stored/aligned native libs, `device-smoke.ps1` | `app/build.gradle.kts`, `scripts/verify.ps1`, `scripts/device-smoke.ps1` |
 | WS4 | done | 45 licence texts, Licences screen, privacy policy + in-app screen, NOTICE rewrite, compliance + release-blocker docs, Arabic legal strings | `assets/licenses/**`, `assets/legal/**`, `docs/legal/**`, `NOTICE.md` |
 | WS5 | done | one-page PRODUCT.md, full spec, store listing, permissions rationale, CHANGELOG 0.2.0 | `PRODUCT.md`, `docs/product/**`, `CHANGELOG.md` |
+| WS6 | done | 0.2.1 UI/UX fix pass: OCR pack inline install + live target refresh, landscape empty state, typed localized notes, six-category plurals, Arabic privacy policy, single window/chrome owner + theme role ramp, accessibility semantics and contrast | `.impeccable/critique/`, `docs/council/2026-11-17-ui-review/`, `docs/qa/verification.md`, `CHANGELOG.md` |
 
 ### Definition-of-done check
 
 1. Clean build/test/assemble/lint/release/bundle — **green**, see `docs/qa/evidence/verify-*.json`.
 2. Packaging: **32 stored `.so`**, arm64 `PT_LOAD` alignment asserted, zipalign pass — same JSON.
-3. No user-visible English-only failure path: localized headline + expandable English details — code + strings; engine `note` text stays English by design and is labelled as a note.
+3. No user-visible English-only failure path: localized failure headline + expandable English details — code + strings; lossy-conversion notes are typed (`core.Note`) and resolved from resources by `NoteUi` in the queue, history and workbench. Only raw engine failure diagnostics stay English, behind a details disclosure.
 4. Scanned PDF → TXT via OCR fallback; notes reach UI; metadata stripped; FFmpeg timeout — engine tests + code.
 5. Privacy policy in-app and in docs; NOTICE lists what ships incl. LGPL source offer — `docs/legal/`, `NOTICE.md`.
 6. README / PRODUCT / verification carry only measured numbers — `verify.ps1` claim-drift step.

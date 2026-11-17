@@ -2,6 +2,8 @@ package com.sigha.converter.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,7 +23,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Cancel
@@ -33,6 +34,8 @@ import androidx.compose.material.icons.outlined.FormatListBulleted
 import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,12 +56,19 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -69,7 +79,9 @@ import com.sigha.converter.core.FileFormat
 import com.sigha.converter.core.FormatCategory
 import com.sigha.converter.data.ConversionInput
 import com.sigha.converter.data.OutputMode
+import com.sigha.converter.data.PackDownloadState
 import com.sigha.converter.data.Repo
+import com.sigha.converter.model.ModelPacks
 import com.sigha.converter.ui.components.EmptyState
 import com.sigha.converter.ui.components.FormatBadge
 import com.sigha.converter.ui.components.FormatIcon
@@ -148,7 +160,6 @@ fun WorkbenchScreen(
         topBar = {
             SighaTopAppBar(
                 title = stringResource(R.string.app_name),
-                subtitle = stringResource(R.string.app_tagline),
                 actions = {
                     IconButton(onClick = onOpenQueue) {
                         Icon(
@@ -172,42 +183,49 @@ fun WorkbenchScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         if (state.files.isEmpty()) {
-            Column(
+            // Scrollable on purpose: in landscape the empty state is taller than the viewport,
+            // and the choose-files button must stay reachable instead of being clipped away.
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                EmptyState(
-                    icon = Icons.Outlined.SwapHoriz,
-                    title = stringResource(R.string.workbench_empty_title),
-                    body = stringResource(R.string.workbench_empty_body),
-                    footnote = stringResource(R.string.workbench_empty_supported),
-                    action = {
-                        Button(
-                            onClick = { pickFiles.launchSaf(arrayOf("*/*"), showPickerMissing) },
-                            contentPadding = PaddingValues(horizontal = 28.dp, vertical = 14.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.action_choose_files),
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                item {
+                    EmptyState(
+                        icon = Icons.Outlined.SwapHoriz,
+                        title = stringResource(R.string.workbench_empty_title),
+                        body = stringResource(R.string.workbench_empty_body),
+                        footnote = stringResource(R.string.workbench_empty_supported),
+                        action = {
+                            Button(
+                                onClick = { pickFiles.launchSaf(arrayOf("*/*"), showPickerMissing) },
+                                contentPadding = PaddingValues(horizontal = 28.dp, vertical = 14.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.action_choose_files),
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                            }
                         }
-                    }
-                )
-                if (state.isLoadingFiles) {
-                    LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 48.dp)
                     )
+                }
+                if (state.isLoadingFiles) {
+                    item {
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp, vertical = 8.dp)
+                        )
+                    }
                 }
             }
         } else {
@@ -226,7 +244,11 @@ fun WorkbenchScreen(
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         SectionHeader(
-                            title = stringResource(R.string.workbench_files_count, state.files.size),
+                            title = pluralStringResource(
+                                R.plurals.workbench_files_count,
+                                state.files.size,
+                                state.files.size
+                            ),
                             modifier = Modifier.weight(1f)
                         )
                         TextButton(
@@ -268,10 +290,10 @@ fun WorkbenchScreen(
                 }
                 if (state.showOcrHint) {
                     item {
-                        Text(
-                            text = stringResource(R.string.ui_ocr_targets_hidden),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        OcrPackCard(
+                            state = state.ocrPackState,
+                            onInstall = viewModel::installOcrPack,
+                            onCancel = viewModel::cancelOcrPackDownload
                         )
                     }
                 }
@@ -307,16 +329,9 @@ private fun FileCard(
     onRemove: () -> Unit
 ) {
     val context = LocalContext.current
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
-    ) {
+    SighaCard {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -443,11 +458,17 @@ private fun OptionsSection(
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
+                        val qualityLabel = stringResource(R.string.option_image_quality)
+                        val qualityValue = stringResource(R.string.option_value_percent, state.options.quality)
                         Slider(
                             value = state.options.quality.toFloat(),
                             onValueChange = { value -> onQuality(value.roundToInt()) },
                             valueRange = 20f..100f,
-                            steps = 15
+                            steps = 15,
+                            modifier = Modifier.semantics {
+                                contentDescription = qualityLabel
+                                stateDescription = qualityValue
+                            }
                         )
                     }
                 }
@@ -461,7 +482,18 @@ private fun OptionsSection(
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text(stringResource(R.string.option_pages)) },
                         placeholder = { Text(stringResource(R.string.option_pages_hint)) },
-                        supportingText = { Text(stringResource(R.string.option_pages_helper)) },
+                        supportingText = {
+                            Text(
+                                stringResource(
+                                    if (state.pagesError) {
+                                        R.string.option_pages_error
+                                    } else {
+                                        R.string.option_pages_helper
+                                    }
+                                )
+                            )
+                        },
+                        isError = state.pagesError,
                         singleLine = true
                     )
                 }
@@ -559,7 +591,8 @@ private fun ProgressRowItem(row: ProgressRow) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp),
+            .padding(vertical = 10.dp)
+            .semantics(mergeDescendants = true) {},
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -590,9 +623,15 @@ private fun ProgressRowItem(row: ProgressRow) {
             )
             if (row.status == QueueStatus.RUNNING || row.status == QueueStatus.QUEUED) {
                 Spacer(Modifier.height(6.dp))
+                val progressModifier = if (row.status == QueueStatus.QUEUED) {
+                    // Queued has no progress yet; announcing a determinate 0% is misleading.
+                    Modifier.fillMaxWidth().clearAndSetSemantics {}
+                } else {
+                    Modifier.fillMaxWidth()
+                }
                 LinearProgressIndicator(
                     progress = { if (row.status == QueueStatus.QUEUED) 0f else row.progress },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = progressModifier
                 )
             }
             if (row.status == QueueStatus.FAILED) {
@@ -603,10 +642,10 @@ private fun ProgressRowItem(row: ProgressRow) {
                     color = MaterialTheme.colorScheme.error
                 )
             }
-            if (row.status == QueueStatus.DONE && !row.note.isNullOrBlank()) {
+            if (row.status == QueueStatus.DONE && row.note != null) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = stringResource(R.string.ui_note_label, row.note.orEmpty()),
+                    text = noteText(row.note).orEmpty(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -630,6 +669,136 @@ private fun ProgressRowItem(row: ProgressRow) {
     }
 }
 
+/**
+ * Inline install for the optional OCR pack. OCR targets are only shown once the pack exists, so
+ * this card is the visible, gated route that replaces the old dead-end hint.
+ */
+@Composable
+private fun OcrPackCard(
+    state: PackDownloadState,
+    onInstall: () -> Unit,
+    onCancel: () -> Unit
+) {
+    val context = LocalContext.current
+    var confirming by remember { mutableStateOf(false) }
+    val pack = remember { Repo.packs.catalog().firstOrNull { it.id == ModelPacks.OCR_PACK_ID } }
+    val size = formatFileSize(context, pack?.sizeBytes ?: 0L)
+    SighaCard {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.TextFields,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = stringResource(R.string.model_packs_section_ocr),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+            Text(
+                text = stringResource(R.string.ui_ocr_targets_hidden),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            when (state) {
+                is PackDownloadState.Downloading -> {
+                    LinearProgressIndicator(
+                        progress = { state.progress.coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(
+                                R.string.model_packs_downloading,
+                                (state.progress * 100).toInt().coerceIn(0, 100)
+                            ),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f)
+                        )
+                        TextButton(onClick = onCancel) {
+                            Text(stringResource(R.string.action_cancel))
+                        }
+                    }
+                }
+                is PackDownloadState.Failed -> {
+                    Text(
+                        text = stringResource(R.string.model_packs_download_failed),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Button(onClick = { confirming = true }) {
+                        Text(stringResource(R.string.model_packs_download))
+                    }
+                }
+                else -> {
+                    Button(onClick = { confirming = true }) {
+                        Text(
+                            text = if (size != null) {
+                                stringResource(R.string.workbench_ocr_install, size)
+                            } else {
+                                stringResource(R.string.model_packs_download)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+    if (confirming) {
+        val metered = remember { isMeteredConnection(context) }
+        val resume = remember { ModelPacks.hasPartialDownload(ModelPacks.OCR_PACK_ID) }
+        AlertDialog(
+            onDismissRequest = { confirming = false },
+            title = { Text(stringResource(R.string.ui_pack_download_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        stringResource(
+                            R.string.ui_pack_download_body,
+                            pack?.let { stringResource(it.titleRes) }
+                                ?: stringResource(R.string.model_packs_section_ocr),
+                            size.orEmpty()
+                        )
+                    )
+                    if (metered) {
+                        Text(
+                            text = stringResource(R.string.ui_pack_metered_note, size.orEmpty()),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    if (resume) {
+                        Text(
+                            text = stringResource(R.string.ui_pack_resume_note),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirming = false
+                    onInstall()
+                }) {
+                    Text(stringResource(R.string.ui_pack_download_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirming = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
+    }
+}
+
 @Composable
 private fun ConvertBar(
     state: WorkbenchUiState,
@@ -640,45 +809,69 @@ private fun ConvertBar(
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 12.dp
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            if (state.isConverting) {
-                CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
+        Column {
+            if (!state.isConverting && state.target == null && state.files.isNotEmpty()) {
                 Text(
-                    text = stringResource(R.string.workbench_converting),
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.weight(1f)
+                    text = stringResource(R.string.workbench_target_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp, top = 10.dp)
                 )
-                TextButton(onClick = onCancel) {
-                    Text(stringResource(R.string.action_cancel))
-                }
-            } else {
-                Button(
-                    onClick = onConvert,
-                    enabled = state.target != null && state.files.isNotEmpty() && !state.isLoadingFiles,
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(vertical = 14.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.SwapHoriz,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (state.isConverting) {
+                    CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
                     Text(
-                        text = if (state.files.size == 1) {
-                            stringResource(R.string.workbench_convert)
-                        } else {
-                            stringResource(R.string.workbench_convert_files, state.files.size)
-                        }
+                        text = stringResource(R.string.workbench_converting),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.weight(1f)
                     )
+                    TextButton(onClick = onCancel) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
+                } else {
+                    Button(
+                        onClick = onConvert,
+                        enabled = state.target != null && state.files.isNotEmpty() && !state.isLoadingFiles,
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(vertical = 14.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.SwapHoriz,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = if (state.files.size == 1) {
+                                stringResource(R.string.workbench_convert)
+                            } else {
+                                pluralStringResource(
+                                    R.plurals.workbench_convert_files,
+                                    state.files.size,
+                                    state.files.size
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+/** True when the active connection reports itself as metered (mobile data, some hotspots). */
+private fun isMeteredConnection(context: android.content.Context): Boolean {
+    val manager = context.getSystemService(ConnectivityManager::class.java) ?: return false
+    val network = manager.activeNetwork ?: return false
+    val capabilities = manager.getNetworkCapabilities(network) ?: return false
+    return !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
 }

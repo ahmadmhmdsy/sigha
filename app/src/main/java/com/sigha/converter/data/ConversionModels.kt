@@ -3,6 +3,7 @@ package com.sigha.converter.data
 import android.net.Uri
 import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.FileFormat
+import com.sigha.converter.core.Note
 
 /** A user-selected source file together with what detection worked out about it. */
 data class ConversionInput(
@@ -22,7 +23,7 @@ data class ConversionItemResult(
     val errorMessage: String? = null,
     /** Localized headline is derived from this by the UI. */
     val errorKind: ConversionFailureKind = ConversionFailureKind.UNKNOWN,
-    /** Informational note from the engine (page cap, OCR fallback, truncation, ...). */
-    val note: String? = null,
+    /** Typed informational note from the engine; the UI localizes it (see ui/NoteUi.kt). */
+    val note: Note? = null,
     val durationMs: Long = 0L
 )

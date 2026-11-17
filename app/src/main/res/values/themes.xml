@@ -3,6 +3,6 @@
     <style name="Theme.Sigha" parent="android:Theme.Material.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowBackground">#F7FAF8</item>
+        <item name="android:windowBackground">#F4F8F6</item>
     </style>
 </resources>

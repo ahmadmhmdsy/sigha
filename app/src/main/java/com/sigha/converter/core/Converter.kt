@@ -30,8 +30,13 @@ data class ConversionRequest(
     val isCancelled: () -> Boolean = { false }
 )
 
-/** One produced file. Most steps produce exactly one. */
-data class ConversionResult(val outputs: List<File>, val note: String? = null)
+/**
+ * One produced file. Most steps produce exactly one.
+ *
+ * [note] is a language-independent [Note]: engines report what happened, the UI localizes it.
+ * Engines must never put user-facing English copy here.
+ */
+data class ConversionResult(val outputs: List<File>, val note: Note? = null)
 
 /**
  * Why a conversion failed, independent of any language. Engines and the runner classify a

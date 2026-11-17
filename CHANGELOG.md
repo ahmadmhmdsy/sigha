@@ -9,6 +9,104 @@ The first tracked state of this repository is commit `11bccbb` ("baseline snapsh
 production-readiness pass"). Earlier prototype builds were not tagged and are not reconstructed
 here.
 
+## 0.2.1 — 2026-11-17 — UI/UX fix pass
+
+Follow-up to the design critique of the 0.2.0 UI (`.impeccable/critique/` and
+`docs/council/2026-11-17-ui-review/`): the two P0 findings and the three P1 workstreams chosen for
+this release. No converter, routing or capability change; the format catalogue is the 0.2.0 one.
+
+### Fixed
+
+- **The OCR pack is no longer a dead end.** The workbench collects the pack download state, so
+  installing the pack unlocks the OCR targets on the same screen without touching the selection.
+  A missing pack is now an inline "Install OCR pack (size)" card with the existing confirmation
+  dialog, and the card shows live download state with cancel. `PRODUCT.md` was corrected to match:
+  targets are hidden while the pack is missing, not merely annotated.
+- **Landscape is usable.** The empty state is a scrollable `LazyColumn` with a compact variant for
+  viewports under 480 dp height (smaller icon, tightened rhythm), so the title, body, "Choose
+  files" action and privacy footnote are all reachable in a 2400×1080 window. Verified in portrait,
+  landscape, landscape at font scale 2.0 and dark mode.
+- **Convert is never disabled without a reason.** When a target is required and none is selected,
+  the bar shows `workbench_target_hint` above the disabled action instead of a silent dead button.
+- **Folder mode names the destination.** The published path is the folder's display name plus the
+  file name instead of a bare file name, and the saved-to line says where the file went.
+- **Share-in navigates to Convert.** Files arriving from another app now open the workbench and
+  announce "1 file added" instead of being added silently behind another tab.
+- **Arabic page selection is accepted and validated.** The pages field normalises Arabic-Indic and
+  Extended Arabic-Indic digits, U+060C/U+066C/U+061B commas and dashes to the ASCII form the parser
+  understands, and reports an invalid entry inline (`option_pages_error`) instead of failing the
+  conversion later.
+- **History metadata no longer breaks mid-word in Arabic.** Date and size are atomic items in a
+  `FlowRow`, so "10 كيلوبايت" wraps as a unit under the row actions.
+
+### Arabic completeness
+
+- **Lossy-conversion notes are typed and localised.** `core.Note` is a serialisable sealed interface
+  with 29 kinds (page limits, truncation, archive duplicates/symlinks, office extraction, CSV/JSON
+  shaping, EPUB/MOBI limits, OCR fallback, composite), each rendered by `NoteUi` from resources and
+  shown in the queue, history and workbench rows. The engine no longer hands user-facing English
+  text to the UI; the free-text `note` field is gone from the model.
+- **Counted strings are `<plurals>`** with the six Arabic categories (zero/one/two/few/many/other)
+  for files added, files selected, convert action, batch summary and history empty state; the
+  invalid passive "نُجحت" is gone.
+- **The OCR pack is named in Arabic.** The catalogue resolves title and description from resources
+  (`pack_ocr_title`, `pack_ocr_description`) instead of English literals, and the confirmation
+  dialog quotes the same strings.
+- **Arabic privacy policy ships.** `assets/legal/privacy-policy.ar.md` is a nine-section
+  translation, selected when the app locale is Arabic. Release is still gated on a native Arabic
+  review of that text.
+- **The first OCR language follows the device locale** (`OcrLanguages.defaultForLanguage`), so an
+  Arabic phone starts with Arabic instead of returning Latin noise.
+- **Arabic typography.** A separate type scale with 0 sp letter spacing and line height ×1.15 is
+  selected when the app locale is Arabic; the Latin scale is unchanged.
+
+### Window and theme ownership
+
+- **One chrome owner.** `SighaNavHost` owns the app `Scaffold`, the navigation bar, `imePadding`,
+  the horizontal safe-drawing inset and the bottom inset when no navigation bar is shown; the nine
+  per-screen zero-inset overrides were removed. The workbench pages field can no longer sit under
+  the keyboard.
+- **System bars follow the resolved theme.** `enableEdgeToEdge()` no longer runs with defaults
+  before settings load; `SystemBarStyle` is re-applied whenever the resolved `darkTheme` changes,
+  so forced dark on a light phone no longer paints dark icons on a dark surface.
+- **The Material 3 role ramp is authored in the Sigha palette** (onSurface/onBackground,
+  onSurfaceVariant, the surfaceContainer family, inverse roles, outline, surfaceTint), so body text
+  is ink, cards group against the background, and the navigation bar is no longer baseline lavender.
+- **Shapes are configured** (`SighaShapes`: 6/10/14/20/28 dp) and cards use `shapes.large` with a
+  1 dp outline instead of a 20 dp one-off radius.
+- **`values-night` window background** removes the white flash on a dark cold start.
+
+### Accessibility
+
+- **State is announced, not only painted.** `StatusPill` exposes `stateDescription`, section
+  headers are headings, the quality slider has a name and a state description, progress rows merge
+  their descendants (and a queued row no longer announces "0 percent"), radio rows are one
+  selectable group with `Role.RadioButton`, and a source→target pair is one announcement
+  ("TXT to PDF") in the queue and history.
+- **Contrast and target fixes.** Format badges use `onSurface` on a 12% accent tint (7 of 13 were
+  3.76–4.37:1), status pills use tonal containers (3.99:1), the "Choose folder" action is at least
+  48 dp tall, and the top bar is one line so the title survives font scale 2.0.
+
+### Docs
+
+- `PRODUCT.md` / `docs/product/PRODUCT.md`: OCR inline install and live target refresh, resumable
+  pack download, no per-row retry in this release, and tablets/foldables/desktop declared out of
+  scope for the Arabic-first phone path.
+- `docs/qa/verification.md`: 0.2.1 facts, the emulator-5566 visual/RTL evidence, and the corrected
+  statement about engine notes (now localised; failure diagnostics stay English).
+- `docs/plan/production-readiness.md`: the "engine note text stays English" claim corrected.
+
+### Verification status
+
+| Item | Status at time of writing |
+|---|---|
+| JVM tests | 137 tests, 16 classes, 0 failures/errors/skips |
+| Debug APK, release APKs/AAB, signing, 16 KB, ABI split | green; sizes, SHA-256 and version re-recorded in `docs/qa/verification.md` |
+| Emulator smoke (install, cold start, resumed activity, 120-event monkey, no crash) | pass on emulator-5554 |
+| Emulator visual pass (AR, portrait/landscape, font scale 2.0, dark) | pass on emulator-5566; screenshots in `docs/qa/evidence/ui-021/` |
+| Arabic policy native review | **not run** — release gate |
+| Device QA (physical phones, EN+AR) | **not run** |
+
 ## 0.2.0 — 2026-11-17 — production-readiness (closed-test build)
 
 First build intended for the Play **closed test**. Not published to any store. Nothing here is a

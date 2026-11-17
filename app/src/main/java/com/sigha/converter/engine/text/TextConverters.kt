@@ -6,6 +6,7 @@ import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
 import com.sigha.converter.core.Converter
 import com.sigha.converter.core.FileFormat
+import com.sigha.converter.core.Note
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -42,7 +43,7 @@ private class TxtToPdf : Converter {
                 writer.close()
             }
             val note = if (lineCount > MAX_LINES) {
-                "Only the first " + MAX_LINES + " lines were exported."
+                Note.TextTruncated(MAX_LINES)
             } else {
                 null
             }
@@ -77,7 +78,7 @@ private class MarkdownToPdf : Converter {
             }
             ConversionResult(
                 listOf(request.outputFile),
-                "Markdown is simplified in the PDF; images and raw HTML are omitted."
+                Note.MarkdownSimplified
             )
         }
 }

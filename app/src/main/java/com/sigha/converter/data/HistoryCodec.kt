@@ -1,9 +1,14 @@
 package com.sigha.converter.data
 
+import com.sigha.converter.core.Note
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 
 /** One finished (or failed) conversion, kept so users can reopen their output later. */
 @Serializable
@@ -20,8 +25,8 @@ data class HistoryEntry(
     val error: String? = null,
     /** Language-independent failure kind name; the UI localizes it. */
     val errorKind: String? = null,
-    /** Engine note (page cap, OCR fallback, truncation, ...). */
-    val note: String? = null
+    /** Typed engine note (page cap, OCR fallback, truncation, ...); the UI localizes it. */
+    val note: Note? = null
 )
 
 /**
@@ -47,16 +52,52 @@ object HistoryCodec {
 
     fun decode(raw: String?): List<HistoryEntry> {
         if (raw.isNullOrBlank()) return emptyList()
+        // Notes used to be free-text English strings; drop those before decoding so a legacy
+        // history file keeps its entries instead of failing into an empty list.
+        val sanitized = stripLegacyNotes(raw)
         return try {
-            json.decodeFromString<Payload>(raw).entries.take(MAX_ENTRIES)
+            json.decodeFromString<Payload>(sanitized).entries.take(MAX_ENTRIES)
         } catch (_: Exception) {
             // Older or unexpected shape: accept a bare array, otherwise give up quietly.
             try {
-                json.decodeFromString<List<HistoryEntry>>(raw).take(MAX_ENTRIES)
+                json.decodeFromString<List<HistoryEntry>>(sanitized).take(MAX_ENTRIES)
             } catch (_: Exception) {
                 emptyList()
             }
         }
+    }
+
+    /**
+     * Version 2 and earlier stored `"note"` as a plain string. [HistoryEntry.note] is now a
+     * [Note] object, so unknown string notes are removed from the JSON tree and the rest of the
+     * entry survives. A JSON object/array note (the new shape) is left untouched.
+     */
+    private fun stripLegacyNotes(raw: String): String {
+        val root = try {
+            json.parseToJsonElement(raw)
+        } catch (_: Exception) {
+            return raw
+        }
+        val cleaned = when (root) {
+            is JsonObject -> {
+                val entries = root["entries"] as? JsonArray
+                if (entries == null) {
+                    root
+                } else {
+                    JsonObject(root + ("entries" to JsonArray(entries.map(::stripLegacyNote))))
+                }
+            }
+            is JsonArray -> JsonArray(root.map(::stripLegacyNote))
+            else -> root
+        }
+        return cleaned.toString()
+    }
+
+    private fun stripLegacyNote(element: JsonElement): JsonElement {
+        if (element !is JsonObject) return element
+        val note = element["note"] ?: return element
+        val typed = note is JsonObject || note is JsonNull
+        return if (typed) element else JsonObject(element - "note")
     }
 
     fun encode(entries: List<HistoryEntry>): String =

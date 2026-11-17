@@ -6,6 +6,7 @@ import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
 import com.sigha.converter.core.Converter
 import com.sigha.converter.core.FileFormat
+import com.sigha.converter.core.Note
 import com.sigha.converter.engine.ocr.OcrSupport
 import com.sigha.converter.engine.ocr.PdfTextConverter
 import com.tom_roush.pdfbox.io.MemoryUsageSetting
@@ -97,7 +98,7 @@ internal class PdfToTextConverter(private val context: Context) : Converter {
             }
             throw e
         }
-        val note = listOfNotNull("No text layer found; used OCR.", result.note).joinToString(" ")
+        val note = Note.combine(listOf(Note.OcrFallback, result.note))
         return ConversionResult(outputs = result.outputs, note = note)
     }
 
