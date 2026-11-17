@@ -106,6 +106,7 @@ No Filee code, brand, logo, screenshots or trade dress is used.
 - `docs/product/store-listing.md` — store copy and screenshot plan
 - `docs/product/permissions-rationale.md` — why each permission exists
 - `docs/qa/verification.md` — what was actually built, tested and observed (and what was not)
+- `docs/qa/device-checklist.md` — the physical-device QA checklist that closes the runtime gap
 - `docs/qa/evidence/` — machine-readable verification runs
 - `docs/legal/` — privacy policy, licence compliance, release blockers, clearance memo
 - `docs/adr/` — architecture decision records

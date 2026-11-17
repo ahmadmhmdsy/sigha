@@ -195,5 +195,6 @@ from the commands in §9, and the claim-drift check keeps the public docs tied t
 
 **Device verification: partial.** Install, cold start, resumed activity, a 120-event monkey run
 and an empty crash buffer are recorded. Real conversions, SAF flows, MediaStore output and visual
-rendering are **not** verified yet: run the manual checklist on a physical API 26–36 device before
-submitting to Play. The app must not be described as device-tested until that is done.
+rendering are **not** verified yet: run `docs/qa/device-checklist.md` on a physical API 26–36
+device before submitting to Play. The app must not be described as device-tested until that is
+done.
