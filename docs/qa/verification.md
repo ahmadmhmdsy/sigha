@@ -176,6 +176,14 @@ was applied per app (`cmd locale set-app-locales com.sigha.converter --locales a
 | `convert-done-ar.png` | conversion finished | progress section, done row with localized status pill and open action |
 | `history-ar.png` | history after a TXT→PDF run | localized route announcement; date and size on separate atomic lines |
 | `privacy-policy-ar.png` | Arabic privacy screen | `privacy-policy.ar.md` rendered RTL: nine sections and the localized effective date |
+| `ocr-pack-card-ar.png` | image selected, OCR pack missing | inline OCR install card with size; OCR-only targets hidden |
+| `ocr-pack-dialog-ar.png` | install confirmation | the pack dialog states the size, contents and one-time download |
+| `ocr-pack-download-ar.png` | download running | live progress bar and cancel action on the workbench card |
+| `ocr-unlocked-ar.png` | download finished | the hint is gone and the "النصوص / TXT" target appears without touching the selection — the 0.2.0 OCR dead end, end to end |
+
+The OCR sequence was exercised end to end on this AVD: with the pack absent the card offered the
+install, the 28,004,325-byte download ran to completion on the card, and the TXT target then
+appeared live — no navigation, no change to the selection.
 
 `uiautomator dump` of the history row confirms the accessibility work: the source→target pair is one
 node with content description "TXT إلى PDF", and the open/share actions carry their own labels.

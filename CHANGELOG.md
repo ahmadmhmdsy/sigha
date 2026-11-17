@@ -104,6 +104,7 @@ this release. No converter, routing or capability change; the format catalogue i
 | Debug APK, release APKs/AAB, signing, 16 KB, ABI split | green; sizes, SHA-256 and version re-recorded in `docs/qa/verification.md` |
 | Emulator smoke (install, cold start, resumed activity, 120-event monkey, no crash) | pass on emulator-5554 |
 | Emulator visual pass (AR, portrait/landscape, font scale 2.0, dark) | pass on emulator-5566; screenshots in `docs/qa/evidence/ui-021/` |
+| OCR inline install | exercised end to end on the emulator: card → dialog → 28 MB download → TXT target appears live |
 | Arabic policy native review | **not run** — release gate |
 | Device QA (physical phones, EN+AR) | **not run** |
 
