@@ -1,0 +1,137 @@
+package com.sigha.converter.ui
+
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.sigha.converter.R
+
+private object Routes {
+    const val WORKBENCH = "workbench"
+    const val HISTORY = "history"
+    const val SETTINGS = "settings"
+    const val QUEUE = "queue"
+    const val ABOUT = "about"
+    const val MODEL_PACKS = "modelPacks"
+    const val LICENSES = "licenses"
+}
+
+private val TOP_LEVEL_ROUTES = setOf(Routes.WORKBENCH, Routes.HISTORY, Routes.SETTINGS)
+
+/** Bottom navigation with the three main tabs; sub-screens push on top and keep it hidden. */
+@Composable
+fun SighaNavHost(workbenchViewModel: WorkbenchViewModel, modifier: Modifier = Modifier) {
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+    val showBottomBar = currentRoute == null || currentRoute in TOP_LEVEL_ROUTES
+
+    Scaffold(
+        modifier = modifier,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        bottomBar = {
+            if (showBottomBar) {
+                NavigationBar {
+                    NavigationBarItem(
+                        selected = currentRoute == Routes.WORKBENCH,
+                        onClick = { navigateTopLevel(navController, Routes.WORKBENCH) },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.SwapHoriz,
+                                contentDescription = null
+                            )
+                        },
+                        label = { Text(stringResource(R.string.nav_convert)) }
+                    )
+                    NavigationBarItem(
+                        selected = currentRoute == Routes.HISTORY,
+                        onClick = { navigateTopLevel(navController, Routes.HISTORY) },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.History,
+                                contentDescription = null
+                            )
+                        },
+                        label = { Text(stringResource(R.string.nav_history)) }
+                    )
+                    NavigationBarItem(
+                        selected = currentRoute == Routes.SETTINGS,
+                        onClick = { navigateTopLevel(navController, Routes.SETTINGS) },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Settings,
+                                contentDescription = null
+                            )
+                        },
+                        label = { Text(stringResource(R.string.nav_settings)) }
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = Routes.WORKBENCH,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(Routes.WORKBENCH) {
+                WorkbenchScreen(
+                    viewModel = workbenchViewModel,
+                    onOpenQueue = { navController.navigate(Routes.QUEUE) }
+                )
+            }
+            composable(Routes.HISTORY) {
+                HistoryScreen()
+            }
+            composable(Routes.SETTINGS) {
+                SettingsScreen(
+                    onOpenAbout = { navController.navigate(Routes.ABOUT) },
+                    onOpenLicenses = { navController.navigate(Routes.LICENSES) },
+                    onOpenModelPacks = { navController.navigate(Routes.MODEL_PACKS) }
+                )
+            }
+            composable(Routes.QUEUE) {
+                QueueScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.ABOUT) {
+                AboutScreen(
+                    onOpenLicenses = { navController.navigate(Routes.LICENSES) },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(Routes.MODEL_PACKS) {
+                ModelPacksScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.LICENSES) {
+                LicensesScreen(onBack = { navController.popBackStack() })
+            }
+        }
+    }
+}
+
+private fun navigateTopLevel(navController: NavHostController, route: String) {
+    navController.navigate(route) {
+        popUpTo(navController.graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}

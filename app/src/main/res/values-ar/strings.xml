@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- التطبيق -->
+    <string name="app_name">صيغة</string>
+    <string name="app_tagline">حوّل بدون إنترنت. لا يغادر أي ملف هاتفك.</string>
+    <string name="offline_badge">دون إنترنت</string>
+
+    <!-- التنقل -->
+    <string name="nav_convert">التحويل</string>
+    <string name="nav_history">السجل</string>
+    <string name="nav_settings">الإعدادات</string>
+
+    <!-- إجراءات عامة -->
+    <string name="action_back">رجوع</string>
+    <string name="action_open">فتح</string>
+    <string name="action_share">مشاركة</string>
+    <string name="action_delete">حذف</string>
+    <string name="action_clear">مسح</string>
+    <string name="action_clear_all">مسح الكل</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_close">إغلاق</string>
+    <string name="action_remove">إزالة</string>
+    <string name="action_add_files">إضافة ملفات</string>
+    <string name="action_choose_files">اختيار ملفات</string>
+    <string name="action_convert">تحويل</string>
+    <string name="action_open_queue">عرض قائمة الانتظار</string>
+    <string name="action_choose_folder">اختيار مجلد</string>
+    <string name="action_change">تغيير</string>
+    <string name="action_manage_packs">إدارة الحزم</string>
+    <string name="action_about">حول التطبيق</string>
+    <string name="action_licenses">التراخيص</string>
+    <string name="action_download">تنزيل</string>
+    <string name="action_view_license">عرض الترخيص</string>
+    <string name="action_open_file">فتح الملف</string>
+    <string name="action_clear_finished">مسح المكتملة</string>
+    <string name="common_ok">حسنًا</string>
+
+    <!-- مساحة العمل -->
+    <string name="workbench_empty_title">ملفاتك، تُحوَّل على هذا الهاتف</string>
+    <string name="workbench_empty_body">أضف صورًا وملفات PDF ووسائط وأرشيفات والمزيد. لا يُرفع أي شيء — كل شيء يحدث على جهازك.</string>
+    <string name="workbench_empty_supported">الصور · PDF · المستندات · الصوت · الفيديو · الأرشيف</string>
+    <string name="workbench_files_count">%1$d محددة</string>
+    <string name="workbench_clear_selection">مسح الاختيار</string>
+    <string name="workbench_selected_section">الملفات المحددة</string>
+    <string name="workbench_add_more">إضافة المزيد</string>
+    <string name="workbench_target_title">التحويل إلى</string>
+    <string name="workbench_target_hint">اختر صيغة الهدف</string>
+    <string name="workbench_no_target">لا توجد صيغة هدف مشتركة لهذه الملفات. جرّب ملفات من النوع نفسه.</string>
+    <string name="workbench_options_title">الخيارات</string>
+    <string name="option_image_quality">جودة الصورة</string>
+    <string name="option_value_percent">%1$d%%</string>
+    <string name="option_bitrate">معدل البِت</string>
+    <string name="option_auto">تلقائي</string>
+    <string name="option_value_kbps">%1$d كيلوبت/ث</string>
+    <string name="option_pages">صفحات PDF</string>
+    <string name="option_pages_hint">مثال: 1-3، 5</string>
+    <string name="option_pages_helper">اتركه فارغًا لتحويل كل الصفحات.</string>
+    <string name="workbench_convert">تحويل</string>
+    <string name="workbench_convert_files">تحويل %1$d ملفات</string>
+    <string name="workbench_converting">جارٍ التحويل…</string>
+    <string name="workbench_progress_title">التقدّم</string>
+    <string name="workbench_open_queue">عرض النتائج</string>
+    <string name="workbench_detect_failed">تعذّر قراءة الملفات المحددة.</string>
+    <string name="workbench_unsupported">ملف غير مدعوم: %1$s</string>
+    <string name="workbench_storage_permission_message">اسمح بالوصول إلى التخزين ليتم حفظ الملفات المحوّلة في التنزيلات.</string>
+    <string name="workbench_storage_permission_denied">رُفض الوصول إلى التخزين، لذا لا يمكن حفظ الملفات في التنزيلات.</string>
+    <string name="workbench_conversion_summary">%1$d نُجحت · %2$d فشلت</string>
+    <string name="workbench_all_done">اكتمل تحويل جميع الملفات</string>
+    <string name="workbench_cancelled">أُلغي التحويل</string>
+    <string name="workbench_no_target_selected">اختر صيغة الهدف أولًا.</string>
+
+    <!-- قائمة الانتظار -->
+    <string name="queue_title">قائمة الانتظار</string>
+    <string name="queue_empty_title">لا شيء في قائمة الانتظار</string>
+    <string name="queue_empty_body">ستظهر هنا عمليات التحويل التي تبدأها مع تقدّمها ونتائجها.</string>
+    <string name="queue_active_section">قيد التنفيذ</string>
+    <string name="queue_results_section">النتائج</string>
+    <string name="queue_clear_finished">مسح المكتملة</string>
+    <string name="queue_saved_to">حُفظ في %1$s</string>
+    <string name="queue_saved_generic">تم الحفظ</string>
+    <string name="queue_open_failed">تعذّر فتح هذا الملف.</string>
+    <string name="queue_share_failed">تعذّرت مشاركة هذا الملف.</string>
+    <string name="status_queued">في الانتظار</string>
+    <string name="status_running">جارٍ التحويل</string>
+    <string name="status_done">تم</string>
+    <string name="status_failed">فشل</string>
+    <string name="status_cancelled">أُلغي</string>
+
+    <!-- السجل -->
+    <string name="history_title">السجل</string>
+    <string name="history_empty_title">لا تحويلات بعد</string>
+    <string name="history_empty_body">تظهر هنا آخر 50 عملية تحويل. تبقى الملفات على جهازك.</string>
+    <string name="history_clear_title">مسح السجل؟</string>
+    <string name="history_clear_body">سيمسح هذا القائمة فقط. الملفات المحوّلة تبقى في التخزين.</string>
+    <string name="history_cleared">مُسح السجل</string>
+    <string name="history_open_failed">تعذّر فتح هذا الملف.</string>
+    <string name="history_share_failed">تعذّرت مشاركة هذا الملف.</string>
+    <string name="history_failed">فشل</string>
+
+    <!-- الإعدادات -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_appearance">المظهر</string>
+    <string name="settings_theme">السمة</string>
+    <string name="theme_system">حسب النظام</string>
+    <string name="theme_light">فاتحة</string>
+    <string name="theme_dark">داكنة</string>
+    <string name="settings_output">الإخراج</string>
+    <string name="settings_output_mode">حفظ الملفات المحوّلة</string>
+    <string name="output_mode_downloads">التنزيلات/Sigha</string>
+    <string name="output_mode_downloads_desc">يُحفظ كل ملف في مجلد التنزيلات العام.</string>
+    <string name="output_mode_folder">اختيار مجلد</string>
+    <string name="output_mode_folder_desc">اختر مجلدًا مرة واحدة وأعد استخدامه.</string>
+    <string name="settings_folder_none">لم يُختر أي مجلد</string>
+    <string name="settings_folder_value">%1$s</string>
+    <string name="settings_ocr">التعرّف على النص (OCR)</string>
+    <string name="settings_ocr_language">لغة OCR</string>
+    <string name="ocr_language_eng">الإنجليزية</string>
+    <string name="ocr_language_ara">العربية</string>
+    <string name="ocr_language_eng_ara">الإنجليزية + العربية</string>
+    <string name="settings_ocr_hint">تُستخدم عند تحويل الصور أو ملفات PDF إلى نص. تُثبَّت الحزم من حزم النماذج.</string>
+    <string name="settings_model_packs">حزم النماذج</string>
+    <string name="settings_model_packs_desc">حزم OCR وتحسين الصور على الجهاز</string>
+    <string name="settings_privacy">الخصوصية</string>
+    <string name="settings_about">حول صيغة</string>
+    <string name="settings_about_desc">وعد العمل دون إنترنت والإصدار والحقوق</string>
+    <string name="settings_licenses">تراخيص المصادر المفتوحة</string>
+    <string name="settings_licenses_desc">المكتبات التي بُني عليها صيغة</string>
+
+    <!-- فئات الصيغ -->
+    <string name="category_image">الصور</string>
+    <string name="category_pdf">PDF</string>
+    <string name="category_document">المستندات</string>
+    <string name="category_spreadsheet">الجداول</string>
+    <string name="category_presentation">العروض</string>
+    <string name="category_text">النصوص</string>
+    <string name="category_audio">الصوت</string>
+    <string name="category_video">الفيديو</string>
+    <string name="category_archive">الأرشيف</string>
+    <string name="category_data">البيانات</string>
+    <string name="category_subtitle">الترجمة</string>
+    <string name="category_ebook">الكتب الإلكترونية</string>
+    <string name="category_ai">الذكاء الاصطناعي</string>
+
+    <!-- حزم النماذج -->
+    <string name="model_packs_title">حزم النماذج</string>
+    <string name="model_packs_intro">تضيف حزم النماذج ميزات تعمل على الجهاز مثل التعرّف على النص. لا تُنزَّل إلا عند الضغط على تنزيل — ولا أثناء التحويل.</string>
+    <string name="model_packs_offline_note">يحوّل صيغة الملفات دون إنترنت تمامًا. لا يُستخدم الإنترنت إلا للحزم التي تطلبها هنا.</string>
+    <string name="model_packs_section_ocr">التعرّف على النص</string>
+    <string name="model_packs_section_upscale">تحسين الصور</string>
+    <string name="model_packs_installed">مثبّتة</string>
+    <string name="model_packs_download">تنزيل</string>
+    <string name="model_packs_downloading">جارٍ التنزيل… %1$d%%</string>
+    <string name="model_packs_download_done">ثُبّتت الحزمة</string>
+    <string name="model_packs_download_failed">فشل التنزيل. تحقّق من اتصالك وحاول مجددًا.</string>
+    <string name="model_packs_license">الترخيص: %1$s</string>
+    <string name="model_packs_license_unknown">ترخيص غير معروف</string>
+    <string name="model_packs_no_packs">لا توجد حزم نماذج متاحة بعد.</string>
+    <string name="model_packs_upscale_title">تكبير بالذكاء الاصطناعي</string>
+    <string name="model_packs_upscale_coming_soon">قريبًا</string>
+    <string name="model_packs_upscale_body">حِدّة وتكبير للصور على الجهاز بنموذج صغير. ليس جزءًا من هذا الإصدار بعد.</string>
+    <string name="model_packs_license_missing">لا يوجد رابط ترخيص</string>
+    <string name="model_packs_open_license_failed">تعذّر فتح صفحة الترخيص.</string>
+
+    <!-- حول التطبيق -->
+    <string name="about_title">حول التطبيق</string>
+    <string name="about_version">الإصدار %1$s</string>
+    <string name="about_offline_title">يعمل دون إنترنت تمامًا</string>
+    <string name="about_offline_body">يجري التحويل على جهازك. لا تُرفع الملفات أبدًا، ولا يوجد حساب أو تتبع.</string>
+    <string name="about_privacy_title">ملفاتك تبقى لك</string>
+    <string name="about_privacy_body">يطلب صيغة فقط الملفات التي تختارها. يُستخدم الإنترنت فقط عند تنزيل حزمة نماذج اختيارية.</string>
+    <string name="about_oss_title">مبني على المصادر المفتوحة</string>
+    <string name="about_oss_body">بُني صيغة بمكتبات مفتوحة المصدر، وتراخيصها مدرجة في شاشة التراخيص.</string>
+    <string name="about_licenses_action">عرض التراخيص</string>
+    <string name="about_made_for">صُنع لمن يفضّل أن تبقى ملفاته ملكًا له.</string>
+
+    <!-- التراخيص -->
+    <string name="licenses_title">التراخيص</string>
+    <string name="licenses_intro">بُني صيغة على هذه المشاريع مفتوحة المصدر. النصوص الكاملة للتراخيص متاحة في صفحة كل مشروع.</string>
+    <string name="licenses_opensource">مكونات مفتوحة المصدر</string>
+    <string name="licenses_note">يتضمّن هذا التطبيق FFmpegKit (‏LGPL-3.0). ترخيص FFmpeg هو LGPL-3.0؛ راجع صفحات المشاريع للنصوص الكاملة وروابط المصدر.</string>
+
+    <!-- الأخطاء -->
+    <string name="err_no_route">هذا التحويل غير مدعوم بعد.</string>
+    <string name="err_target_same">صيغة المصدر وصيغة الهدف متطابقتان.</string>
+    <string name="err_empty_output">لم يُرجع المحوّل أي ملف.</string>
+    <string name="err_conversion_failed">فشل التحويل: %1$s</string>
+    <string name="err_save_failed">تعذّر حفظ الملف المحوّل.</string>
+    <string name="err_storage_permission">يلزم إذن التخزين لحفظ الملفات في التنزيلات.</string>
+    <string name="err_output_folder">تعذّرت الكتابة إلى المجلد المختار. اختره مجددًا من الإعدادات.</string>
+    <string name="err_read_file">تعذّرت قراءة هذا الملف.</string>
+
+</resources>
