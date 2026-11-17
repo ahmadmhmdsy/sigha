@@ -2,6 +2,7 @@ package com.sigha.converter.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
@@ -13,7 +14,10 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-private val Context.historyDataStore: DataStore<Preferences> by preferencesDataStore(name = "sigha_history")
+private val Context.historyDataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "sigha_history",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() }
+)
 
 /** Persists the last [HistoryCodec.MAX_ENTRIES] conversions as JSON inside DataStore. */
 class HistoryStore(context: Context) {

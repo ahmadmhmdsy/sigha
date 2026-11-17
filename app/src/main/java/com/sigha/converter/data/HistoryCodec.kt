@@ -17,7 +17,11 @@ data class HistoryEntry(
     val sizeBytes: Long = 0L,
     val timestamp: Long = 0L,
     val success: Boolean = true,
-    val error: String? = null
+    val error: String? = null,
+    /** Language-independent failure kind name; the UI localizes it. */
+    val errorKind: String? = null,
+    /** Engine note (page cap, OCR fallback, truncation, ...). */
+    val note: String? = null
 )
 
 /**
@@ -30,7 +34,7 @@ object HistoryCodec {
 
     @Serializable
     private data class Payload(
-        val version: Int = 1,
+        val version: Int = 2,
         val entries: List<HistoryEntry> = emptyList()
     )
 
@@ -56,7 +60,7 @@ object HistoryCodec {
     }
 
     fun encode(entries: List<HistoryEntry>): String =
-        json.encodeToString(Payload(version = 1, entries = entries.take(MAX_ENTRIES)))
+        json.encodeToString(Payload(version = 2, entries = entries.take(MAX_ENTRIES)))
 
     /** Newest first, capped at [MAX_ENTRIES]. */
     fun add(entries: List<HistoryEntry>, entry: HistoryEntry): List<HistoryEntry> =

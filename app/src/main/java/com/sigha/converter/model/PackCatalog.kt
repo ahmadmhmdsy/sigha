@@ -31,7 +31,7 @@ object PackCatalog {
         id = ModelPacks.OCR_PACK_ID,
         title = "OCR: English + Arabic",
         description = "Reads text from photos and scanned PDFs in English and Arabic. " +
-            "Downloads once, then works fully offline.",
+            "Downloads once, then needs no network.",
         license = "Apache-2.0",
         licenseUrl = "https://github.com/tesseract-ocr/tessdata_best/blob/main/LICENSE",
         files = listOf(ENG, ARA),

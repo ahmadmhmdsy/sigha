@@ -3,6 +3,7 @@ package com.sigha.converter.ui
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.documentfile.provider.DocumentFile
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.Extension
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,6 +37,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -72,6 +76,7 @@ private val OCR_LANGUAGES = listOf(
 fun SettingsScreen(
     onOpenAbout: () -> Unit,
     onOpenLicenses: () -> Unit,
+    onOpenPrivacy: () -> Unit,
     onOpenModelPacks: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -79,9 +84,25 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var showOcrDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val showPickerMissing: () -> Unit = {
+        scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.ui_no_file_picker)) }
+    }
 
     val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
         if (uri != null) {
+            // A tree the provider lets us read but not write would fail at save time; refuse it
+            // here instead of letting a conversion fail later.
+            val writable = runCatching {
+                DocumentFile.fromTreeUri(context, uri)?.canWrite() == true
+            }.getOrDefault(false)
+            if (!writable) {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.ui_folder_not_writable))
+                }
+                return@rememberLauncherForActivityResult
+            }
             // Keep the grant across restarts; providers that don't support persistence
             // still work for this session.
             runCatching {
@@ -100,6 +121,7 @@ fun SettingsScreen(
     Scaffold(
         modifier = modifier,
         topBar = { SighaTopAppBar(title = stringResource(R.string.settings_title)) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Column(
@@ -138,7 +160,7 @@ fun SettingsScreen(
                         selected = settings.outputMode == OutputMode.FOLDER,
                         onClick = {
                             if (settings.outputFolderUri.isNullOrBlank()) {
-                                folderPicker.launch(null)
+                                folderPicker.launchSaf(null, showPickerMissing)
                             } else {
                                 scope.launch { Repo.settings.setOutputMode(OutputMode.FOLDER) }
                             }
@@ -170,8 +192,9 @@ fun SettingsScreen(
                         )
                         TextButton(
                             onClick = {
-                                folderPicker.launch(
-                                    settings.outputFolderUri?.let { raw -> runCatching { Uri.parse(raw) }.getOrNull() }
+                                folderPicker.launchSaf(
+                                    settings.outputFolderUri?.let { raw -> runCatching { Uri.parse(raw) }.getOrNull() },
+                                    showPickerMissing
                                 )
                             }
                         ) {
@@ -227,6 +250,13 @@ fun SettingsScreen(
                         title = stringResource(R.string.settings_licenses),
                         description = stringResource(R.string.settings_licenses_desc),
                         onClick = onOpenLicenses
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    SettingsNavRow(
+                        icon = Icons.Outlined.Lock,
+                        title = stringResource(R.string.ui_settings_privacy),
+                        description = stringResource(R.string.ui_settings_privacy_desc),
+                        onClick = onOpenPrivacy
                     )
                 }
             }

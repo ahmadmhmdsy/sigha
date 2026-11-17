@@ -33,8 +33,40 @@ data class ConversionRequest(
 /** One produced file. Most steps produce exactly one. */
 data class ConversionResult(val outputs: List<File>, val note: String? = null)
 
-/** Thrown by engines for user-facing failures; message is shown as-is. */
-class ConversionException(message: String, cause: Throwable? = null) : Exception(message, cause)
+/**
+ * Why a conversion failed, independent of any language. Engines and the runner classify a
+ * failure here; the UI turns the kind into a localized headline and shows the exception
+ * message only as expandable technical details.
+ */
+enum class ConversionFailureKind {
+    UNKNOWN,
+    TARGET_SAME,
+    NO_ROUTE,
+    EMPTY_OUTPUT,
+    UNSUPPORTED_FORMAT,
+    CORRUPT_INPUT,
+    PASSWORD_PROTECTED,
+    NO_TEXT_LAYER,
+    MODEL_PACK_MISSING,
+    TIMEOUT,
+    NO_STORAGE,
+    SAVE_FAILED,
+    STORAGE_PERMISSION,
+    OUTPUT_FOLDER_UNAVAILABLE,
+    FILE_TOO_LARGE,
+    DRM_PROTECTED
+}
+
+/**
+ * Thrown by engines for failures. [message] is a developer-facing English diagnostic:
+ * the UI shows a localized headline (from [kind]) and offers this text only as expandable
+ * details, so engines must never assume the message is user-facing copy.
+ */
+class ConversionException(
+    message: String,
+    cause: Throwable? = null,
+    val kind: ConversionFailureKind = ConversionFailureKind.UNKNOWN
+) : Exception(message, cause)
 
 /**
  * A single edge in the conversion graph. Engines implement exactly one arrow
@@ -44,5 +76,16 @@ interface Converter {
     val id: String
     val inputs: Set<FileFormat>
     val outputs: Set<FileFormat>
+
+    /**
+     * True when one input may produce several files (for example PDF page export).
+     * Such a converter may only be the LAST hop of a route: using it mid-route would
+     * silently drop every output except the first one.
+     */
+    val producesMultipleOutputs: Boolean get() = false
+
+    /** True when this edge needs an optional model pack that may not be installed yet. */
+    val requiresModelPack: Boolean get() = false
+
     suspend fun convert(request: ConversionRequest): ConversionResult
 }

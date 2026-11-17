@@ -3,7 +3,7 @@
 
     <!-- App -->
     <string name="app_name">Sigha</string>
-    <string name="app_tagline">Convert offline. Nothing leaves your phone.</string>
+    <string name="app_tagline">Convert on your phone. Files are not uploaded.</string>
     <string name="offline_badge">Offline</string>
 
     <!-- Navigation -->
@@ -157,7 +157,7 @@
     <string name="model_packs_license_unknown">Unknown license</string>
     <string name="model_packs_no_packs">No model packs are available yet.</string>
     <string name="model_packs_upscale_title">AI upscaling</string>
-    <string name="model_packs_upscale_coming_soon">Coming soon</string>
+    <string name="model_packs_upscale_coming_soon">Not available yet</string>
     <string name="model_packs_upscale_body">Sharpen and enlarge photos on-device with a small AI model. Not part of this build yet.</string>
     <string name="model_packs_license_missing">No license link</string>
     <string name="model_packs_open_license_failed">Couldn’t open the license page.</string>
@@ -165,8 +165,8 @@
     <!-- About -->
     <string name="about_title">About</string>
     <string name="about_version">Version %1$s</string>
-    <string name="about_offline_title">Works fully offline</string>
-    <string name="about_offline_body">Conversion runs on your device. Files are never uploaded, and there is no account or tracking.</string>
+    <string name="about_offline_title">Runs on your device</string>
+    <string name="about_offline_body">Conversion runs on your device. Files are not uploaded, and there is no account or tracking. The only network request is the optional OCR pack download.</string>
     <string name="about_privacy_title">Your files stay yours</string>
     <string name="about_privacy_body">Sigha asks only for the files you pick. Internet is used only when you download an optional model pack.</string>
     <string name="about_oss_title">Built on open source</string>

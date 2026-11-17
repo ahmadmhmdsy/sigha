@@ -99,6 +99,13 @@ object ModelPacks {
         }
     }
 
+    /** True when an interrupted download left resumable bytes for this pack. */
+    fun hasPartialDownload(id: String): Boolean {
+        val pack = PackCatalog.byId(id) ?: return false
+        val context = appContext ?: return false
+        return PackLayout.hasPartialDownload(context, pack)
+    }
+
     /** Installed OCR languages in a stable order; empty when no traineddata is present. */
     fun installedOcrLanguages(context: Context): List<String> {
         val app = remember(context)

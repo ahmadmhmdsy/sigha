@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import com.sigha.converter.R
 import com.sigha.converter.core.ConversionException
+import com.sigha.converter.core.ConversionFailureKind
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -68,7 +69,10 @@ class OutputPublisher(private val context: Context) {
         target: PublishTarget
     ): PublishedOutput = withContext(Dispatchers.IO) {
         if (!source.isFile || source.length() <= 0L) {
-            throw ConversionException(context.getString(R.string.err_save_failed))
+            throw ConversionException(
+                context.getString(R.string.err_save_failed),
+                kind = ConversionFailureKind.SAVE_FAILED
+            )
         }
         val safeMime = mime.ifBlank { DEFAULT_MIME }
         when (target) {
@@ -96,17 +100,27 @@ class OutputPublisher(private val context: Context) {
             put(MediaStore.Downloads.IS_PENDING, 1)
         }
         val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-            ?: throw ConversionException(context.getString(R.string.err_save_failed))
+            ?: throw ConversionException(
+                context.getString(R.string.err_save_failed),
+                kind = ConversionFailureKind.SAVE_FAILED
+            )
         try {
             resolver.openOutputStream(uri)?.use { output ->
                 source.inputStream().use { input -> input.copyTo(output, BUFFER_SIZE) }
-            } ?: throw ConversionException(context.getString(R.string.err_save_failed))
+            } ?: throw ConversionException(
+                context.getString(R.string.err_save_failed),
+                kind = ConversionFailureKind.SAVE_FAILED
+            )
             val finished = ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) }
             resolver.update(uri, finished, null, null)
         } catch (error: Exception) {
             runCatching { resolver.delete(uri, null, null) }
             if (error is ConversionException) throw error
-            throw ConversionException(context.getString(R.string.err_save_failed), error)
+            throw ConversionException(
+                context.getString(R.string.err_save_failed),
+                error,
+                ConversionFailureKind.SAVE_FAILED
+            )
         }
         return PublishedOutput(
             fileName = displayName,
@@ -143,12 +157,18 @@ class OutputPublisher(private val context: Context) {
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            throw ConversionException(context.getString(R.string.err_storage_permission))
+            throw ConversionException(
+                context.getString(R.string.err_storage_permission),
+                kind = ConversionFailureKind.STORAGE_PERMISSION
+            )
         }
         val root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val directory = File(root, SUBFOLDER)
         if (!directory.isDirectory && !directory.mkdirs()) {
-            throw ConversionException(context.getString(R.string.err_save_failed))
+            throw ConversionException(
+                context.getString(R.string.err_save_failed),
+                kind = ConversionFailureKind.SAVE_FAILED
+            )
         }
         val displayName = UniqueNames.unique(fileName) { candidate -> File(directory, candidate).exists() }
         val destination = File(directory, displayName)
@@ -158,10 +178,17 @@ class OutputPublisher(private val context: Context) {
             }
         } catch (error: Exception) {
             runCatching { destination.delete() }
-            throw ConversionException(context.getString(R.string.err_save_failed), error)
+            throw ConversionException(
+                context.getString(R.string.err_save_failed),
+                error,
+                ConversionFailureKind.SAVE_FAILED
+            )
         }
         val uri = scanIntoMediaStore(destination, mime)
-            ?: throw ConversionException(context.getString(R.string.err_save_failed))
+            ?: throw ConversionException(
+                context.getString(R.string.err_save_failed),
+                kind = ConversionFailureKind.SAVE_FAILED
+            )
         return PublishedOutput(
             fileName = displayName,
             mime = mime,
@@ -185,9 +212,15 @@ class OutputPublisher(private val context: Context) {
 
     private fun publishToFolder(source: File, fileName: String, mime: String, treeUri: Uri): PublishedOutput {
         val directory = DocumentFile.fromTreeUri(context, treeUri)
-            ?: throw ConversionException(context.getString(R.string.err_output_folder))
+            ?: throw ConversionException(
+                context.getString(R.string.err_output_folder),
+                kind = ConversionFailureKind.OUTPUT_FOLDER_UNAVAILABLE
+            )
         if (!directory.isDirectory || !directory.canWrite()) {
-            throw ConversionException(context.getString(R.string.err_output_folder))
+            throw ConversionException(
+                context.getString(R.string.err_output_folder),
+                kind = ConversionFailureKind.OUTPUT_FOLDER_UNAVAILABLE
+            )
         }
         val taken = try {
             directory.listFiles().mapNotNull { it.name }.toSet()
@@ -196,15 +229,25 @@ class OutputPublisher(private val context: Context) {
         }
         val displayName = UniqueNames.unique(fileName) { candidate -> candidate in taken }
         val document = directory.createFile(mime, displayName)
-            ?: throw ConversionException(context.getString(R.string.err_save_failed))
+            ?: throw ConversionException(
+                context.getString(R.string.err_save_failed),
+                kind = ConversionFailureKind.SAVE_FAILED
+            )
         try {
             context.contentResolver.openOutputStream(document.uri)?.use { output ->
                 source.inputStream().use { input -> input.copyTo(output, BUFFER_SIZE) }
-            } ?: throw ConversionException(context.getString(R.string.err_save_failed))
+            } ?: throw ConversionException(
+                context.getString(R.string.err_save_failed),
+                kind = ConversionFailureKind.SAVE_FAILED
+            )
         } catch (error: Exception) {
             runCatching { document.delete() }
             if (error is ConversionException) throw error
-            throw ConversionException(context.getString(R.string.err_save_failed), error)
+            throw ConversionException(
+                context.getString(R.string.err_save_failed),
+                error,
+                ConversionFailureKind.SAVE_FAILED
+            )
         }
         return PublishedOutput(
             fileName = displayName,

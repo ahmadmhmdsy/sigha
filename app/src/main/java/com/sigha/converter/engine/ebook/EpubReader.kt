@@ -18,7 +18,9 @@ internal data class EpubChapter(
 
 internal class EpubBook(
     val title: String,
-    val chapters: List<EpubChapter>
+    val chapters: List<EpubChapter>,
+    /** True when the book exceeded the text budget and only the first part was converted. */
+    val truncated: Boolean = false
 )
 
 /**
@@ -33,8 +35,14 @@ internal object EpubReader {
 
     private const val MAX_CHAPTERS = 2_000
     private const val MAX_CHAPTER_BYTES = 16L * 1024L * 1024L
+    private const val MAX_TEXT_CHARS = 8_000_000
 
     fun read(zip: SafePackage): EpubBook {
+        // DRM-protected EPUBs carry an encryption descriptor; their text is unreadable without
+        // the rights server, so fail with a precise message instead of producing a broken file.
+        if (zip.has("META-INF/encryption.xml")) {
+            throw ConversionException("This EPUB is DRM-protected and cannot be converted.")
+        }
         val rootfile = findRootfile(zip)
         val baseDir = rootfile.substringBeforeLast('/', "")
         val manifest = LinkedHashMap<String, String>()
@@ -80,6 +88,8 @@ internal object EpubReader {
         if (spine.isEmpty()) throw ConversionException("This EPUB file has no reading order.")
         val chapters = ArrayList<EpubChapter>()
         var number = 0
+        var totalChars = 0
+        var truncated = false
         for (idref in spine) {
             if (chapters.size >= MAX_CHAPTERS) {
                 throw ConversionException("The book has too many chapters to convert.")
@@ -90,6 +100,11 @@ internal object EpubReader {
             val html = stream.use { TextIo.readText(it, MAX_CHAPTER_BYTES) }
             val text = HtmlTextExtractor.toText(html).trim()
             if (text.isEmpty()) continue
+            if (totalChars + text.length > MAX_TEXT_CHARS) {
+                truncated = true
+                break
+            }
+            totalChars += text.length
             number++
             chapters.add(
                 EpubChapter(
@@ -102,7 +117,7 @@ internal object EpubReader {
         if (chapters.isEmpty()) {
             throw ConversionException("No readable text was found in the book.")
         }
-        return EpubBook(title, chapters)
+        return EpubBook(title, chapters, truncated)
     }
 
     private fun isDocument(mediaType: String?, href: String): Boolean {

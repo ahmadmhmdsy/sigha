@@ -39,8 +39,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -231,11 +233,40 @@ private fun QueueRow(entry: QueueEntry, showMessage: (String) -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            if (!entry.errorMessage.isNullOrBlank()) {
+            if (entry.status == QueueStatus.FAILED) {
                 Text(
-                    text = entry.errorMessage.orEmpty(),
+                    text = stringResource(entry.errorKind.headlineRes()),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error
+                )
+                val details = entry.errorMessage?.takeIf { it.isNotBlank() }
+                if (details != null) {
+                    var showDetails by remember(entry.id) { mutableStateOf(false) }
+                    TextButton(
+                        onClick = { showDetails = !showDetails },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = stringResource(
+                                if (showDetails) R.string.ui_details_hide else R.string.ui_details_show
+                            ),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                    if (showDetails) {
+                        Text(
+                            text = details,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+            if (!entry.note.isNullOrBlank()) {
+                Text(
+                    text = stringResource(R.string.ui_note_label, entry.note.orEmpty()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             val output = entry.outputUri

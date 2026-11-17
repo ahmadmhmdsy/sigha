@@ -1,0 +1,53 @@
+WRITTEN OFFER FOR CORRESPONDING SOURCE — LGPL COMPONENTS IN SIGHA
+
+Sigha includes the following library components covered by the GNU Lesser General
+Public License, version 3 (LGPL-3.0):
+
+  1. FFmpegKit Full 8.1.9 — maintained fork, artefact
+     "dev.ffmpegkit-maintained:ffmpeg-kit-full:8.1.9", licensed LGPL-3.0.
+  2. The FFmpeg libraries (libavcodec, libavdevice, libavfilter, libavformat,
+     libavutil, libswresample, libswscale, libffmpegkit, libffmpegkit_abidetect)
+     and the third-party libraries statically linked into them, licensed under
+     LGPL-2.1-or-later and other licenses as listed in the accompanying notices.
+
+WRITTEN OFFER
+
+The publisher of Sigha offers, valid for three years from the date you obtained
+this copy of the app, to give any third party a copy of the Corresponding Source
+for the library components listed above, for no more than the cost of performing
+this distribution. Where the source is delivered over the network, that cost is
+zero.
+
+The Corresponding Source includes: the exact source revision of FFmpegKit and
+FFmpeg used for version 8.1.9 of this build, the build scripts and configuration
+used to produce the native libraries, the licence texts, and the information
+needed to build and install a modified version (see the relink instructions in
+this app).
+
+How to request it:
+  - e-mail: opensource@sigha.app   (PLACEHOLDER — the publisher must create this
+    mailbox and replace this address before release; TODO)
+  - include: the app version (0.2.0 or later), the date you obtained the app, and
+    a postal or e-mail address for delivery.
+
+The source archive itself must be published by the publisher at a stable HTTPS
+URL that the publisher controls. [PUBLISHER TODO — blocker B6: host the source
+archive and insert its URL here, or state that it is available on request only.
+The written offer above is valid on its own, but a public URL is strongly
+preferred.]
+
+NO WARRANTY
+
+The library components are provided WITHOUT ANY WARRANTY, to the extent
+permitted by applicable law. Except as expressly stated in the GNU LGPL, the
+copyright holders provide the libraries "as is" without warranty of any kind,
+either expressed or implied, including, but not limited to, the implied
+warranties of merchantability and fitness for a particular purpose. The entire
+risk as to the quality and performance of the libraries is with you.
+
+MODIFICATIONS BY THE PUBLISHER
+
+The library components are redistributed as published by their upstream
+projects. Sigha's publisher has not modified their source code; the app packages
+the pre-built native libraries and calls them through their public Android
+interfaces.

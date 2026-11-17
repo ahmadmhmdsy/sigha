@@ -106,6 +106,10 @@ fun WorkbenchScreen(
         viewModel.messages.collect { message -> snackbarHostState.showSnackbar(message) }
     }
 
+    val showPickerMissing: () -> Unit = {
+        scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.ui_no_file_picker)) }
+    }
+
     val pickFiles = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         if (uris.isNotEmpty()) viewModel.addFiles(uris)
     }
@@ -182,7 +186,7 @@ fun WorkbenchScreen(
                     footnote = stringResource(R.string.workbench_empty_supported),
                     action = {
                         Button(
-                            onClick = { pickFiles.launch(arrayOf("*/*")) },
+                            onClick = { pickFiles.launchSaf(arrayOf("*/*"), showPickerMissing) },
                             contentPadding = PaddingValues(horizontal = 28.dp, vertical = 14.dp)
                         ) {
                             Icon(
@@ -226,7 +230,7 @@ fun WorkbenchScreen(
                             modifier = Modifier.weight(1f)
                         )
                         TextButton(
-                            onClick = { pickFiles.launch(arrayOf("*/*")) },
+                            onClick = { pickFiles.launchSaf(arrayOf("*/*"), showPickerMissing) },
                             enabled = !state.isConverting
                         ) {
                             Icon(
@@ -261,6 +265,15 @@ fun WorkbenchScreen(
                         selected = state.target,
                         onSelect = viewModel::selectTarget
                     )
+                }
+                if (state.showOcrHint) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.ui_ocr_targets_hidden),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 if (state.showQuality || state.showBitrate || state.showPages) {
                     item {
@@ -582,12 +595,20 @@ private fun ProgressRowItem(row: ProgressRow) {
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            if (!row.errorMessage.isNullOrBlank()) {
+            if (row.status == QueueStatus.FAILED) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = row.errorMessage.orEmpty(),
+                    text = stringResource(row.errorKind.headlineRes()),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error
+                )
+            }
+            if (row.status == QueueStatus.DONE && !row.note.isNullOrBlank()) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.ui_note_label, row.note.orEmpty()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

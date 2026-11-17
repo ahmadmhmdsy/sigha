@@ -16,7 +16,12 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven(url = "https://jitpack.io")
+        // tesseract4android (Apache-2.0) is published only through JitPack. The content filter
+        // keeps JitPack out of resolution for every other group, so a compromise there cannot
+        // substitute any other dependency.
+        maven("https://jitpack.io") {
+            content { includeGroup("cz.adaptech.tesseract4android") }
+        }
     }
 }
 rootProject.name = "Sigha"

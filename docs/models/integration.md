@@ -160,21 +160,21 @@ keeps the first edge for an equal-cost route. The OCR `pdf-to-txt` converter is 
 registered and ready but **not reachable through the normal picker**: a scanned PDF goes to
 PDFBox, which writes an empty file, and the run ends as a failed conversion.
 
-Recommended fix, in Lead-owned files: in `PdfToTextConverter`, when the extracted text is empty,
-fall back to `PdfTextConverter` (or decide by whether the PDF has a text layer). Do not simply
-move OCR before PDFBox: digital PDFs would pay OCR time and lose layout. Until then, a scanned
-PDF can be handled as two steps in the UI: PDF -> PNG, then PNG -> TXT.
+Fixed: `PdfToTextConverter` now detects a blank text layer and falls back to the OCR converter
+(`PdfTextConverter`). Moving OCR before PDFBox was deliberately not done: digital PDFs would pay
+OCR time and lose layout. When the OCR pack is not installed, the failure message tells the user
+that the PDF looks like a scan and that the OCR pack is required.
 
 ### Limitations
 
-- No resume and no delta updates: if the download dies, the next attempt restarts the missing
-  file from byte 0. A failure after English finished keeps English installed, so only Arabic is
-  fetched again.
-- No metered-network policy in this layer; it downloads exactly when the UI asks. If the product
-  wants "Wi-Fi only", that check belongs in `ModelPackStore`/`ModelPacks.download` before the
-  first byte.
+- Resumable downloads: each expected file has its own `.part` file and the next attempt sends a
+  `Range` header from the bytes already on disk. A cancelled or killed download keeps its partial
+  file, so the retry continues instead of restarting from byte 0. A failure after English finished
+  keeps English installed, so only Arabic is fetched again.
+- Metered connections are not blocked; the confirmation dialog states the download size and warns
+  when the active connection reports itself as metered. A "Wi-Fi only" switch is not implemented.
 - No Play Asset Delivery; the pack is a normal HTTPS file, so it needs a connection once and then
-  works fully offline.
+  works without a network.
 - Installed files are app-private. Only their size is checked at rest; the digest is verified at
   install time (re-hashing 28 MB on every screen build would be wasteful).
 - OCR speed is dominated by Tesseract init (roughly 0.5-1.5 s) plus per-page recognition; one
@@ -188,7 +188,7 @@ PDF can be handled as two steps in the UI: PDF -> PNG, then PNG -> TXT.
 fun upscaleConverters(app: Application): List<Converter> = emptyList()
 ```
 
-This is deliberate. The model packs screen says "Coming soon / Not part of this build yet", and
+This is deliberate. The model packs screen says "Not available yet / Not part of this build yet", and
 wiring an image->PNG upscaler into the route graph now would either hijack every ordinary
 image->PNG conversion (the planner takes the first registered edge) or fail at the end of a route.
 Upscaling also needs an explicit user choice ("2x/4x"), which the current screen model does not

@@ -1,5 +1,8 @@
 package com.sigha.converter.ui
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,8 +35,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -42,7 +46,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sigha.converter.R
+import com.sigha.converter.data.PackDownloadState
 import com.sigha.converter.data.Repo
 import com.sigha.converter.model.ModelPacks
 import com.sigha.converter.ui.components.SectionHeader
@@ -51,8 +57,9 @@ import com.sigha.converter.ui.components.SighaTopAppBar
 import kotlinx.coroutines.launch
 
 /**
- * Optional on-device model packs. Nothing is fetched unless the user taps Download, and the
- * screen states that promise explicitly next to the pack list.
+ * Optional on-device model packs. Nothing is fetched unless the user confirms the download, and
+ * the confirmation states the size (plus a warning on mobile data). The download itself is
+ * app-scoped: leaving this screen does not cancel it.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,33 +68,33 @@ fun ModelPacksScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val packs = remember { Repo.packs.catalog() }
-    var installedIds by remember {
-        mutableStateOf(packs.filter { pack -> Repo.packs.isInstalled(pack.id) }.map { pack -> pack.id }.toSet())
+    val downloadStates by Repo.packDownloads.states.collectAsStateWithLifecycle()
+    var pendingPack by remember { mutableStateOf<ModelPacks.PackInfo?>(null) }
+    var pendingResume by remember { mutableStateOf(false) }
+    var seenStates by remember { mutableStateOf<Map<String, PackDownloadState>>(emptyMap()) }
+
+    // Recomputed when a download finishes; the cheap check reads file sizes only.
+    val installedIds = remember(downloadStates) {
+        packs.filter { pack ->
+            downloadStates[pack.id] is PackDownloadState.Installed || Repo.packs.isInstalled(pack.id)
+        }.map { pack -> pack.id }.toSet()
     }
-    var downloadingId by remember { mutableStateOf<String?>(null) }
-    val progressById = remember { mutableStateMapOf<String, Float>() }
 
     val showMessage: (String) -> Unit = { message ->
         scope.launch { snackbarHostState.showSnackbar(message) }
     }
 
-    fun startDownload(packId: String) {
-        if (downloadingId != null) return
-        downloadingId = packId
-        progressById[packId] = 0f
-        scope.launch {
-            val result = Repo.packs.download(packId) { value ->
-                progressById[packId] = value
-            }
-            downloadingId = null
-            progressById.remove(packId)
-            if (result.isSuccess) {
-                installedIds = installedIds + packId
-                snackbarHostState.showSnackbar(context.getString(R.string.model_packs_download_done))
-            } else {
-                snackbarHostState.showSnackbar(context.getString(R.string.model_packs_download_failed))
+    LaunchedEffect(downloadStates) {
+        downloadStates.forEach { (id, state) ->
+            val previous = seenStates[id]
+            when {
+                state is PackDownloadState.Installed && previous !is PackDownloadState.Installed ->
+                    snackbarHostState.showSnackbar(context.getString(R.string.model_packs_download_done))
+                state is PackDownloadState.Failed && previous !is PackDownloadState.Failed ->
+                    snackbarHostState.showSnackbar(context.getString(R.string.model_packs_download_failed))
             }
         }
+        seenStates = downloadStates
     }
 
     fun openLicense(pack: ModelPacks.PackInfo) {
@@ -97,6 +104,52 @@ fun ModelPacksScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
             !openUrl(context, url) -> showMessage(context.getString(R.string.model_packs_open_license_failed))
             else -> Unit
         }
+    }
+
+    fun requestDownload(pack: ModelPacks.PackInfo) {
+        pendingResume = ModelPacks.hasPartialDownload(pack.id)
+        pendingPack = pack
+    }
+
+    pendingPack?.let { pack ->
+        val size = formatFileSize(context, pack.sizeBytes).orEmpty()
+        val metered = remember(pack.id) { isMeteredConnection(context) }
+        AlertDialog(
+            onDismissRequest = { pendingPack = null },
+            title = { Text(stringResource(R.string.ui_pack_download_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.ui_pack_download_body, pack.title, size))
+                    if (metered) {
+                        Text(
+                            text = stringResource(R.string.ui_pack_metered_note, size),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    if (pendingResume) {
+                        Text(
+                            text = stringResource(R.string.ui_pack_resume_note),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    pendingPack = null
+                    Repo.packDownloads.start(pack.id)
+                }) {
+                    Text(stringResource(R.string.ui_pack_download_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingPack = null }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -163,12 +216,14 @@ fun ModelPacksScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                     SighaCard {
                         Column {
                             packs.forEach { pack ->
+                                val state = downloadStates[pack.id] ?: PackDownloadState.Idle
                                 PackRow(
                                     pack = pack,
                                     installed = pack.id in installedIds,
-                                    downloading = downloadingId == pack.id,
-                                    progress = progressById[pack.id] ?: 0f,
-                                    onDownload = { startDownload(pack.id) },
+                                    downloading = state is PackDownloadState.Downloading,
+                                    progress = (state as? PackDownloadState.Downloading)?.progress ?: 0f,
+                                    onDownload = { requestDownload(pack) },
+                                    onCancel = { Repo.packDownloads.cancel() },
                                     onLicense = { openLicense(pack) }
                                 )
                             }
@@ -193,6 +248,7 @@ private fun PackRow(
     downloading: Boolean,
     progress: Float,
     onDownload: () -> Unit,
+    onCancel: () -> Unit,
     onLicense: () -> Unit
 ) {
     val context = LocalContext.current
@@ -242,11 +298,23 @@ private fun PackRow(
                 progress = { progress.coerceIn(0f, 1f) },
                 modifier = Modifier.fillMaxWidth()
             )
-            Text(
-                text = stringResource(R.string.model_packs_downloading, (progress * 100).toInt().coerceIn(0, 100)),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.model_packs_downloading, (progress * 100).toInt().coerceIn(0, 100)),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(
+                    onClick = onCancel,
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.action_cancel),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
         }
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -319,4 +387,12 @@ private fun UpscaleCard() {
             )
         }
     }
+}
+
+/** True when the active connection reports itself as metered (mobile data, some hotspots). */
+private fun isMeteredConnection(context: Context): Boolean {
+    val manager = context.getSystemService(ConnectivityManager::class.java) ?: return false
+    val network = manager.activeNetwork ?: return false
+    val capabilities = manager.getNetworkCapabilities(network) ?: return false
+    return !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
 }

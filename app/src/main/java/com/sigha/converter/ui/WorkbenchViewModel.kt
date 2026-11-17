@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sigha.converter.AppGraph
 import com.sigha.converter.R
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.ConversionOptions
 import com.sigha.converter.core.FileFormat
 import com.sigha.converter.core.FormatCategory
+import com.sigha.converter.model.ModelPacks
 import com.sigha.converter.data.ConversionInput
 import com.sigha.converter.data.ConversionRunner
 import com.sigha.converter.data.IncomingFilesBus
@@ -34,7 +36,10 @@ data class ProgressRow(
     val toId: String,
     val status: QueueStatus,
     val progress: Float,
+    /** English diagnostic, shown as details only. */
     val errorMessage: String?,
+    val errorKind: ConversionFailureKind,
+    val note: String?,
     val outputUri: Uri?,
     val outputName: String?,
     val displayPath: String?
@@ -50,7 +55,9 @@ data class WorkbenchUiState(
     val isLoadingFiles: Boolean = false,
     val showQuality: Boolean = false,
     val showBitrate: Boolean = false,
-    val showPages: Boolean = false
+    val showPages: Boolean = false,
+    /** True while OCR targets are hidden because the optional OCR pack is not installed. */
+    val showOcrHint: Boolean = false
 )
 
 /**
@@ -85,6 +92,11 @@ class WorkbenchViewModel : ViewModel() {
         viewModelScope.launch {
             queue.entries.collect { entries -> syncProgress(entries) }
         }
+        viewModelScope.launch {
+            if (Repo.settings.takeInterruptedBatch()) {
+                _messages.tryEmit(context.getString(R.string.ui_interrupted_batch))
+            }
+        }
     }
 
     /** Detects each URI and appends it to the selection, skipping duplicates and unreadables. */
@@ -106,8 +118,11 @@ class WorkbenchViewModel : ViewModel() {
                     .map { ConversionInput(it.uri, it.displayName, it.size, it.format) }
                 withDerived(current.copy(files = current.files + added, isLoadingFiles = false))
             }
+            val skipped = incoming.size - detected.size
             if (detected.isEmpty()) {
                 _messages.tryEmit(context.getString(R.string.workbench_detect_failed))
+            } else if (skipped > 0) {
+                _messages.tryEmit(context.getString(R.string.ui_unsupported_files))
             }
         }
     }
@@ -156,10 +171,16 @@ class WorkbenchViewModel : ViewModel() {
             _messages.tryEmit(context.getString(R.string.workbench_no_target_selected))
             return
         }
-        if (queue.isRunning) return
+        if (queue.isRunning) {
+            _messages.tryEmit(context.getString(R.string.ui_queue_busy))
+            return
+        }
         val options = current.options.copy(ocrLanguage = settings.settings.value.ocrLanguage)
         val ids = queue.start(current.files, target, options)
-        if (ids.isEmpty()) return
+        if (ids.isEmpty()) {
+            _messages.tryEmit(context.getString(R.string.ui_queue_busy))
+            return
+        }
         batchIds = ids
         batchSummarised = false
         _state.update { it.copy(isConverting = true) }
@@ -188,6 +209,8 @@ class WorkbenchViewModel : ViewModel() {
                 status = entry.status,
                 progress = entry.progress,
                 errorMessage = entry.errorMessage,
+                errorKind = entry.errorKind,
+                note = entry.note,
                 outputUri = entry.outputUri,
                 outputName = entry.outputName,
                 displayPath = entry.displayPath
@@ -220,6 +243,10 @@ class WorkbenchViewModel : ViewModel() {
         val showQuality = FormatCategory.IMAGE in categories
         val showBitrate = FormatCategory.AUDIO in categories || FormatCategory.VIDEO in categories
         val showPages = state.files.any { it.format.id == "pdf" }
+        val ocrInstalled = Repo.packs.isInstalled(ModelPacks.OCR_PACK_ID)
+        val showOcrHint = !ocrInstalled && state.files.any { file ->
+            file.format.category == FormatCategory.IMAGE || file.format.category == FormatCategory.PDF
+        }
         val defaults = ConversionOptions()
         var options = state.options
         if (!showQuality && options.quality != defaults.quality) {
@@ -237,25 +264,25 @@ class WorkbenchViewModel : ViewModel() {
             options = options,
             showQuality = showQuality,
             showBitrate = showBitrate,
-            showPages = showPages
+            showPages = showPages,
+            showOcrHint = showOcrHint
         )
     }
 
+    /**
+     * Targets every selected file can reach. A target is hidden while its only route needs a
+     * model pack that is not installed, so the user never starts a conversion that is guaranteed
+     * to fail; the hint in [WorkbenchUiState.showOcrHint] explains where the targets went.
+     */
     private fun computeTargets(files: List<ConversionInput>): List<FileFormat> {
         if (files.isEmpty()) return emptyList()
         val sourceIds = files.map { it.format.id }.toSet()
-        var common: Set<String> = AppGraph.registry
-            .reachableTargets(files.first().format, ConversionRunner.MAX_HOPS)
-            .map { it.id }
-            .toSet()
-        for (input in files.drop(1)) {
-            val reachable = AppGraph.registry
-                .reachableTargets(input.format, ConversionRunner.MAX_HOPS)
-                .map { it.id }
-                .toSet()
-            common = common.intersect(reachable)
-            if (common.isEmpty()) break
+        val ocrInstalled = Repo.packs.isInstalled(ModelPacks.OCR_PACK_ID)
+        return AppGraph.formats.all().filter { format ->
+            format.id !in sourceIds && files.all { input ->
+                val route = AppGraph.planner.plan(input.format, format, ConversionRunner.MAX_HOPS)
+                route != null && (ocrInstalled || route.none { it.requiresModelPack })
+            }
         }
-        return AppGraph.formats.all().filter { it.id in common && it.id !in sourceIds }
     }
 }

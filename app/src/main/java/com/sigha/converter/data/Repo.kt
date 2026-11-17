@@ -14,4 +14,5 @@ object Repo {
     val runner: ConversionRunner by lazy { ConversionRunner(AppGraph.app, publisher) }
     val queue: ConversionQueue by lazy { ConversionQueue(AppGraph.app, runner, history, settings) }
     val packs: ModelPackStore by lazy { ModelPackStore(AppGraph.app) }
+    val packDownloads: PackDownloads by lazy { PackDownloads(AppGraph.app) }
 }

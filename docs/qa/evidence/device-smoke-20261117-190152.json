@@ -1,0 +1,73 @@
+{
+  "generatedAt": "2026-11-17T19:01:52.0549114+03:00",
+  "apk": "E:\\android_apps\\digital_converter\\app\\build\\outputs\\apk\\debug\\app-universal-debug.apk",
+  "steps": [
+    {
+      "step": "debug APK exists",
+      "ok": true,
+      "detail": "E:\\android_apps\\digital_converter\\app\\build\\outputs\\apk\\debug\\app-universal-debug.apk"
+    },
+    {
+      "step": "adb available",
+      "ok": true,
+      "detail": "C:\\Android\\Sdk\\platform-tools\\adb.exe"
+    },
+    {
+      "step": "device attached",
+      "ok": true,
+      "detail": "emulator-5554"
+    },
+    {
+      "step": "device booted",
+      "ok": true,
+      "detail": "sys.boot_completed=True"
+    },
+    {
+      "step": "install",
+      "ok": true,
+      "detail": "Performing Streamed Install\r\nSuccess"
+    },
+    {
+      "step": "cold start",
+      "ok": true,
+      "detail": "Status: ok LaunchState: COLD TotalTime: 1992"
+    },
+    {
+      "step": "process alive after start",
+      "ok": true,
+      "detail": "pid=2270"
+    },
+    {
+      "step": "activity resumed",
+      "ok": true,
+      "detail": "topResumedActivity=ActivityRecord{34508917 u0 com.sigha.converter/.MainActivity t35}"
+    },
+    {
+      "step": "monkey run",
+      "ok": true,
+      "detail": "injected=120 requested=120"
+    },
+    {
+      "step": "no app crash",
+      "ok": true,
+      "detail": "matching crash entries=0"
+    },
+    {
+      "step": "process alive after monkey",
+      "ok": true,
+      "detail": "pid=2270 crashEntries=0"
+    }
+  ],
+  "facts": {
+    "serial": "emulator-5554",
+    "sdk": "36",
+    "abi": "x86_64",
+    "stoppedCompetingApp": "com.sabeel.steps",
+    "pid": "2270",
+    "topResumedActivity": "topResumedActivity=ActivityRecord{34508917 u0 com.sigha.converter/.MainActivity t35}",
+    "monkeyEvents": 120,
+    "pidAfterMonkey": "2270",
+    "crashBufferLines": 0
+  },
+  "failures": []
+}

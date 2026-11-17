@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- شاشة التراخيص (WS4). أسماء المكوّنات ومعرّفات التراخيص أعلام لا تُترجم. -->
+    <string name="legal_licenses_title">التراخيص</string>
+    <string name="legal_licenses_intro">كل نص ترخيص في هذه الشاشة مضمّن داخل التطبيق ويمكن قراءته دون اتصال بالإنترنت. القائمة تغطي ما يُشحن فعلاً في هذا الإصدار.</string>
+    <string name="legal_licenses_section_rights">مكوّنات LGPL وحقوقك</string>
+    <string name="legal_licenses_written_offer">عرض كتابي للحصول على شفرة المصدر</string>
+    <string name="legal_licenses_relink">استبدال المكتبات الأصلية</string>
+    <string name="legal_licenses_no_warranty">إخلاء الضمان</string>
+    <string name="legal_licenses_no_warranty_body">تُقدَّم المكتبات «كما هي» ودون أي ضمان من أي نوع. إخلاء المسؤولية الكامل في نصوص LGPL أدناه.</string>
+    <string name="legal_licenses_section_components">المكوّنات في هذا الإصدار</string>
+    <string name="legal_licenses_section_ffmpeg_libs">مكتبات مضمّنة داخل FFmpeg</string>
+    <string name="legal_licenses_expand">عرض نص الترخيص</string>
+    <string name="legal_licenses_collapse">إخفاء نص الترخيص</string>
+    <string name="legal_licenses_loading">جارٍ تحميل نص الترخيص…</string>
+    <string name="legal_licenses_load_error">تعذّر تحميل نص الترخيص من التطبيق.</string>
+    <string name="legal_licenses_unresolved">ترخيص غير محسوم</string>
+    <string name="legal_licenses_unresolved_body">هذه المكتبة لا تنشر ملف ترخيص. على الناشر حسم ذلك قبل الإصدار؛ وهي مذكورة هنا كي لا يُخفى شيء ممّا يُشحن.</string>
+    <string name="legal_licenses_full_notice">الإشعارات الكاملة لأطراف ثالثة</string>
+    <string name="legal_licenses_contact">أسئلة التراخيص: opensource@sigha.app</string>
+
+    <!-- شاشة الخصوصية (WS4). نص السياسة يُعرض من assets/legal/privacy-policy.md. -->
+    <string name="legal_privacy_title">الخصوصية</string>
+    <string name="legal_privacy_headline">لا نجمع أي بيانات.</string>
+    <string name="legal_privacy_effective">سارية اعتباراً من 17 تشرين الثاني (نوفمبر) 2026</string>
+    <string name="legal_privacy_loading">جارٍ تحميل السياسة…</string>
+    <string name="legal_privacy_load_error">تعذّر تحميل سياسة الخصوصية من التطبيق.</string>
+</resources>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  User-facing strings added by the production-readiness pass. Engine diagnostics stay English
+  and are shown only as expandable details; these are the localized headlines and labels.
+-->
+<resources>
+    <!-- Failure headlines -->
+    <string name="ui_error_unknown">Conversion failed.</string>
+    <string name="ui_error_password">This PDF is password-protected. Remove the password and try again.</string>
+    <string name="ui_error_no_text_layer">This PDF has no text layer (it looks like a scan). Install the OCR pack to read scanned PDFs.</string>
+    <string name="ui_error_model_pack_missing">This conversion needs a model pack. Install it from Settings, then Model packs.</string>
+    <string name="ui_error_timeout">The conversion took too long and was stopped. Try a smaller file.</string>
+    <string name="ui_error_no_storage">Not enough free storage. Free up space and try again.</string>
+    <string name="ui_error_file_too_large">This file is too large to convert on this device.</string>
+    <string name="ui_error_drm">This book is DRM-protected and cannot be converted.</string>
+    <string name="ui_details_show">Show technical details</string>
+    <string name="ui_details_hide">Hide technical details</string>
+    <string name="ui_note_label">Note: %1$s</string>
+
+    <!-- Notes and queue messages -->
+    <string name="ui_note_output_folder_fallback">Saved to Downloads because the chosen folder is no longer available.</string>
+    <string name="ui_interrupted_batch">The last batch was interrupted. Files that were not converted can be added again.</string>
+    <string name="ui_queue_busy">A conversion is already running. Wait for it to finish or cancel it.</string>
+    <string name="ui_unsupported_files">Some files could not be read and were skipped.</string>
+    <string name="ui_ocr_targets_hidden">OCR targets appear after the OCR pack is installed.</string>
+
+    <!-- Foreground service -->
+    <string name="ui_service_channel_name">Conversion progress</string>
+    <string name="ui_service_channel_description">Shows progress while files are converted on this device.</string>
+    <string name="ui_service_title">Sigha is converting</string>
+    <string name="ui_service_preparing">Preparing conversion…</string>
+    <string name="ui_service_converting">Converting %1$s</string>
+
+    <!-- Model pack download -->
+    <string name="ui_pack_download_title">Download model pack?</string>
+    <string name="ui_pack_download_body">%1$s (%2$s) downloads once and works offline afterwards.</string>
+    <string name="ui_pack_metered_note">You are on mobile data. This download is about %1$s.</string>
+    <string name="ui_pack_download_confirm">Download</string>
+    <string name="ui_pack_resume_note">A partial download will resume.</string>
+    <string name="ui_folder_not_writable">That folder cannot be written to. Choose another folder.</string>
+    <string name="ui_out_of_memory">This file is too large for the phone to convert in one pass.</string>
+    <string name="ui_no_file_picker">No file picker is available on this device.</string>
+
+    <!-- Settings links -->
+    <string name="ui_settings_privacy">Privacy policy</string>
+    <string name="ui_settings_privacy_desc">What Sigha does with your files and data.</string>
+</resources>

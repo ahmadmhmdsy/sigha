@@ -102,6 +102,7 @@ private class ZipToTarGz : Converter {
                     tar.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX)
                     val buffer = ByteArray(ArchiveGuards.BUFFER_SIZE)
                     var index = 0
+                    var writtenTotal = 0L
                     for (entry in entries) {
                         if (request.isCancelled()) throw CancellationException("Conversion cancelled")
                         val safe = ArchiveGuards.normalizeEntryName(entry.name)
@@ -133,8 +134,17 @@ private class ZipToTarGz : Converter {
                                 throw ConversionException("The archive contains an entry with an inconsistent size: " + safe)
                             }
                             tar.closeArchiveEntry()
+                            writtenTotal += size
+                            if (writtenTotal > ArchiveGuards.MAX_TOTAL_BYTES) {
+                                throw ConversionException("The archive expands beyond the 2 GB limit.")
+                            }
                         } else {
-                            writeUnknownSizeEntry(zip, entry, safe, tar, request, buffer)
+                            // Unknown sizes are only known after streaming; count them against the
+                            // same budget so a zip bomb cannot bypass the limit.
+                            writtenTotal += writeUnknownSizeEntry(zip, entry, safe, tar, request, buffer)
+                            if (writtenTotal > ArchiveGuards.MAX_TOTAL_BYTES) {
+                                throw ConversionException("The archive expands beyond the 2 GB limit.")
+                            }
                         }
                         index++
                         request.onProgress(0.05f + 0.95f * index / entries.size.coerceAtLeast(1))
@@ -152,7 +162,7 @@ private class ZipToTarGz : Converter {
         tar: TarArchiveOutputStream,
         request: ConversionRequest,
         buffer: ByteArray
-    ) {
+    ): Long {
         val spill = File.createTempFile("sigha-entry", ".tmp", request.context.cacheDir)
         try {
             val size = spill.outputStream().buffered(ArchiveGuards.BUFFER_SIZE).use { output ->
@@ -169,6 +179,7 @@ private class ZipToTarGz : Converter {
                 copyFully(input, tar, request, buffer)
             }
             tar.closeArchiveEntry()
+            return size
         } finally {
             ArchiveIo.deleteQuietly(spill)
         }

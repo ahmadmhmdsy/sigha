@@ -1,5 +1,6 @@
 package com.sigha.converter.engine.text
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
@@ -43,7 +44,14 @@ class TextPdfWriter(
     private var paragraphsPlaced = 0
     private var closed = false
 
-    /** Queues one paragraph; pagination happens as needed. */
+    /**
+     * Queues one paragraph; pagination happens as needed.
+     *
+     * Layout.BREAK_STRATEGY_SIMPLE is the documented value for StaticLayout.Builder; lint
+     * expects the newer LineBreaker constant (API 29+), but the numeric value is identical and
+     * the builder predates LineBreaker.
+     */
+    @SuppressLint("WrongConstant")
     fun addParagraph(text: CharSequence, style: ParagraphStyle = ParagraphStyle.BODY) {
         ensureOpen()
         if (isCancelled()) throw CancellationException("Conversion cancelled")

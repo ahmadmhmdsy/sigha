@@ -2,6 +2,7 @@ package com.sigha.converter.engine.media
 
 import android.app.Application
 import android.media.MediaMetadataRetriever
+import android.os.StatFs
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.FFmpegSession
 import com.arthenica.ffmpegkit.FFmpegSessionCompleteCallback
@@ -15,10 +16,12 @@ import com.sigha.converter.core.ConversionResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.io.FileOutputStream
 
@@ -30,6 +33,9 @@ private const val STALE_TEMP_MS = 6L * 60L * 60L * 1000L
 private const val MAX_LOG_LINES = 12
 private const val DETAILS_LIMIT = 400
 private const val CANCELLED_MESSAGE = "Conversion cancelled."
+private const val CONVERSION_TIMEOUT_MS = 20L * 60L * 1000L
+private const val FREE_SPACE_MULTIPLIER = 2L
+private const val MIN_FREE_BYTES = 64L * 1024L * 1024L
 
 /**
  * Runs one FFmpegKit command against a private cache copy of the input Uri.
@@ -110,7 +116,17 @@ internal class FfmpegRunner(private val app: Application) {
         }
         var success = false
         try {
-            val finished = completion.await()
+            // FFmpegKit has no timeout of its own: a stuck native session would otherwise hold
+            // the sequential queue forever.
+            val finished = try {
+                withTimeout(CONVERSION_TIMEOUT_MS) { completion.await() }
+            } catch (timeout: TimeoutCancellationException) {
+                runCatching { FFmpegKit.cancel(session.sessionId) }
+                request.outputFile.delete()
+                throw ConversionException(
+                    "The conversion timed out after 20 minutes. The file may be too large or damaged."
+                )
+            }
             val result = ExecResult(
                 success = ReturnCode.isSuccess(finished.returnCode),
                 cancelled = ReturnCode.isCancel(finished.returnCode),
@@ -179,6 +195,7 @@ internal class FfmpegRunner(private val app: Application) {
             inputFile.delete()
             throw ConversionException("The selected file is empty, so there is nothing to convert.")
         }
+        requireFreeSpace(directory, inputFile.length())
         if (request.isCancelled()) {
             inputFile.delete()
             throw CancellationException(CANCELLED_MESSAGE)
@@ -213,6 +230,20 @@ internal class FfmpegRunner(private val app: Application) {
             throw ConversionException(
                 "The selected file could not be read. It may be damaged or the storage is unavailable.",
                 e
+            )
+        }
+    }
+
+    /**
+     * Media conversion writes a temporary copy plus the result, so a device without room would
+     * fail halfway through a long operation. Check before starting instead.
+     */
+    private fun requireFreeSpace(directory: File, inputBytes: Long) {
+        val needed = inputBytes * FREE_SPACE_MULTIPLIER + MIN_FREE_BYTES
+        val available = runCatching { StatFs(directory.absolutePath).availableBytes }.getOrNull() ?: return
+        if (available < needed) {
+            throw ConversionException(
+                "There is not enough free storage to convert this file. Free up space and try again."
             )
         }
     }
@@ -296,7 +327,7 @@ internal class FfmpegRunner(private val app: Application) {
         fun onStatistics(statistics: Statistics) {
             if (closed) return
             val totalMs = plannedDurationMs?.takeIf { value -> value > 0L } ?: return
-            val progress = (statistics.time * 1000.0 / totalMs).coerceIn(0.0, 1.0).toFloat()
+            val progress = FfmpegProgress.fromStatistics(statistics.time.toLong(), totalMs)
             val percent = (progress * 100f).toInt()
             if (percent > lastPercent) {
                 lastPercent = percent

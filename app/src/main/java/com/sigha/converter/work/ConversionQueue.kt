@@ -3,6 +3,7 @@ package com.sigha.converter.work
 import android.content.Context
 import android.net.Uri
 import com.sigha.converter.R
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.ConversionOptions
 import com.sigha.converter.core.FileFormat
 import com.sigha.converter.data.AppScope
@@ -14,16 +15,19 @@ import com.sigha.converter.data.HistoryStore
 import com.sigha.converter.data.OutputMode
 import com.sigha.converter.data.PublishTarget
 import com.sigha.converter.data.SettingsStore
+import com.sigha.converter.data.releasePersistableReadPermission
 import java.util.UUID
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class QueueStatus { QUEUED, RUNNING, DONE, FAILED, CANCELLED }
 
@@ -38,7 +42,12 @@ data class QueueEntry(
     val outputName: String? = null,
     val outputUri: Uri? = null,
     val displayPath: String? = null,
+    /** English diagnostic; shown only as expandable details. */
     val errorMessage: String? = null,
+    /** Drives the localized failure headline. */
+    val errorKind: ConversionFailureKind = ConversionFailureKind.UNKNOWN,
+    /** Engine note (page cap, OCR fallback, truncation, ...). */
+    val note: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val finishedAt: Long? = null
 )
@@ -50,6 +59,11 @@ data class QueueEntry(
  * A batch runs one file at a time: media engines are CPU/GPU heavy and sequential work keeps
  * the phone responsive and thermal output predictable. A failed item is recorded and the batch
  * continues; cancellation stops the batch and marks unfinished rows as cancelled.
+ *
+ * While a batch runs the queue holds a data-sync foreground service with a progress
+ * notification, so Android does not freeze the work when the app goes to the background. A
+ * durable "batch active" flag detects a process kill: the next start shows an interrupted
+ * banner instead of silently losing the batch.
  */
 class ConversionQueue(
     private val context: Context,
@@ -82,15 +96,26 @@ class ConversionQueue(
         _entries.update { current -> (batch + current).take(MAX_ENTRIES) }
         activeJob = AppScope.launch {
             try {
+                ConversionService.start(context)
+                settingsStore.markBatchActive(true)
+                ConversionService.update(
+                    context,
+                    context.getString(R.string.ui_service_preparing),
+                    null
+                )
                 runBatch(inputs, target, options, batch)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
                 markUnfinished(
                     status = QueueStatus.FAILED,
-                    message = context.getString(R.string.err_conversion_failed, target.label)
+                    message = context.getString(R.string.err_conversion_failed, target.label),
+                    kind = ConversionFailureKind.UNKNOWN
                 )
             } finally {
+                ConversionService.stop(context)
+                withContext(NonCancellable) { settingsStore.markBatchActive(false) }
+                inputs.forEach { input -> releasePersistableReadPermission(context, input.uri) }
                 val job = coroutineContext[Job]
                 if (job?.isActive == false) {
                     markUnfinished(status = QueueStatus.CANCELLED, message = null)
@@ -128,6 +153,11 @@ class ConversionQueue(
             coroutineContext[Job]?.let { job -> if (!job.isActive) return }
             val input = inputs[index]
             update(entry.id) { current -> current.copy(status = QueueStatus.RUNNING, progress = 0f) }
+            ConversionService.update(
+                context,
+                context.getString(R.string.ui_service_converting, entry.displayName),
+                0f
+            )
             val result = runner.convert(
                 input = input,
                 target = target,
@@ -141,6 +171,11 @@ class ConversionQueue(
                             current
                         }
                     }
+                    ConversionService.update(
+                        context,
+                        context.getString(R.string.ui_service_converting, entry.displayName),
+                        progress
+                    )
                 }
             )
             coroutineContext[Job]?.let { job -> if (!job.isActive) return }
@@ -157,6 +192,7 @@ class ConversionQueue(
                             outputName = primary.fileName,
                             outputUri = primary.uri,
                             displayPath = primary.displayPath,
+                            note = result.note,
                             finishedAt = System.currentTimeMillis()
                         )
                     }
@@ -172,7 +208,8 @@ class ConversionQueue(
                             outputPath = output.displayPath,
                             sizeBytes = output.sizeBytes,
                             timestamp = System.currentTimeMillis(),
-                            success = true
+                            success = true,
+                            note = result.note
                         )
                     )
                 }
@@ -187,6 +224,7 @@ class ConversionQueue(
                             status = QueueStatus.FAILED,
                             progress = 0f,
                             errorMessage = message,
+                            errorKind = result.errorKind,
                             finishedAt = System.currentTimeMillis()
                         )
                     }
@@ -202,7 +240,8 @@ class ConversionQueue(
                         sizeBytes = 0L,
                         timestamp = System.currentTimeMillis(),
                         success = false,
-                        error = message
+                        error = message,
+                        errorKind = result.errorKind.name
                     )
                 )
             }
@@ -221,13 +260,18 @@ class ConversionQueue(
         _entries.update { current -> current.map { entry -> if (entry.id == id) transform(entry) else entry } }
     }
 
-    private fun markUnfinished(status: QueueStatus, message: String?) {
+    private fun markUnfinished(
+        status: QueueStatus,
+        message: String?,
+        kind: ConversionFailureKind = ConversionFailureKind.UNKNOWN
+    ) {
         _entries.update { current ->
             current.map { entry ->
                 if (entry.status == QueueStatus.QUEUED || entry.status == QueueStatus.RUNNING) {
                     entry.copy(
                         status = status,
                         errorMessage = message ?: entry.errorMessage,
+                        errorKind = if (message != null) kind else entry.errorKind,
                         finishedAt = System.currentTimeMillis()
                     )
                 } else {

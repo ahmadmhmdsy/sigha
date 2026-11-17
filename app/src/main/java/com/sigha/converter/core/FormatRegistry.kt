@@ -37,13 +37,14 @@ class FormatRegistry {
         if (mime.isNullOrBlank()) return null
         byMime[mime]?.let { return it }
         // Common aliases that Android uses differently per OEM.
+        // Deliberately absent: application/vnd.ms-excel and application/msword. Legacy
+        // .xls/.doc are not in the catalogue, and aliasing them to a missing format would
+        // advertise a conversion the engine cannot perform.
         return when (mime) {
             "image/jpg", "image/pjpeg" -> byExtension["jpg"]
             "audio/mp4", "audio/x-m4a" -> byExtension["m4a"]
             "audio/mpeg" -> byExtension["mp3"]
             "video/quicktime" -> byExtension["mov"]
-            "application/vnd.ms-excel" -> byExtension["xls"]
-            "application/msword" -> byExtension["doc"]
             else -> null
         }
     }

@@ -1,9 +1,21 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
 }
+
+// Release signing comes from a git-ignored keystore/keystore.properties.
+// The repository ships no key material: the publisher's Play upload key is theirs alone.
+val keystorePropsFile = rootProject.file("keystore/keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
+}
+val hasReleaseKey = keystorePropsFile.exists() &&
+    !keystoreProps.getProperty("storePassword").isNullOrBlank() &&
+    !keystoreProps.getProperty("keyAlias").isNullOrBlank()
 
 android {
     namespace = "com.sigha.converter"
@@ -13,16 +25,45 @@ android {
         applicationId = "com.sigha.converter"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
         vectorDrawables { useSupportLibrary = true }
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
 
+    signingConfigs {
+        if (hasReleaseKey) {
+            create("release") {
+                storeFile = rootProject.file("keystore/" + keystoreProps.getProperty("keyFile", "local-release.jks"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (hasReleaseKey) signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
+    // Per-ABI APKs for direct distribution; the AAB keeps all ABIs for Play.
+    //
+    // AGP 8.9+ cannot build a bundle while ABI splits are enabled: buildReleasePreBundle
+    // throws "Sequence contains more than one matching element" because R8 resource shrinking
+    // writes one shrunk-resources file per split (issuetracker.google.com/issues/402800800).
+    // The splits are therefore disabled for bundle builds only; Play splits the AAB by itself.
+    val buildingBundle = gradle.startParameter.taskNames.any { it.lowercase().contains("bundle") }
+    splits {
+        abi {
+            isEnable = !buildingBundle
+            reset()
+            include("arm64-v8a", "x86_64")
+            isUniversalApk = true
         }
     }
 
@@ -43,13 +84,17 @@ android {
             excludes += "/META-INF/DEPENDENCIES"
             excludes += "/META-INF/versions/9/OSGI-INF/MANIFEST.MF"
         }
-        // 16 KB page-size compliance and Play's packaging rules require uncompressed native libs.
+        // Play's 16 KB page-size rule and the packaging policy require uncompressed native libs.
         jniLibs { useLegacyPackaging = false }
     }
 
     lint {
-        abortOnError = false
-        checkReleaseBuilds = false
+        abortOnError = true
+        checkReleaseBuilds = true
+        warningsAsErrors = false
+        // Transitive: PDFBox -> bcpkix ships a test trust manager; the app performs no TLS
+        // beyond the optional OCR pack download, which uses HttpsURLConnection defaults.
+        disable += "TrustAllX509TrustManager"
     }
 }
 
@@ -70,8 +115,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.navigation:navigation-compose:2.8.5")
 
-    // Background work + persistence
-    implementation("androidx.work:work-runtime-ktx:2.10.0")
+    // Persistence
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
@@ -83,13 +127,13 @@ dependencies {
     // Images
     implementation("io.coil-kt:coil-compose:2.7.0")
 
-    // Conversion engines (all permissive/LGPL - see NOTICE.md)
+    // Conversion engines (all permissive/LGPL - see NOTICE.md and docs/legal/licence-compliance.md)
     implementation("dev.ffmpegkit-maintained:ffmpeg-kit-full:8.1.9")
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
     implementation("org.apache.commons:commons-compress:1.28.0")
     implementation("org.tukaani:xz:1.12")
 
-    // Optional AI packs (OCR via JitPack build of Tesseract4Android, Apache-2.0)
+    // Optional OCR model support (Tesseract4Android, Apache-2.0)
     implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
 
     // Tests

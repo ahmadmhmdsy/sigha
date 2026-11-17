@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sigha.converter.AppGraph
 import com.sigha.converter.R
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.data.HistoryEntry
 import com.sigha.converter.data.Repo
 import com.sigha.converter.ui.components.ConfirmDialog
@@ -236,10 +237,23 @@ private fun HistoryRow(entry: HistoryEntry, onOpen: () -> Unit, onShare: () -> U
                         )
                     }
                 }
-                if (!entry.success && !entry.error.isNullOrBlank()) {
+                if (!entry.success) {
+                    val kind = entry.errorKind
+                        ?.let { name -> ConversionFailureKind.entries.firstOrNull { it.name == name } }
+                        ?: ConversionFailureKind.UNKNOWN
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = entry.error.orEmpty(),
+                        text = stringResource(kind.headlineRes()),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                if (!entry.note.isNullOrBlank()) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = stringResource(R.string.ui_note_label, entry.note.orEmpty()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,

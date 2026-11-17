@@ -1,72 +1,222 @@
-# Sigha — Product specification
+# Sigha — capability specification (0.2.0)
 
-## Problem
+This is the detailed companion to [`PRODUCT.md`](../../PRODUCT.md): the product definition lives
+there, the format-by-format truth lives here. It was checked against the source tree on
+2026-11-17. `0.2.0` is a **closed-test build**; the production-readiness pass is in flight and
+device QA has **not** been run, so nothing below is a release claim until
+`scripts/verify.ps1`, the JVM suite and the device QA checklist pass on the shipped commit.
 
-Android users who need to convert a file (a DOCX to PDF, a HEIC to JPG, a video to MP3) are pushed
-to upload it to an ad-funded website. That leaks private files and fails offline. Desktop tools
-like Filee proved a different shape works: many formats, local engines, one gesture.
+## 1. Three different numbers
 
-## Product idea
+| Term | Meaning | Count |
+|---|---|---|
+| Recognised | The app knows the extension and MIME type; it can name the file | **48** |
+| Convertible | At least one converter accepts the format as an input | **39** |
+| Producible | At least one converter can write the format as an output | **25** |
 
-A local-file workbench:
+Nine recognised formats have **no** converter at all (TIFF, RTF, TAR, BZ2, XZ, YAML, XML, MOBI,
+FB2). The app must say so by name rather than hint at support. "Every format has a working edge"
+is false and must not appear in any document or store string.
 
-1. Bring files in: pick with the system picker, or share/"Open with" from any app.
-2. The app offers **only formats reachable from the selected files** (computed from the converter graph).
-3. Convert on-device, in the background, with a queue.
-4. Result lands in `Download/Sigha`; history keeps the last 50.
+## 2. Catalogue and conversion matrix
 
-## MVP scope (this build)
+`Input` = the format can be converted from; `Output` = it can be a conversion result.
 
-| Family | Inputs → Outputs |
+### Images
+
+| Format | Extensions | Input | Output | Limits and notes |
+|---|---|---|---|---|
+| JPG | .jpg .jpeg | yes | yes | Input cap 100 megapixels / 200 MB. EXIF orientation is applied before conversion; other metadata is dropped. Quality 20–100 (default 85). |
+| PNG | .png | yes | yes | Same caps. Transparent images keep alpha when the target has it; JPEG output flattens to white. |
+| WebP | .webp | yes | yes | Same caps. |
+| BMP | .bmp | yes | no | Decoded to a bitmap, so colours and alpha follow Android's decoder. |
+| GIF | .gif | yes | yes | Animated input is converted from its first frame; output GIF is produced only by video conversion. |
+| TIFF | .tif .tiff | **no** | **no** | Recognised only. No decoder is bundled. |
+| HEIC | .heic | yes | no | Android 9 (API 28) or newer; on older devices the app explains the OS limit. |
+| AVIF | .avif | yes | no | Android 12 (API 31) or newer. |
+| PDF | .pdf | yes | yes | See PDF family. Image→PDF writes one image per PDF page on A4. |
+
+Image→image targets are JPG, PNG, WebP. No resize, crop, rotation or DPI control is exposed in the
+UI (the engine has a maximum-dimension parameter that `0.2.0` never sets).
+
+### PDF
+
+| Conversion | Options | Notes |
+|---|---|---|
+| PDF → PNG / JPG | Page range (`1-3,5,8-`), DPI fixed at 150, quality for JPG | One image for a single selected page; otherwise `name-pageN`. Pages are rendered by the platform `PdfRenderer`, so unsupported PDF features are rasterised by the OS. |
+| PDF → TXT | Page range | Uses PDFBox with temp-file scratch space, streamed page by page. If the selected pages contain no visible text (a scan), the converter falls back to OCR: with the OCR pack installed it produces the text and records the note "No text layer found; used OCR."; without the pack it fails with a precise instruction. |
+| Image → PDF | — | One image per PDF, A4 page, quality applies to the embedded image. Multi-image → one PDF is **not** available in `0.2.0`. |
+
+Input PDFs are capped at 500 MB; password-protected files fail with a message naming that cause.
+There is no merge, split, page deletion, compression, annotation or password removal.
+
+### Office documents (text and tables, not layout)
+
+| Format | Converts to | Usable as output? | Notes |
+|---|---|---|---|
+| DOCX | → TXT, HTML, PDF | no | Paragraph text and basic inline formatting; images, text boxes and exact layout are dropped. |
+| ODT | → TXT | no | Text content only. |
+| RTF | **no** | **no** | Recognised only. |
+| XLSX | → CSV, TSV, PDF | no | **First worksheet only** (the app records a note when more exist). Dates are written as spreadsheet serial numbers, not formatted dates. PDF output is capped at 20,000 rows. |
+| ODS | → CSV | no | Same text-and-first-sheet limitations. |
+| CSV | → XLSX, TSV, JSON | yes | Text-based, no formula evaluation. Imported as UTF-8 text. |
+| TSV | → CSV | yes | Same. |
+| PPTX | → TXT | no | Slide text only; up to 5,000 slides and 16 million characters of text. |
+
+Office→PDF output is generated by the app's own text PDF writer: one flowed text column, Latin
+layout; Arabic shaping in DOCX text depends on the platform font. This is why office support is
+described as extraction, not conversion fidelity.
+
+### Text, data and subtitles
+
+| Format | Converts to | Usable as output? | Notes |
+|---|---|---|---|
+| TXT | → PDF | yes | TXT→PDF exports at most the first 50,000 lines and records a note if it truncated. UTF-8 output. |
+| Markdown | → PDF | no | Basic block parsing (headings, paragraphs, lists); up to 50,000 paragraphs. No images, tables or nested structures. |
+| HTML | → TXT | yes | Tag stripping to readable text. No JavaScript, CSS or remote resources. |
+| JSON | → CSV | yes | Expects an array of flat objects; nested values are stringified. |
+| YAML | **no** | **no** | Recognised only. |
+| XML | **no** | **no** | Recognised only. |
+| SRT | ↔ VTT | yes | Timing and text preserved; styling tags are simplified. UTF-8. |
+
+### E-books
+
+| Format | Converts to | Usable as output? | Notes |
+|---|---|---|---|
+| EPUB | → TXT, HTML | no | Unencrypted EPUB only; DRM-protected books fail with a message. Images are not carried into the HTML output. |
+| MOBI | **no** | **no** | Recognised only. |
+| FB2 | **no** | **no** | Recognised only. |
+
+### Audio
+
+Inputs and outputs: MP3, M4A, AAC, WAV, FLAC, OGG, OPUS — any of these to any other. AMR is input
+only. Audio is also extracted from every supported video container.
+
+| Option | Values | Notes |
+|---|---|---|
+| Bitrate | Auto (default) or a chosen kbps | Only for lossy output; ignored where the codec does not take a bitrate. |
+| Trim | start/end milliseconds | Exists in the engine; **not exposed** in the `0.2.0` UI. |
+
+### Video
+
+Inputs: MP4, MKV, MOV, AVI, WebM, FLV. Outputs: MP4, WebM, MKV, and GIF. Audio can be extracted to
+any audio output above.
+
+| Option | Values | Notes |
+|---|---|---|
+| Bitrate | Auto (default) or a chosen kbps | Applies to the video stream; codec choice follows the container. |
+| Trim | start/end milliseconds | Engine support only; not exposed in the `0.2.0` UI. |
+
+All media conversions run through the bundled FFmpeg fork with:
+metadata and chapters stripped (`-map_metadata -1 -map_chapters -1`), a 20-minute per-file timeout,
+a 250 ms cancellation poll, a free-space guard (twice the input size, minimum 64 MB), and a
+non-zero exit turned into a typed error rather than a stack trace. Device codec support varies; an
+unsupported codec fails with an explanatory message.
+
+### Archives
+
+| Conversion | Notes |
 |---|---|
-| Images | JPG/PNG/WebP/BMP/GIF/HEIC/AVIF → JPG/PNG/WebP; resize, quality, EXIF fix; image → PDF |
-| PDF | PDF → PNG/JPG (page range, DPI); PDF → TXT; images → PDF |
-| Office-simple | DOCX → TXT/HTML/PDF; XLSX → CSV/TSV/PDF; PPTX → TXT; CSV → XLSX; ODT/ODS (stretch) |
-| Text | TXT/MD → PDF; HTML → TXT |
-| Media | audio ↔ MP3/M4A/AAC/WAV/FLAC/OGG/OPUS; video → MP4/WebM/MKV; video → GIF; extract audio; trim; bitrate |
-| Archives | ZIP ↔ TAR.GZ repack; 7Z → ZIP |
-| Data | CSV ↔ TSV; CSV → JSON; JSON → CSV |
-| Subtitles | SRT ↔ VTT |
-| E-books | EPUB → TXT/HTML |
+| ZIP → TAR.GZ | Repacking only; no compression-level choice. |
+| TAR.GZ → ZIP | Repacking only. |
+| 7Z → ZIP | Extraction and re-upload into ZIP; encrypted archives fail with a message. |
 
-## Non-goals (v1)
+TAR, BZ2 and XZ are recognised only; there is no archive creation UI and no RAR support at all.
 
-Builds that need a desktop office suite: precise DOCX/XLSX layout fidelity, HWP/HWPX, CAD/DWG,
-3D models, geo data, fonts, RAR (license restricted), ISO images. All are possible later as
-optional engines, not core.
+### OCR (optional pack)
 
-## Differentiators
+| Conversion | Notes |
+|---|---|
+| JPG/PNG/WebP/BMP/GIF/HEIC → TXT | English and Arabic models only. |
+| PDF → TXT (scanned pages) | Used automatically as the fallback described above. |
 
-1. **Arabic-first** UI (RTL, full Arabic strings) — the market leader set ignores it.
-2. **No upload, no ads, no account** — a verifiable offline promise.
-3. **Graph-based format matrix** — new formats are adapters, not rewrites; only useful targets appear.
-4. **Optional AI packs** (OCR, upscaling) that are commercially-licensed and downloaded on demand.
+The pack is a 28,004,325-byte download (eng 15,400,601 + ara 12,603,724), Apache-2.0, fetched only
+when the user taps Download, with a size/licence confirmation and a metered-connection warning.
+Without it the OCR targets are visible but conversion fails with an install instruction. OCR
+accuracy depends on image quality; the app makes no accuracy promise.
 
-## Metrics that decide continuation
+## 3. Routing rules
 
-- Cold start < 2s; image conversion < 1.5s for a 12MP JPG.
-- 100% of conversions complete with no network access.
-- Crash-free sessions > 99.5%; failed conversions explain themselves.
-- Store listing: "offline" claim verified by reviewers.
+Each selection is matched to a target format through the conversion graph:
 
-## Open questions for the human
+1. Only targets reachable from **every** selected file are offered (intersection).
+2. The plan is the **shortest** converter chain (fewest hops), at most 3 hops.
+3. Ties are deterministic (converter order, then format id).
+4. A converter that produces several files (PDF→images) is only used as the **final** hop, so a
+   chain never silently drops pages.
+5. Converting a file to its own format is rejected with a message instead of a no-op.
+6. Recognised-but-dead inputs produce a named "no conversion available" message, not a generic
+   failure.
 
-- Final app name + trademark clearance (Sigha is provisional).
-- Play Console account, signing key, upload (human-only steps).
-- Whether to publish OCR packs on our host or use Play Asset Delivery.
-## Implementation status (2026-11-17)
+## 4. Options reference
 
-Built and compiling from this workspace: 48 formats in the catalogue, 32 converter edges across 12
-engine families, Compose UI in English and Arabic, SAF-only file access, MediaStore output, a
-sequential queue, history, settings, downloadable OCR pack, and a green 131-test JVM suite.
+| Option | Type | Default | UI in 0.2.0? | Applies to |
+|---|---|---|---|---|
+| `quality` | 20–100 | 85 | yes | Image output, PDF→JPG |
+| `bitrateKbps` | Int? | null = Auto | yes | Audio and video output |
+| `pages` | String spans | null = all | yes | PDF input |
+| `dpi` | Int | 150 | no | PDF→image |
+| `maxDimension` | Int? | null = never set | no | Image input scaling |
+| `startMs` / `endMs` | Long? | null | no | Media trim |
+| `ocrLanguage` | String? | null = pack default | no | OCR |
+| `extra` | Map | empty | no | Engine-specific escape hatch |
 
-Evidence: `docs/qa/verification.md` (build log, APK metadata, hashes, test counts, runtime smoke
-test and its limits). Decisions that changed versus this spec:
+Options are stored per conversion in the queue and history entry so a failed job can be understood
+after the fact.
 
-- Format count is 48, not ~270: every format here has a working edge; no catalogue padding.
-- OCR ships as a downloadable pack only (the 5.5 MB bundled `tessdata_fast` fallback was removed).
-- Upscaling is deferred: ONNX Runtime is not in the APK; the verified Real-ESRGAN candidate is
-  documented in `docs/models/integration.md`.
-- Scanned PDFs still route through the text extractor; the OCR fallback is the next fix.
+## 5. Execution, files and limits
 
-Device QA, release signing and Play Console steps remain human tasks.
+- **File access:** Storage Access Framework only (`OpenDocument`, `OpenDocumentTree`,
+  share/Open-with intents). No broad storage permission on Android 10+.
+- **Output:** `Download/Sigha` by default (MediaStore on Android 10+, legacy file write plus
+  media scan on Android 8–9), or a user-chosen folder through `OpenDocumentTree`.
+- **Queue:** sequential, one file at a time, up to 60 rows; a non-fatal item failure marks that row
+  failed and continues with the next file.
+- **History:** up to 50 recent entries, persisted with a defensive codec (corrupt history falls back
+  to empty rather than crashing).
+- **Intermediate files:** every hop writes into a per-conversion cache directory that is deleted
+  afterwards; stale work directories are pruned on the next conversion.
+- **Batch lifetime:** in `0.2.0` a running batch is kept alive by a foreground service with a
+  progress notification (dataSync type), so backgrounding the app does not kill the queue; a batch
+  interrupted by process death is announced on next launch.
+- **Free space:** every public conversion path checks for space before starting where the engine
+  supports it; a failure is reported with the device's storage as the likely cause.
+- **No network:** conversion never touches the network. The only request is the OCR pack download
+  (HTTPS GET to the GitHub raw host, SHA-256 pinned, streaming, no resume in `0.2.0`).
+
+## 6. Surfaces
+
+| Surface | What it does |
+|---|---|
+| Convert | Pick files (or receive a share), see reachable targets, choose options, start |
+| Queue | Per-file progress, results, failure reasons, retry; batch continues after a failure |
+| History | Last 50 conversions with source, target, time, path, options |
+| Settings | Theme (light/dark/system), output destination, OCR language |
+| Model packs | OCR pack: size, licence, source, install/remove, metered warning |
+| About | Version, privacy statement, links to licences |
+| Licenses | Full licence texts loaded from bundled assets |
+
+## 7. Known limits in 0.2.0 (honest list)
+
+1. No device QA has been run; every performance and codec claim is a target, not a measurement.
+2. The four outcomes in `PRODUCT.md` §3 are not implemented. This is a converter, not yet a
+   scanner/compressor/PDF-tool.
+3. Office fidelity is text/tables only; scanned PDFs need the OCR pack to produce text.
+4. HEIC needs Android 9+, AVIF Android 12+; older devices see a precise limit message.
+5. OCR pack download is 28 MB, English + Arabic only, and starts again from zero if interrupted
+   (`0.2.0` has no resume).
+6. No RAR/7z creation, no archive browsing UI.
+7. No image resize/DPI/target-size controls; compression is a side effect of re-encoding quality.
+8. Upscaling is registered but empty; it must not be advertised.
+9. Very large inputs hit engine caps (100 MP/200 MB images, 500 MB PDF, 512 MB office packages,
+   50,000 TXT lines in PDF export) and fail with a message instead of corrupting output.
+
+## 8. How to verify a claim here
+
+| Claim type | Evidence |
+|---|---|
+| Formats, counts, edges | `scripts/verify.ps1` reads the graph and compares with README/PRODUCT/verification |
+| Per-family behaviour | JVM unit tests (baseline 131; the script records the current number) |
+| Build/packaging | `scripts/verify.ps1` release assemble + AAB + 16 KB and ABI checks |
+| Device behaviour | `docs/qa/verification.md` device checklist (currently: not run) |
+| Store copy truth | [`store-listing.md`](store-listing.md) claims blocklist |

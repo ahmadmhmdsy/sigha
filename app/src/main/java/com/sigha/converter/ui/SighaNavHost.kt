@@ -31,6 +31,7 @@ private object Routes {
     const val ABOUT = "about"
     const val MODEL_PACKS = "modelPacks"
     const val LICENSES = "licenses"
+    const val PRIVACY = "privacy"
 }
 
 private val TOP_LEVEL_ROUTES = setOf(Routes.WORKBENCH, Routes.HISTORY, Routes.SETTINGS)
@@ -104,6 +105,7 @@ fun SighaNavHost(workbenchViewModel: WorkbenchViewModel, modifier: Modifier = Mo
                 SettingsScreen(
                     onOpenAbout = { navController.navigate(Routes.ABOUT) },
                     onOpenLicenses = { navController.navigate(Routes.LICENSES) },
+                    onOpenPrivacy = { navController.navigate(Routes.PRIVACY) },
                     onOpenModelPacks = { navController.navigate(Routes.MODEL_PACKS) }
                 )
             }
@@ -121,6 +123,9 @@ fun SighaNavHost(workbenchViewModel: WorkbenchViewModel, modifier: Modifier = Mo
             }
             composable(Routes.LICENSES) {
                 LicensesScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.PRIVACY) {
+                PrivacyScreen(onBack = { navController.popBackStack() })
             }
         }
     }

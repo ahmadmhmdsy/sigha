@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Licenses screen (WS4). Component names and licence identifiers are proper nouns and stay untranslated. -->
+    <string name="legal_licenses_title">Licenses</string>
+    <string name="legal_licenses_intro">Every licence text in this screen is bundled inside the app and readable offline. The list covers exactly what this build ships.</string>
+    <string name="legal_licenses_section_rights">LGPL components and your rights</string>
+    <string name="legal_licenses_written_offer">Written offer for source code</string>
+    <string name="legal_licenses_relink">Replacing the native libraries</string>
+    <string name="legal_licenses_no_warranty">No warranty</string>
+    <string name="legal_licenses_no_warranty_body">The libraries are provided “as is”, without warranty of any kind. The full disclaimer is in the LGPL texts below.</string>
+    <string name="legal_licenses_section_components">Components in this build</string>
+    <string name="legal_licenses_section_ffmpeg_libs">Libraries bundled inside FFmpeg</string>
+    <string name="legal_licenses_expand">Show licence text</string>
+    <string name="legal_licenses_collapse">Hide licence text</string>
+    <string name="legal_licenses_loading">Loading licence text…</string>
+    <string name="legal_licenses_load_error">Could not load this licence text from the app.</string>
+    <string name="legal_licenses_unresolved">Unresolved licence</string>
+    <string name="legal_licenses_unresolved_body">This dependency publishes no licence file. The publisher must resolve it before release; it is listed here so nothing shipped is hidden.</string>
+    <string name="legal_licenses_full_notice">Full third-party notices</string>
+    <string name="legal_licenses_contact">Licence questions: opensource@sigha.app</string>
+
+    <!-- Privacy screen (WS4). The policy body is rendered from assets/legal/privacy-policy.md. -->
+    <string name="legal_privacy_title">Privacy</string>
+    <string name="legal_privacy_headline">No data collected.</string>
+    <string name="legal_privacy_effective">Effective 17 November 2026</string>
+    <string name="legal_privacy_loading">Loading policy…</string>
+    <string name="legal_privacy_load_error">Could not load the privacy policy from the app.</string>
+</resources>

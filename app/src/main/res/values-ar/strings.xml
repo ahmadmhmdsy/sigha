@@ -3,7 +3,7 @@
 
     <!-- التطبيق -->
     <string name="app_name">صيغة</string>
-    <string name="app_tagline">حوّل بدون إنترنت. لا يغادر أي ملف هاتفك.</string>
+    <string name="app_tagline">حوّل على هاتفك. لا تُرفَع ملفاتك.</string>
     <string name="offline_badge">دون إنترنت</string>
 
     <!-- التنقل -->
@@ -138,7 +138,7 @@
     <string name="category_video">الفيديو</string>
     <string name="category_archive">الأرشيف</string>
     <string name="category_data">البيانات</string>
-    <string name="category_subtitle">الترجمة</string>
+    <string name="category_subtitle">الترجمات</string>
     <string name="category_ebook">الكتب الإلكترونية</string>
     <string name="category_ai">الذكاء الاصطناعي</string>
 
@@ -157,7 +157,7 @@
     <string name="model_packs_license_unknown">ترخيص غير معروف</string>
     <string name="model_packs_no_packs">لا توجد حزم نماذج متاحة بعد.</string>
     <string name="model_packs_upscale_title">تكبير بالذكاء الاصطناعي</string>
-    <string name="model_packs_upscale_coming_soon">قريبًا</string>
+    <string name="model_packs_upscale_coming_soon">غير متاح بعد</string>
     <string name="model_packs_upscale_body">حِدّة وتكبير للصور على الجهاز بنموذج صغير. ليس جزءًا من هذا الإصدار بعد.</string>
     <string name="model_packs_license_missing">لا يوجد رابط ترخيص</string>
     <string name="model_packs_open_license_failed">تعذّر فتح صفحة الترخيص.</string>
@@ -165,8 +165,8 @@
     <!-- حول التطبيق -->
     <string name="about_title">حول التطبيق</string>
     <string name="about_version">الإصدار %1$s</string>
-    <string name="about_offline_title">يعمل دون إنترنت تمامًا</string>
-    <string name="about_offline_body">يجري التحويل على جهازك. لا تُرفع الملفات أبدًا، ولا يوجد حساب أو تتبع.</string>
+    <string name="about_offline_title">يعمل على جهازك</string>
+    <string name="about_offline_body">يجري التحويل على جهازك. لا تُرفَع الملفات، ولا يوجد حساب أو تتبّع. الطلب الشبكي الوحيد هو تنزيل حزمة OCR الاختيارية.</string>
     <string name="about_privacy_title">ملفاتك تبقى لك</string>
     <string name="about_privacy_body">يطلب صيغة فقط الملفات التي تختارها. يُستخدم الإنترنت فقط عند تنزيل حزمة نماذج اختيارية.</string>
     <string name="about_oss_title">مبني على المصادر المفتوحة</string>

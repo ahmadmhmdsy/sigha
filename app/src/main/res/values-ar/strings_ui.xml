@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Failure headlines -->
+    <string name="ui_error_unknown">فشل التحويل.</string>
+    <string name="ui_error_password">ملف PDF محمي بكلمة مرور. أزل الحماية ثم أعد المحاولة.</string>
+    <string name="ui_error_no_text_layer">لا يحتوي ملف PDF على طبقة نصية (يبدو أنه صورة ممسوحة). ثبّت حزمة OCR لقراءة الملفات الممسوحة.</string>
+    <string name="ui_error_model_pack_missing">يحتاج هذا التحويل إلى حزمة نماذج. ثبّتها من الإعدادات ← حزم النماذج.</string>
+    <string name="ui_error_timeout">استغرق التحويل وقتًا طويلًا وأُوقف. جرّب ملفًا أصغر.</string>
+    <string name="ui_error_no_storage">لا توجد مساحة تخزين كافية. فرّغ مساحة ثم أعد المحاولة.</string>
+    <string name="ui_error_file_too_large">هذا الملف كبير جدًا للتحويل على هذا الجهاز.</string>
+    <string name="ui_error_drm">هذا الكتاب محمي بـ DRM ولا يمكن تحويله.</string>
+    <string name="ui_details_show">إظهار التفاصيل التقنية</string>
+    <string name="ui_details_hide">إخفاء التفاصيل التقنية</string>
+    <string name="ui_note_label">ملاحظة: %1$s</string>
+
+    <!-- Notes and queue messages -->
+    <string name="ui_note_output_folder_fallback">حُفظ في التنزيلات لأن المجلد المختار لم يعد متاحًا.</string>
+    <string name="ui_interrupted_batch">توقّفت الدفعة الأخيرة. يمكنك إضافة الملفات التي لم تُحوَّل مرة أخرى.</string>
+    <string name="ui_queue_busy">هناك تحويل قيد التنفيذ. انتظر انتهاءه أو ألغِه.</string>
+    <string name="ui_unsupported_files">تعذّرت قراءة بعض الملفات وتم تجاوزها.</string>
+    <string name="ui_ocr_targets_hidden">تظهر أهداف OCR بعد تثبيت حزمة OCR.</string>
+
+    <!-- Foreground service -->
+    <string name="ui_service_channel_name">تقدّم التحويل</string>
+    <string name="ui_service_channel_description">يظهر التقدّم أثناء تحويل الملفات على هذا الجهاز.</string>
+    <string name="ui_service_title">صيغة تحوّل الآن</string>
+    <string name="ui_service_preparing">جارٍ التحضير للتحويل…</string>
+    <string name="ui_service_converting">جارٍ تحويل %1$s</string>
+
+    <!-- Model pack download -->
+    <string name="ui_pack_download_title">تنزيل حزمة النماذج؟</string>
+    <string name="ui_pack_download_body">تُنزَّل %1$s (%2$s) مرة واحدة ثم تعمل دون اتصال.</string>
+    <string name="ui_pack_metered_note">أنت تستخدم بيانات الجوال. حجم التنزيل نحو %1$s.</string>
+    <string name="ui_pack_download_confirm">تنزيل</string>
+    <string name="ui_pack_resume_note">سيُستأنف التنزيل الجزئي.</string>
+    <string name="ui_folder_not_writable">لا يمكن الكتابة في هذا المجلد. اختر مجلدًا آخر.</string>
+    <string name="ui_out_of_memory">هذا الملف أكبر من أن يحوّله الهاتف في تمريرة واحدة.</string>
+    <string name="ui_no_file_picker">لا يوجد منتقي ملفات على هذا الجهاز.</string>
+
+    <!-- Settings links -->
+    <string name="ui_settings_privacy">سياسة الخصوصية</string>
+    <string name="ui_settings_privacy_desc">ما تفعله صيغة بملفاتك وبياناتك.</string>
+</resources>

@@ -30,6 +30,9 @@ internal class PdfToImageConverter(private val context: Context) : Converter {
     override val inputs: Set<FileFormat> = setOf(PdfFormats.PDF)
     override val outputs: Set<FileFormat> = setOf(PdfFormats.PNG, PdfFormats.JPG)
 
+    /** One selected page keeps the caller's name; several pages write "name-pageN" files. */
+    override val producesMultipleOutputs: Boolean = true
+
     override suspend fun convert(request: ConversionRequest): ConversionResult =
         withContext(Dispatchers.IO) {
             try {

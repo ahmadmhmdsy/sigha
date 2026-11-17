@@ -70,6 +70,7 @@ object FfmpegArgs {
             "ogg" -> args += listOf("-c:a", "libvorbis", "-b:a", "${audioKbps(params, 128)}k")
             "opus" -> args += listOf("-c:a", "libopus", "-b:a", "${audioKbps(params, 96)}k")
         }
+        addMetadataStrip(args)
         args += listOf("-f", audioFormat(targetId), outputPath)
         return args.toTypedArray()
     }
@@ -98,6 +99,7 @@ object FfmpegArgs {
                 scaleFilter(params)?.let { filter -> args += listOf("-vf", filter) }
                 args += listOf("-c:a", "aac", "-b:a", "128k")
                 if (targetId == "mp4") args += listOf("-movflags", "+faststart")
+                addMetadataStrip(args)
                 args += listOf("-f", if (targetId == "mp4") "mp4" else "matroska", outputPath)
             }
             "webm" -> {
@@ -107,6 +109,7 @@ object FfmpegArgs {
                 args += listOf("-pix_fmt", "yuv420p")
                 scaleFilter(params)?.let { filter -> args += listOf("-vf", filter) }
                 args += listOf("-c:a", "libopus", "-b:a", "96k")
+                addMetadataStrip(args)
                 args += listOf("-f", "webm", outputPath)
             }
             "gif" -> {
@@ -115,6 +118,7 @@ object FfmpegArgs {
                 // Also bounded here so a file with unreadable duration cannot grow without limit.
                 args += listOf("-t", (GIF_MAX_DURATION_MS / 1_000L).toString())
                 args += listOf("-loop", "0")
+                addMetadataStrip(args)
                 args += listOf("-f", "gif", outputPath)
             }
         }
@@ -161,6 +165,14 @@ object FfmpegArgs {
         val plannedMs = params.endMs?.let { end -> end - start }
             ?: sourceDurationMs?.let { duration -> duration - start }
         return plannedMs?.takeIf { it > 0L }
+    }
+
+    /**
+     * Drops all container and stream metadata (GPS, device, author, creation time) so a
+     * converted file cannot leak where the original was recorded.
+     */
+    private fun addMetadataStrip(args: MutableList<String>) {
+        args += listOf("-map_metadata", "-1", "-map_chapters", "-1")
     }
 
     private fun addTrimInput(args: MutableList<String>, params: MediaParams) {

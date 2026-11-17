@@ -10,7 +10,7 @@ import java.io.File
  * ```
  * files/models/<id>/                    <- installDir()
  * files/models/<id>/tessdata/<file>     <- files, when the pack has a subdirectory
- * files/models/<id>.part                <- the single in-flight download
+ * files/models/<id>.<file>.part         <- one resumable partial download per expected file
  * ```
  */
 internal object PackLayout {
@@ -30,8 +30,19 @@ internal object PackLayout {
     fun targetFile(context: Context, pack: ModelPack, file: PackFile): File =
         File(fileDir(context, pack), file.fileName)
 
-    fun partFile(context: Context, pack: ModelPack): File =
-        File(modelsRoot(context), pack.id + ".part")
+    /**
+     * One partial file per expected download. A per-file name is what makes a resumed
+     * download safe: the bytes on disk can only ever belong to that exact file.
+     */
+    fun partFile(context: Context, pack: ModelPack, file: PackFile): File =
+        File(modelsRoot(context), pack.id + "." + file.fileName + ".part")
+
+    fun partFiles(context: Context, pack: ModelPack): List<File> =
+        pack.files.map { file -> partFile(context, pack, file) }
+
+    /** True when an interrupted download left bytes that the next attempt can resume. */
+    fun hasPartialDownload(context: Context, pack: ModelPack): Boolean =
+        partFiles(context, pack).any { part -> part.isFile && part.length() > 0L }
 
     /**
      * Cheap installed check for the UI: every file exists at its final size. The SHA-256 was

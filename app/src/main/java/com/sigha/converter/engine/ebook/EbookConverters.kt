@@ -37,7 +37,10 @@ private class EpubToTxt : Converter {
             request.onProgress(1f)
             ConversionResult(
                 listOf(request.outputFile),
-                "Images and styling are not exported; chapters are separated by a blank line."
+                buildString {
+                    append("Images and styling are not exported; chapters are separated by a blank line.")
+                    if (book.truncated) append(" The book is very long, so only the first part was converted.")
+                }
             )
         }
 }
@@ -66,7 +69,10 @@ private class EpubToHtml : Converter {
             request.onProgress(1f)
             ConversionResult(
                 listOf(request.outputFile),
-                "One HTML file with each chapter as a heading; images and styles are omitted."
+                buildString {
+                    append("One HTML file with each chapter as a heading; images and styles are omitted.")
+                    if (book.truncated) append(" The book is very long, so only the first part was converted.")
+                }
             )
         }
 }

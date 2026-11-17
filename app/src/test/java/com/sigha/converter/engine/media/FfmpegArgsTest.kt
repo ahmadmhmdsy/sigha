@@ -36,6 +36,7 @@ class FfmpegArgsTest {
             listOf(
                 "-y", "-i", INPUT, "-vn",
                 "-c:a", "libmp3lame", "-b:a", "192k",
+                "-map_metadata", "-1", "-map_chapters", "-1",
                 "-f", "mp3", outputPath("mp3")
             ),
             audioArgs("mp3")
@@ -273,6 +274,22 @@ class FfmpegArgsTest {
     @Test(expected = IllegalArgumentException::class)
     fun `unsupported audio target is rejected`() {
         FfmpegArgs.audioArgs(INPUT, outputPath("mp4"), "mp4")
+    }
+
+    @Test
+    fun `metadata and chapters are stripped from every output`() {
+        val audioTargets = listOf("mp3", "m4a", "aac", "wav", "flac", "ogg", "opus")
+        val videoTargets = listOf("mp4", "webm", "mkv", "gif")
+        val commands = audioTargets.map { audioArgs(it) } +
+            videoTargets.flatMap { listOf(videoArgs(it), videoArgs(it, software = true)) }
+        commands.forEach { args ->
+            val metadata = args.indexOf("-map_metadata")
+            assertTrue(args.toString(), metadata >= 0)
+            assertEquals("-1", args[metadata + 1])
+            val chapters = args.indexOf("-map_chapters")
+            assertTrue(args.toString(), chapters >= 0)
+            assertEquals("-1", args[chapters + 1])
+        }
     }
 
     private companion object {

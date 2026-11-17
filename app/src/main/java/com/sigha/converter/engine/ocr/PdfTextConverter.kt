@@ -33,6 +33,8 @@ internal class PdfTextConverter(
     override val inputs: Set<FileFormat> = setOf(inputFormat)
     override val outputs: Set<FileFormat> = setOf(outputFormat)
 
+    override val requiresModelPack: Boolean = true
+
     override suspend fun convert(request: ConversionRequest): ConversionResult =
         withContext(Dispatchers.IO) {
             val context = request.context

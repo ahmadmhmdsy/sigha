@@ -2,6 +2,7 @@ package com.sigha.converter.model
 
 import android.content.Context
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -11,9 +12,9 @@ import kotlinx.coroutines.CancellationException
  * Downloads and installs one pack. Callers run this on Dispatchers.IO.
  *
  * Guarantees:
- *  - only one file is in flight at a time, as `files/models/<id>.part`;
+ *  - one partial file per expected download, so a killed process resumes instead of restarting;
  *  - every byte is checked against the hard-coded SHA-256 before it is moved into place;
- *  - a corrupt or cancelled download never leaves a half file behind;
+ *  - a corrupt file never replaces an installed one;
  *  - at most [MAX_ATTEMPTS] attempts per file, and a hash mismatch is final (no retry loop).
  */
 internal class PackInstaller(private val context: Context) {
@@ -28,11 +29,10 @@ internal class PackInstaller(private val context: Context) {
             onProgress(1f)
             return PackLayout.installDir(context, pack)
         }
-        requireFreeSpace(missing)
+        requireFreeSpace(pack, missing)
         val totalBytes = missing.sumOf { it.sizeBytes }
         var completedBytes = 0L
         var lastReported = -1f
-        val part = PackLayout.partFile(context, pack)
 
         val report: (Float) -> Unit = { value ->
             val clamped = value.coerceIn(0f, 1f)
@@ -42,16 +42,13 @@ internal class PackInstaller(private val context: Context) {
             }
         }
         report(0f)
-        try {
-            for (file in missing) {
-                downloadOne(pack, file, part) { readBytes ->
-                    val done = completedBytes + readBytes
-                    report(if (totalBytes > 0L) (done.toDouble() / totalBytes).toFloat() else 0f)
-                }
-                completedBytes += file.sizeBytes
+        for (file in missing) {
+            val part = PackLayout.partFile(context, pack, file)
+            downloadOne(pack, file, part) { bytesForFile ->
+                val done = completedBytes + bytesForFile
+                report(if (totalBytes > 0L) (done.toDouble() / totalBytes).toFloat() else 0f)
             }
-        } finally {
-            deleteQuietly(part)
+            completedBytes += file.sizeBytes
         }
         report(1f)
         return PackLayout.installDir(context, pack)
@@ -65,26 +62,26 @@ internal class PackInstaller(private val context: Context) {
     ) {
         var lastError: IOException? = null
         for (attempt in 1..MAX_ATTEMPTS) {
+            val resumeAt = resumeOffset(file, part)
             val connection = try {
-                open(file.url)
+                open(file.url, resumeAt)
             } catch (error: IOException) {
                 lastError = error
                 if (attempt < MAX_ATTEMPTS) sleep(attempt)
                 continue
             }
             try {
-                streamTo(file, part, connection, onBytes)
+                streamTo(file, part, connection, resumeAt, onBytes)
                 verify(part, file)
                 installFile(pack, file, part)
                 return
             } catch (cancelled: CancellationException) {
-                deleteQuietly(part)
+                // Keep the partial file: the next run resumes from it.
                 throw cancelled
             } catch (tampered: PackException) {
                 deleteQuietly(part)
                 throw tampered
             } catch (error: IOException) {
-                deleteQuietly(part)
                 lastError = error
                 if (attempt < MAX_ATTEMPTS) sleep(attempt)
             } finally {
@@ -94,7 +91,23 @@ internal class PackInstaller(private val context: Context) {
         throw PackException("Download failed. Check your connection and try again.", lastError)
     }
 
-    private fun open(url: String): HttpURLConnection {
+    /** Bytes already on disk for [file]; a longer-than-expected part is discarded. */
+    private fun resumeOffset(file: PackFile, part: File): Long {
+        if (!part.isFile) return 0L
+        val length = part.length()
+        if (length <= 0L) {
+            deleteQuietly(part)
+            return 0L
+        }
+        if (length == file.sizeBytes) return length
+        if (length > file.sizeBytes) {
+            deleteQuietly(part)
+            return 0L
+        }
+        return length
+    }
+
+    private fun open(url: String, rangeStart: Long): HttpURLConnection {
         var current = url
         repeat(MAX_REDIRECTS + 1) {
             val connection = URL(current).openConnection() as? HttpURLConnection
@@ -107,6 +120,9 @@ internal class PackInstaller(private val context: Context) {
             connection.setRequestProperty("User-Agent", USER_AGENT)
             connection.setRequestProperty("Accept", "*/*")
             connection.setRequestProperty("Accept-Encoding", "identity")
+            if (rangeStart > 0L) {
+                connection.setRequestProperty("Range", "bytes=" + rangeStart + "-")
+            }
             val code = connection.responseCode
             if (code in 200..299) return connection
             if (code in 300..399) {
@@ -128,15 +144,21 @@ internal class PackInstaller(private val context: Context) {
         file: PackFile,
         part: File,
         connection: HttpURLConnection,
+        requestedStart: Long,
         onBytes: (Long) -> Unit
     ) {
+        // A server that ignores Range answers 200; restart the file from zero then.
+        val resumed = requestedStart > 0L && connection.responseCode == HTTP_PARTIAL_CONTENT
+        if (!resumed) deleteQuietly(part)
+        val start = if (resumed) requestedStart else 0L
         val announced = connection.contentLengthLong
-        if (announced > 0L && announced != file.sizeBytes) {
+        val expectedTotal = if (announced > 0L) start + announced else -1L
+        if (expectedTotal > 0L && expectedTotal != file.sizeBytes) {
             throw IOException("The server announced an unexpected file size.")
         }
-        var readTotal = 0L
+        var readTotal = start
         connection.inputStream.use { input ->
-            part.outputStream().buffered(BUFFER_SIZE).use { output ->
+            FileOutputStream(part, resumed).buffered(BUFFER_SIZE).use { output ->
                 val buffer = ByteArray(BUFFER_SIZE)
                 while (true) {
                     val read = input.read(buffer)
@@ -152,6 +174,7 @@ internal class PackInstaller(private val context: Context) {
             }
         }
         if (readTotal != file.sizeBytes) throw IOException("The download stopped early.")
+        onBytes(readTotal)
     }
 
     private fun verify(part: File, file: PackFile) {
@@ -191,8 +214,12 @@ internal class PackInstaller(private val context: Context) {
         }
     }
 
-    private fun requireFreeSpace(missing: List<PackFile>) {
-        val needed = missing.sumOf { it.sizeBytes } + FREE_SPACE_MARGIN
+    private fun requireFreeSpace(pack: ModelPack, missing: List<PackFile>) {
+        val remaining = missing.sumOf { file ->
+            val part = PackLayout.partFile(context, pack, file)
+            (file.sizeBytes - (if (part.isFile) part.length() else 0L)).coerceAtLeast(0L)
+        }
+        val needed = remaining + FREE_SPACE_MARGIN
         val available = PackLayout.modelsRoot(context).usableSpace
         if (available > 0L && available < needed) {
             val megabytes = ((needed + MEGABYTE - 1) / MEGABYTE).coerceAtLeast(1)
@@ -225,6 +252,7 @@ internal class PackInstaller(private val context: Context) {
         const val PROGRESS_STEP = 0.005f
         const val MEGABYTE = 1024L * 1024L
         const val FREE_SPACE_MARGIN = 4L * MEGABYTE
+        const val HTTP_PARTIAL_CONTENT = 206
         const val USER_AGENT = "Sigha/1.0 (Android) model pack downloader"
     }
 }

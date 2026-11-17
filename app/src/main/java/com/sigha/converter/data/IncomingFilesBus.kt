@@ -63,6 +63,24 @@ fun extractIncomingUris(intent: Intent?): List<Uri> {
 }
 
 /**
+ * Gives back a persisted read grant once the batch that needed it has finished. Android caps
+ * the number of persisted grants per app, so keeping every shared file forever would eventually
+ * make new grants fail.
+ */
+fun releasePersistableReadPermission(context: Context, uri: Uri) {
+    try {
+        context.contentResolver.releasePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+    } catch (_: SecurityException) {
+        // The grant was transient (or already released); nothing to give back.
+    } catch (_: Exception) {
+        // Providers may throw for URIs they no longer own; releasing is best-effort.
+    }
+}
+
+/**
  * Asks for a persistable read grant. Share intents do not offer one, so a SecurityException
  * here is expected and harmless: the transient grant still covers this session.
  */

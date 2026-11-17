@@ -6,6 +6,7 @@ import android.os.SystemClock
 import com.sigha.converter.AppGraph
 import com.sigha.converter.R
 import com.sigha.converter.core.ConversionException
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.ConversionOptions
 import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.FileFormat
@@ -25,6 +26,9 @@ import kotlin.coroutines.coroutineContext
  *
  * One item never throws for conversion failures - it returns a failed [ConversionItemResult]
  * so the queue can keep going with the remaining files. Coroutine cancellation is honoured.
+ *
+ * The result carries the engine's informational note and a language-independent failure kind,
+ * so the UI can show a localized headline and keep the English diagnostic as details.
  */
 class ConversionRunner(
     private val context: Context,
@@ -41,7 +45,9 @@ class ConversionRunner(
         val startedAt = SystemClock.elapsedRealtime()
         if (input.format.id == target.id) {
             return@withContext failed(
-                input, target, startedAt, context.getString(R.string.err_target_same)
+                input, target, startedAt,
+                ConversionFailureKind.TARGET_SAME,
+                context.getString(R.string.err_target_same)
             )
         }
         val job = coroutineContext[Job]
@@ -52,11 +58,14 @@ class ConversionRunner(
         try {
             val route = AppGraph.planner.plan(input.format, target, MAX_HOPS)
                 ?: return@withContext failed(
-                    input, target, startedAt, context.getString(R.string.err_no_route)
+                    input, target, startedAt,
+                    ConversionFailureKind.NO_ROUTE,
+                    context.getString(R.string.err_no_route)
                 )
             var currentUri: Uri = input.uri
             var currentFormat: FileFormat = input.format
             var finalFiles: List<File> = emptyList()
+            val notes = ArrayList<String>()
 
             for ((index, converter) in route.withIndex()) {
                 coroutineContext.ensureActive()
@@ -70,7 +79,10 @@ class ConversionRunner(
                     ?: candidates.firstOrNull { candidate ->
                         AppGraph.planner.plan(candidate, target, MAX_HOPS - (index + 1)) != null
                     }
-                    ?: throw ConversionException(context.getString(R.string.err_no_route))
+                    ?: throw ConversionException(
+                        context.getString(R.string.err_no_route),
+                        kind = ConversionFailureKind.NO_ROUTE
+                    )
                 val stepFile = File(workDir, "step-" + (index + 1) + "." + stepTarget.extension)
                 val request = ConversionRequest(
                     context = context,
@@ -86,7 +98,9 @@ class ConversionRunner(
                     isCancelled = isCancelled
                 )
                 val produced = try {
-                    converter.convert(request).outputs.filter { it.isFile && it.length() > 0L }
+                    val result = converter.convert(request)
+                    result.note?.takeIf { it.isNotBlank() }?.let { note -> notes += note }
+                    result.outputs.filter { it.isFile && it.length() > 0L }
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: ConversionException) {
@@ -101,7 +115,10 @@ class ConversionRunner(
                     listOfNotNull(stepFile.takeIf { it.isFile && it.length() > 0L })
                 }
                 if (outputs.isEmpty()) {
-                    throw ConversionException(context.getString(R.string.err_empty_output))
+                    throw ConversionException(
+                        context.getString(R.string.err_empty_output),
+                        kind = ConversionFailureKind.EMPTY_OUTPUT
+                    )
                 }
                 finalFiles = outputs
                 currentUri = Uri.fromFile(outputs.first())
@@ -110,12 +127,25 @@ class ConversionRunner(
             }
 
             coroutineContext.ensureActive()
+            // A saved folder can become unavailable (uninstalled SD card, revoked grant).
+            // Fall back to Downloads instead of failing a conversion the user already waited for.
+            val effectiveTarget = when (val target0 = publishTarget) {
+                is PublishTarget.Folder -> {
+                    if (publisher.hasWriteAccess(target0)) {
+                        target0
+                    } else {
+                        notes += context.getString(R.string.ui_note_output_folder_fallback)
+                        PublishTarget.Downloads
+                    }
+                }
+                PublishTarget.Downloads -> publishTarget
+            }
             val published = finalFiles.mapIndexed { index, file ->
                 publisher.publish(
                     source = file,
                     fileName = outputName(input.displayName, target.extension, index),
                     mime = target.mime.ifBlank { DEFAULT_MIME },
-                    target = publishTarget
+                    target = effectiveTarget
                 )
             }
             onProgress(1f)
@@ -125,15 +155,27 @@ class ConversionRunner(
                 success = true,
                 outputs = published,
                 errorMessage = null,
+                note = notes.distinct().joinToString(" ").takeIf { it.isNotBlank() },
                 durationMs = SystemClock.elapsedRealtime() - startedAt
             )
         } catch (cancelled: CancellationException) {
             throw cancelled
+        } catch (outOfMemory: OutOfMemoryError) {
+            // An OOM inside an engine is a failed item, not a dead app: report it and let the
+            // queue continue with the remaining files.
+            failed(
+                input,
+                target,
+                startedAt,
+                ConversionFailureKind.FILE_TOO_LARGE,
+                context.getString(R.string.ui_out_of_memory)
+            )
         } catch (error: ConversionException) {
             failed(
                 input,
                 target,
                 startedAt,
+                error.kind,
                 error.message ?: context.getString(R.string.err_conversion_failed, target.label)
             )
         } catch (error: Exception) {
@@ -141,6 +183,7 @@ class ConversionRunner(
                 input,
                 target,
                 startedAt,
+                ConversionFailureKind.UNKNOWN,
                 context.getString(R.string.err_conversion_failed, target.label)
             )
         } finally {
@@ -152,6 +195,7 @@ class ConversionRunner(
         input: ConversionInput,
         target: FileFormat,
         startedAt: Long,
+        kind: ConversionFailureKind,
         message: String
     ): ConversionItemResult = ConversionItemResult(
         input = input,
@@ -159,6 +203,7 @@ class ConversionRunner(
         success = false,
         outputs = emptyList(),
         errorMessage = message,
+        errorKind = kind,
         durationMs = SystemClock.elapsedRealtime() - startedAt
     )
 

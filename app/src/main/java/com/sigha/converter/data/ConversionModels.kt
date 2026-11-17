@@ -1,6 +1,7 @@
 package com.sigha.converter.data
 
 import android.net.Uri
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.FileFormat
 
 /** A user-selected source file together with what detection worked out about it. */
@@ -17,6 +18,11 @@ data class ConversionItemResult(
     val target: FileFormat,
     val success: Boolean,
     val outputs: List<PublishedOutput> = emptyList(),
+    /** English developer diagnostic; the UI shows it only as expandable details. */
     val errorMessage: String? = null,
+    /** Localized headline is derived from this by the UI. */
+    val errorKind: ConversionFailureKind = ConversionFailureKind.UNKNOWN,
+    /** Informational note from the engine (page cap, OCR fallback, truncation, ...). */
+    val note: String? = null,
     val durationMs: Long = 0L
 )
