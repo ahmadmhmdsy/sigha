@@ -5,12 +5,16 @@
     pwsh -File scripts/verify.ps1              # full: clean build, tests, APK facts, release, lint
     pwsh -File scripts/verify.ps1 -Quick       # debug build + facts only
     pwsh -File scripts/verify.ps1 -SkipBuild   # facts about existing artefacts only
+    pwsh -File scripts/verify.ps1 -ReleaseCandidate  # + release gate: no placeholder in shipped legal text
   Writes docs/qa/evidence/verify-<timestamp>.json and prints a summary.
 #>
 [CmdletBinding()]
 param(
     [switch]$Quick,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    # Adds the release gate: the shipped legal text must contain no placeholder marker. Run it
+    # before a tag; a normal run reports the pending placeholders without failing.
+    [switch]$ReleaseCandidate
 )
 
 $ErrorActionPreference = "Stop"
@@ -137,6 +141,65 @@ function Find-BuildTool([string]$exe) {
     return $null
 }
 
+function Get-XmlResourceMap([string]$path) {
+    $doc = [xml](Get-Content $path -Raw)
+    $strings = [ordered]@{}
+    $plurals = [ordered]@{}
+    foreach ($node in $doc.resources.ChildNodes) {
+        if ($node.NodeType -ne [System.Xml.XmlNodeType]::Element) { continue }
+        $name = $node.GetAttribute("name")
+        if ($node.Name -eq "string") {
+            $strings[$name] = $node.InnerText
+        } elseif ($node.Name -eq "plurals") {
+            $items = [ordered]@{}
+            foreach ($item in $node.item) { $items[$item.GetAttribute("quantity")] = $item.InnerText }
+            $plurals[$name] = $items
+        }
+    }
+    return [ordered]@{ strings = $strings; plurals = $plurals }
+}
+
+# Compares one EN/AR resource pair: same keys, no empty AR value, same %n placeholders, and
+# every Arabic plural carries all six categories.
+function Test-ResourceParity([string]$enPath, [string]$arPath) {
+    $problems = @()
+    if (-not (Test-Path $enPath)) { return @("missing $enPath") }
+    if (-not (Test-Path $arPath)) { return @("missing $arPath") }
+    $en = Get-XmlResourceMap $enPath
+    $ar = Get-XmlResourceMap $arPath
+    foreach ($key in $en.strings.Keys) {
+        if (-not $ar.strings.Contains($key)) { $problems += "AR missing string '$key'" }
+    }
+    foreach ($key in $ar.strings.Keys) {
+        if (-not $en.strings.Contains($key)) { $problems += "AR has extra string '$key'" }
+    }
+    $placeholderPattern = [regex]"%(?<n>\d+)\$[sd]"
+    foreach ($key in $en.strings.Keys) {
+        if (-not $ar.strings.Contains($key)) { continue }
+        if ([string]::IsNullOrWhiteSpace($ar.strings[$key])) { $problems += "AR empty string '$key'" }
+        $enArgs = @($placeholderPattern.Matches($en.strings[$key]) | ForEach-Object { $_.Groups["n"].Value } | Sort-Object)
+        $arArgs = @($placeholderPattern.Matches($ar.strings[$key]) | ForEach-Object { $_.Groups["n"].Value } | Sort-Object)
+        if (($enArgs -join ",") -ne ($arArgs -join ",")) {
+            $problems += "placeholder mismatch '$key' (EN [$($enArgs -join ',')] vs AR [$($arArgs -join ',')])"
+        }
+    }
+    foreach ($key in $en.plurals.Keys) {
+        if (-not $ar.plurals.Contains($key)) { $problems += "AR missing plural '$key'"; continue }
+        $enItems = $en.plurals[$key]
+        $arItems = $ar.plurals[$key]
+        foreach ($q in @("zero", "one", "two", "few", "many", "other")) {
+            if (-not $arItems.Contains($q)) { $problems += "AR plural '$key' missing '$q'" }
+        }
+        foreach ($q in $enItems.Keys) {
+            if (-not $arItems.Contains($q)) { $problems += "AR plural '$key' missing '$q'" }
+        }
+    }
+    foreach ($key in $ar.plurals.Keys) {
+        if (-not $en.plurals.Contains($key)) { $problems += "AR has extra plural '$key'" }
+    }
+    return $problems
+}
+
 # ---------------------------------------------------------------- build + tests
 if (-not $SkipBuild) {
     Stop-StaleBuildProcesses
@@ -211,11 +274,21 @@ if (-not $Quick) {
         $apksigner = Find-BuildTool "apksigner.bat"
         if ($apksigner) {
             $unsigned = @()
+            $signers = @()
             foreach ($rel in $relApks) {
                 $verify = & $apksigner verify --print-certs $rel.FullName 2>&1
-                if ($LASTEXITCODE -ne 0) { $unsigned += $rel.Name }
+                if ($LASTEXITCODE -ne 0) { $unsigned += $rel.Name; continue }
+                $dn = ($verify | Select-String -Pattern "certificate DN:" | Select-Object -First 1)
+                $sha = ($verify | Select-String -Pattern "SHA-256 digest:" | Select-Object -First 1)
+                $signers += [ordered]@{
+                    name = $rel.Name
+                    dn = (("$dn") -replace ".*certificate DN: ", "").Trim()
+                    sha256 = (("$sha") -replace ".*SHA-256 digest: ", "").Trim()
+                }
             }
+            $summary.facts.releaseSigners = $signers
             Add-Step "release APK signatures" ($unsigned.Count -eq 0) ("unsigned: " + ($unsigned -join ", "))
+            Add-Step "release signer recorded" ($signers.Count -gt 0) (($signers | ForEach-Object { $_.name + " " + $_.dn }) -join "; ")
         }
     } else { Add-Step "release APKs" $false "none produced" }
     $aabs = @(Get-ChildItem (Join-Path $root "app/build/outputs/bundle/release") -Filter *.aab -ErrorAction SilentlyContinue)
@@ -232,6 +305,49 @@ if (-not $Quick) {
         $summary.facts.lint = [ordered]@{ errors = $errors; warnings = $warnings; report = $lintTxt }
         Add-Step "lint error count" ($errors -eq 0) "errors=$errors warnings=$warnings"
     }
+}
+
+# ---------------------------------------------------------------- resource parity (EN <-> AR)
+$resourcePairs = @(
+    @{ en = "app/src/main/res/values/strings.xml"; ar = "app/src/main/res/values-ar/strings.xml" },
+    @{ en = "app/src/main/res/values/strings_ui.xml"; ar = "app/src/main/res/values-ar/strings_ui.xml" },
+    @{ en = "app/src/main/res/values/strings_legal.xml"; ar = "app/src/main/res/values-ar/strings_legal.xml" }
+)
+$parityProblems = @()
+foreach ($pair in $resourcePairs) {
+    $parityProblems += Test-ResourceParity (Join-Path $root $pair.en) (Join-Path $root $pair.ar)
+}
+$summary.facts.resourceParity = [ordered]@{ pairs = $resourcePairs.Count; problems = $parityProblems }
+Add-Step "EN/AR resource parity" ($parityProblems.Count -eq 0) ("problems=" + $parityProblems.Count + " " + ($parityProblems -join "; "))
+
+# ---------------------------------------------------------------- shipped legal text placeholders
+$legalFiles = @(
+    "app/src/main/assets/legal/privacy-policy.md",
+    "app/src/main/assets/legal/privacy-policy.ar.md",
+    "app/src/main/assets/legal/source-offer.txt",
+    "app/src/main/assets/legal/relink-instructions.txt",
+    "app/src/main/assets/licenses/THIRD-PARTY-NOTICES.txt",
+    "NOTICE.md",
+    "docs/legal/privacy-policy.md"
+)
+$placeholderMarkers = @("PLACEHOLDER", "placeholder", "TODO", "to be completed", "سيُستكمل", "عنوان مؤقت")
+$placeholders = @()
+foreach ($rel in $legalFiles) {
+    $p = Join-Path $root $rel
+    if (-not (Test-Path $p)) { continue }
+    $lineNo = 0
+    foreach ($line in Get-Content $p) {
+        $lineNo++
+        foreach ($marker in $placeholderMarkers) {
+            if ($line.Contains($marker)) { $placeholders += ($rel + ":" + $lineNo + " (" + $marker + ")"); break }
+        }
+    }
+}
+$summary.facts.legalPlaceholders = $placeholders
+if ($ReleaseCandidate) {
+    Add-Step "release candidate: shipped legal text has no placeholder" ($placeholders.Count -eq 0) ("found=" + $placeholders.Count + " " + ($placeholders -join "; "))
+} else {
+    Write-Host ("[INFO] legal placeholders still present (the release gate will fail): " + $placeholders.Count) -ForegroundColor Yellow
 }
 
 # ---------------------------------------------------------------- claim drift check

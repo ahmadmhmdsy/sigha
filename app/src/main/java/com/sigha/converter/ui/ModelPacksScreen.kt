@@ -235,12 +235,6 @@ fun ModelPacksScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                     }
                 }
             }
-            item {
-                SectionHeader(title = stringResource(R.string.model_packs_section_upscale))
-            }
-            item {
-                UpscaleCard()
-            }
         }
     }
 }
@@ -363,36 +357,6 @@ private fun InstalledPill() {
             .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
             .padding(horizontal = 10.dp, vertical = 3.dp)
     )
-}
-
-@Composable
-private fun UpscaleCard() {
-    SighaCard {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(R.string.model_packs_upscale_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                // Neutral, not secondaryContainer: sand is the selection colour, so reusing it
-                // for "not available yet" makes two opposite states share one accent.
-                Text(
-                    text = stringResource(R.string.model_packs_upscale_coming_soon),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
-                        .padding(horizontal = 10.dp, vertical = 3.dp)
-                )
-            }
-            Text(
-                text = stringResource(R.string.model_packs_upscale_body),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
 }
 
 /** True when the active connection reports itself as metered (mobile data, some hotspots). */

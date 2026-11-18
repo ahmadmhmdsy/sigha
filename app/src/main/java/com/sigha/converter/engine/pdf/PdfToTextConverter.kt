@@ -2,6 +2,7 @@ package com.sigha.converter.engine.pdf
 
 import android.content.Context
 import com.sigha.converter.core.ConversionException
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
 import com.sigha.converter.core.Converter
@@ -65,7 +66,12 @@ internal class PdfToTextConverter(private val context: Context) : Converter {
         val document = openDocument(source)
         try {
             val pageCount = document.numberOfPages
-            if (pageCount <= 0) throw ConversionException("This PDF has no pages to convert.")
+            if (pageCount <= 0) {
+                throw ConversionException(
+                    "This PDF has no pages to convert.",
+                    kind = ConversionFailureKind.CORRUPT_INPUT
+                )
+            }
             val pages = selectedPages(request, pageCount)
             request.onProgress(0.1f)
             writeText(document, pages, request)
@@ -93,7 +99,8 @@ internal class PdfToTextConverter(private val context: Context) : Converter {
             if (e.message == OcrSupport.INSTALL_MESSAGE) {
                 throw ConversionException(
                     "This PDF has no text layer (it looks like a scan). Install the OCR pack to read scanned PDFs.",
-                    e
+                    e,
+                    ConversionFailureKind.NO_TEXT_LAYER
                 )
             }
             throw e
@@ -127,11 +134,16 @@ internal class PdfToTextConverter(private val context: Context) : Converter {
             // load(File, MemoryUsageSetting) already tries the empty password; any other password fails here.
             PDDocument.load(source, memory)
         } catch (e: InvalidPasswordException) {
-            throw ConversionException("This PDF is password-protected. Remove the password and try again.", e)
+            throw ConversionException(
+                "This PDF is password-protected. Remove the password and try again.",
+                e,
+                ConversionFailureKind.PASSWORD_PROTECTED
+            )
         } catch (e: IOException) {
             throw ConversionException(
                 "Could not read this PDF. The file may be damaged or use an encryption this app cannot open.",
-                e
+                e,
+                ConversionFailureKind.CORRUPT_INPUT
             )
         }
     }

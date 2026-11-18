@@ -50,6 +50,20 @@ class ConversionService : Service() {
         return START_NOT_STICKY
     }
 
+    /**
+     * Android 15+ timeout for a long-running dataSync foreground service (6 h in 24 h). The
+     * conversion keeps running in the app process; releasing the foreground state here is what
+     * keeps Android from throwing a RemoteServiceException when nobody handles the timeout.
+     */
+    override fun onTimeout(startId: Int) {
+        stopSelf(startId)
+    }
+
+    /** Android 15+ calls this overload for dataSync; the one-argument form serves short services. */
+    override fun onTimeout(startId: Int, fgsType: Int) {
+        stopSelf(startId)
+    }
+
     override fun onDestroy() {
         if (instance === this) instance = null
         super.onDestroy()

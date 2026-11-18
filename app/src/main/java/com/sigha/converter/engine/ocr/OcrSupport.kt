@@ -2,6 +2,7 @@ package com.sigha.converter.engine.ocr
 
 import android.content.Context
 import com.sigha.converter.core.ConversionException
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.model.ModelPacks
 import com.sigha.converter.model.OcrLanguages
@@ -22,17 +23,26 @@ internal object OcrSupport {
      */
     fun languageCode(context: Context, request: ConversionRequest): String {
         val requested = OcrLanguages.requested(request.options.ocrLanguage)
-        if (requested.isEmpty()) throw ConversionException(UNSUPPORTED_MESSAGE)
+        if (requested.isEmpty()) {
+            throw ConversionException(
+                UNSUPPORTED_MESSAGE,
+                kind = ConversionFailureKind.UNSUPPORTED_FORMAT
+            )
+        }
         val installed = ModelPacks.installedOcrLanguages(context)
-        if (!installed.containsAll(requested)) throw ConversionException(INSTALL_MESSAGE)
+        if (!installed.containsAll(requested)) {
+            throw ConversionException(INSTALL_MESSAGE, kind = ConversionFailureKind.MODEL_PACK_MISSING)
+        }
         return OcrLanguages.code(requested)
     }
 
     /** Tesseract data path: the pack root, whose `tessdata` child holds the language files. */
     fun datapath(context: Context): File {
         val dir = ModelPacks.installDir(context, ModelPacks.OCR_PACK_ID)
-            ?: throw ConversionException(INSTALL_MESSAGE)
-        if (!File(dir, "tessdata").isDirectory) throw ConversionException(INSTALL_MESSAGE)
+            ?: throw ConversionException(INSTALL_MESSAGE, kind = ConversionFailureKind.MODEL_PACK_MISSING)
+        if (!File(dir, "tessdata").isDirectory) {
+            throw ConversionException(INSTALL_MESSAGE, kind = ConversionFailureKind.MODEL_PACK_MISSING)
+        }
         return dir
     }
 
