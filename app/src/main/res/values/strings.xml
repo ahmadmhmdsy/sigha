@@ -65,7 +65,13 @@
         <item quantity="one">Convert %1$d file</item>
         <item quantity="other">Convert %1$d files</item>
     </plurals>
+    <string name="workbench_convert_to">Convert to %1$s</string>
+    <plurals name="workbench_convert_files_to">
+        <item quantity="one">Convert %1$d file to %2$s</item>
+        <item quantity="other">Convert %1$d files to %2$s</item>
+    </plurals>
     <string name="workbench_converting">Converting…</string>
+    <string name="workbench_converting_progress">Converting %1$d of %2$d to %3$s</string>
     <string name="workbench_progress_title">Progress</string>
     <string name="workbench_open_queue">View results</string>
     <string name="workbench_detect_failed">Couldn’t read the selected files.</string>
@@ -74,6 +80,7 @@
     <string name="workbench_storage_permission_denied">Storage access was denied, so files can’t be saved to Downloads.</string>
     <!-- The two counts are separate plurals; workbench_summary joins their phrases. -->
     <string name="workbench_summary">%1$s · %2$s</string>
+    <string name="workbench_summary_saved">%1$s · saved to %2$s</string>
     <plurals name="workbench_summary_done">
         <item quantity="one">%1$d file converted</item>
         <item quantity="other">%1$d files converted</item>
@@ -87,6 +94,7 @@
         <item quantity="other">%1$d files added</item>
     </plurals>
     <string name="workbench_all_done">All files converted</string>
+    <string name="workbench_all_done_saved">All files converted · saved to %1$s</string>
     <string name="workbench_cancelled">Conversion cancelled</string>
     <string name="workbench_no_target_selected">Choose a target format first.</string>
     <string name="workbench_ocr_install">Install OCR pack (%1$s)</string>
@@ -132,7 +140,7 @@
     <string name="theme_dark">Dark</string>
     <string name="settings_output">Output</string>
     <string name="settings_output_mode">Save converted files</string>
-    <string name="output_mode_downloads">Downloads/Sigha</string>
+    <string name="output_mode_downloads">Download/Sigha</string>
     <string name="output_mode_downloads_desc">Every file lands in the public Downloads folder.</string>
     <string name="output_mode_folder">Choose a folder</string>
     <string name="output_mode_folder_desc">Pick one folder once and reuse it.</string>

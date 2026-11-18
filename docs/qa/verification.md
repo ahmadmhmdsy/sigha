@@ -1,13 +1,17 @@
 # Sigha — build, test and runtime verification
 
-Date: 2026-11-18 (Asia/Baghdad). Workspace: `E:\android_apps\digital_converter`.
-Everything below was executed in this tree on this date. Anything not executed is named as not
-executed — there are no inherited or assumed results here.
+Date: 2026-11-19 (Asia/Baghdad); the 0.2.1 UI/UX pass was recorded on 2026-11-18. Workspace:
+`E:\android_apps\digital_converter`. Everything below was executed in this tree on those dates.
+Anything not executed is named as not executed — there are no inherited or assumed results here.
 
 The facts below were re-recorded on the **0.2.1** tree (versionCode 3) after the UI/UX fix pass and
 again after the critique re-run's regression-closure commit; the earlier records this file replaced
-are superseded. The pass changed app code, resources and one app asset (the Arabic privacy policy)
-only — no library, format or routing change.
+are superseded. On 2026-11-19 the **upload-tree** commit added batch-position legibility, the saved
+destination in the completion summary, target-named actions, thrown OCR/PDF failure kinds, the
+Android 15 foreground-service timeout, removal of the unavailable upscaling card, and a hardened
+gate (EN↔AR parity, release-candidate placeholder gate, recorded release signer). That pass changed
+app code, resources, scripts and docs only — no library, format or routing change — and its runtime
+check is recorded in §7.2.
 
 ## 1. Toolchain actually used
 
@@ -33,10 +37,11 @@ Two scripts are the only accepted evidence, and both write machine-readable JSON
    device, cold-starts it, checks the activity is resumed, runs a constrained monkey and scans the
    crash buffer. Evidence: `docs/qa/evidence/device-smoke-<stamp>.json`.
 
-This run: `docs/qa/evidence/verify-20261118-193810.json` (full gate: clean build, tests,
-release APKs, AAB, lint, claim drift) and the 0.2.1 device-smoke evidence (path recorded in §7). A
-second `-SkipBuild` pass after the documentation update re-asserted the artefact facts and claim
-drift (`docs/qa/evidence/verify-20261118-195341.json`).
+This run: `docs/qa/evidence/verify-20261119-004710.json` (full gate after the upload-tree commit:
+clean build, 137 tests, release APKs, AAB, lint, claim drift, EN↔AR resource parity, placeholder
+scan, release signer). The 0.2.1 runs remain as `verify-20261118-193810.json` and the
+`-SkipBuild` re-check `verify-20261118-195341.json`; the 0.2.1 device-smoke evidence is recorded
+in §7.
 
 ## 3. Build results
 
@@ -55,8 +60,10 @@ Release and bundle are **separate Gradle invocations on purpose**: AGP 8.9+ fail
 `app/build.gradle.kts` enables splits only when the requested task list does not contain
 `bundle`. Play splits the AAB itself, so the bundle does not need splits.
 
-Lint: **0 errors, 58 warnings** (`app/build/reports/lint-results-debug.txt`). The gate
-fails on any error; warnings are accepted for now.
+Lint: **0 errors, 63 warnings** (`app/build/reports/lint-results-debug.txt`). The gate
+fails on any error; warnings are accepted for now. The five new warnings are the unused
+`model_packs_upscale_*` strings left behind when the unavailable upscaling card was removed; they
+are dead resources, not behaviour.
 
 ## 4. Unit tests (`:app:testDebugUnitTest`)
 
@@ -90,9 +97,9 @@ by JVM tests.
 | Fact | Value |
 |---|---|
 | Path | `app/build/outputs/apk/debug/app-universal-debug.apk` |
-| Size | **115,118,326 bytes** (109.8 MiB) |
-| SHA-256 | `480732301C7D5F897AB173C9CDFFFAB7EB0475A2FE52D3F0F17C6778596A9336` |
-| ABI splits | `app-arm64-v8a-debug.apk` 68,795,650 B · `app-x86_64-debug.apk` 75,910,194 B |
+| Size | **115,120,790 bytes** (109.8 MiB) |
+| SHA-256 | `C346BBAE99FD7C3B1C5B1721FBE262D7200EEE6222E231816A180F03683BCC86` |
+| ABI splits | `app-arm64-v8a-debug.apk` 68,798,114 B · `app-x86_64-debug.apk` 75,912,658 B |
 | Version | `versionCode 3`, `versionName 0.2.1` |
 | Package / label | `com.sigha.converter` · Sigha / صيغة |
 | minSdk / targetSdk | 26 / 36 |
@@ -114,10 +121,10 @@ Built with the git-ignored local verification keystore (`keystore/`, documented 
 
 | Artefact | Size | SHA-256 | Signature |
 |---|---|---|---|
-| `app-arm64-v8a-release.apk` | 49,815,623 B | `15770EF4EAFCBEB09468D39674FEBE75F35E8FF9D9E324E7F44867925068BB93` | `apksigner verify` pass (CN=Sigha Local Verification) |
-| `app-x86_64-release.apk` | 56,930,167 B | `749526051581BA9FD25D178D90402A7FAFEE88BC8F5A4D2A20AB25AC21D868DE` | `apksigner verify` pass |
-| `app-universal-release.apk` | 96,138,299 B | `637F206C1D70835339E60FA8E8279F1E136CC81CC2FA1F307E48190640FBC8CB` | `apksigner verify` pass |
-| `app-release.aab` | 51,157,553 B | `E8E47BF9CE8C87A736F02A4A5E2D7C6B8C1741A4D41C638558AC000E88C8BA55` | built by AGP with the same signing config |
+| `app-arm64-v8a-release.apk` | 49,817,303 B | `8E2B7D6CED9745CF1BDB49CF8BF262CEAD8BBF106A419FAEF47B86AA7A172406` | `apksigner verify` pass (CN=Sigha Local Verification) |
+| `app-x86_64-release.apk` | 56,931,847 B | `0F58728B8354FEC645625E5C4DAAE07DE0304764E0D3CA0D04C03D9315763BCA` | `apksigner verify` pass |
+| `app-universal-release.apk` | 96,139,979 B | `0832E6214BB4FDBA612FA89970301B6907506CD7E9F4F95C793A1B82154CDB03` | `apksigner verify` pass |
+| `app-release.aab` | 51,159,496 B | `CAC83C515489F75B108CCA02786539765BC56D0C6B0FB8741A247AD612E6CEA8` | built by AGP with the same signing config |
 
 Release builds run R8 (`minifyRelease`, `shrinkReleaseResources`) and the release manifest does
 not opt into legacy native-lib extraction, so native libraries are page-aligned and stored
@@ -212,6 +219,50 @@ finding, and it is not covered by the smoke evidence.
 Not covered by this pass: TalkBack speech output, a native Arabic copy review, OEM skins, and real
 hardware. Those remain on the device QA checklist.
 
+### 7.2 Upload-tree legibility pass (2026-11-19, emulator-5560, Android 16)
+
+The upload-tree commit was exercised on a second boot of the same `review36` AVD (Android 16 /
+API 36, x86_64, 1080×2400 @ 420 dpi) with the universal debug APK built from this tree. Files were
+selected through the **real DocumentsUI picker** (three PNGs, then the 539 kB `iraq-law-3-1971-en.pdf`),
+not through synthetic shares; Arabic was applied per app (`cmd locale set-app-locales
+com.sigha.converter --locales ar`). Screenshots are archived next to the gate evidence:
+
+| Screenshot | State | Verified |
+|---|---|---|
+| `upload-tree-en-cta-no-target.png` | English, 3 PNGs, no target | the action reads **"Convert 3 files"** and is disabled — no dangling "to" while no target exists |
+| `upload-tree-en-cta-target.png` | English, PDF target selected | the action reads **"Convert 3 files to PDF"**; the selected chip carries the check mark |
+| `upload-tree-en-bar.png` | English, PDF→PNG running | the pinned bar shows **"Converting 1 of 1 to PNG"**, the current file name and Cancel; the action row is replaced, not overlaid |
+| `upload-tree-en-done.png` | English, batch finished | the summary reads **"All files converted · saved to Download/Sigha"** — the destination comes from the queue's own path |
+| `upload-tree-en-history.png` | English history | the three PDF outputs are listed with date and size |
+| `upload-tree-ar-cta-no-target.png` | Arabic, 3 PNGs, no target | **"حوّل 3 ملفات"** — the Arabic plural without the dangling preposition |
+| `upload-tree-ar-cta-target.png` | Arabic, PDF target selected | **"حوّل 3 ملفات إلى PDF"** |
+| `upload-tree-ar-bar.png` | Arabic, PDF→PNG running | **"جارٍ تحويل 1 من 1 إلى PNG"**, bidi-isolated target name, file name and **إلغاء**, full RTL bar |
+| `upload-tree-ar-done.png` | Arabic, batch finished | **"اكتمل تحويل جميع الملفات · حُفظت في Download/Sigha"** |
+| `upload-tree-en-cta-pdf-to-png.png` | English, one PDF, PNG target | the single-file action names its target ("Convert to PNG") |
+
+Two things this pass caught and this tree fixes:
+
+1. The first capture showed **"Convert 3 files to"** / **"حوّل ٣ ملفات إلى"** when no target was
+   selected: the new target-named action had no empty-target fallback. The action now falls back to
+   the generic `workbench_convert` / `workbench_convert_files` strings, and the table above is the
+   re-capture from the fixed build.
+2. The Arabic plural for the action has to agree with the counted noun; the six-category
+   `workbench_convert_files_to` and `workbench_convert_files` plurals are what the captures show,
+   and the gate now fails if any Arabic category is missing.
+
+Not verified by this pass: a **multi-file** running bar (the PNG→PDF batch completed before a frame
+could be captured; the position counter is the same composable, and the string gate covers the
+"1 of N" placeholders, but no screenshot shows "2 of 3"), physical arm64 hardware, a native Arabic
+copy review, TalkBack, OEM skins, MediaStore publishing on API 26–28, and the Android 15
+foreground-service timeout (compile-time override only; the emulator is API 36 but the service was
+not driven to its 6-hour budget).
+
+Host note, recorded for honesty: this machine was shared with another agent session that started and
+killed emulators on ports 5554/5556 while the gate was building; one of those boots raised a
+"System UI isn't responding" dialog. The captures above were taken on a private port (5560) with a
+quiet host, and the gate run is `verify-20261119-004710.json`. The emulator is not a substitute for
+the physical-device checklist.
+
 ## 8. Known gaps and limitations (as shipped)
 
 1. **OCR pack is download-only** (28,004,325 B, tessdata_best eng+ara, Apache-2.0, SHA-256
@@ -248,7 +299,8 @@ pwsh -File scripts/verify.ps1
 pwsh -File scripts/device-smoke.ps1
 
 # Quick variants
-pwsh -File scripts/verify.ps1 -SkipBuild   # facts about the artefacts that already exist
+pwsh -File scripts/verify.ps1 -SkipBuild          # facts about the artefacts that already exist
+pwsh -File scripts/verify.ps1 -ReleaseCandidate   # additionally fail on shipped legal placeholders
 ```
 
 `scripts/verify.ps1` finds the JDK itself if `JAVA_HOME` is not set, and stops leftover
@@ -261,7 +313,14 @@ KB-aligned native libraries, zipalign, signed release APKs, an AAB and zero lint
 from the commands in §9, and the claim-drift check keeps the public docs tied to measured numbers.
 
 **Device verification: partial.** Install, cold start, resumed activity, a 120-event monkey run
-and an empty crash buffer are recorded. Real conversions, SAF flows, MediaStore output and visual
-rendering are **not** verified yet: run `docs/qa/device-checklist.md` on a physical API 26–36
-device before submitting to Play. The app must not be described as device-tested until that is
-done.
+and an empty crash buffer are recorded. On the emulator, real conversions through the real
+DocumentsUI picker and the upload-tree bar/action/summary states are now recorded too (§7.2), in
+English and Arabic. They are still **emulator** results: run `docs/qa/device-checklist.md` on a
+physical arm64 API 26–36 device before submitting to Play. The app must not be described as
+device-tested until that is done.
+
+**Upload tree: green locally, blocked on the human lane.** The upload-tree commit passes the full
+gate (`verify-20261119-004710.json`), and `verify.ps1 -ReleaseCandidate` still fails on the 21
+placeholder markers in the shipped legal assets — deliberately, until the publisher supplies the
+legal name, contact, policy URL and LGPL mailbox. No tag, no AAB for Play and no closed test until
+then; the order is in `docs/plan/publisher-guide.md`.

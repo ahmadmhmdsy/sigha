@@ -15,7 +15,7 @@ is broken.
 
 ## 2. Task list (send verbatim)
 
-1. Convert a photo to JPG and to PDF; check the result in Downloads.
+1. Convert a photo to JPG and to PDF; check the result in the Download/Sigha folder.
 2. Convert a DOCX to PDF and to TXT; check the text output and the note about layout.
 3. Convert an XLSX with two sheets to CSV; confirm the "first sheet only" note.
 4. Convert a PDF to JPG with page range 1; then a scanned PDF (no text layer) to TXT **without** the

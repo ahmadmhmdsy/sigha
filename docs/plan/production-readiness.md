@@ -86,3 +86,21 @@ B5 trademark · B6 LGPL source hosting · B7 counsel sign-off. See `docs/legal/r
 and the 0.2.2 deferrals — is `docs/council/2026-11-18-next/council-decision.md`. It adds the Play
 foreground-service declaration to the console work and folds the batch-outcome/CTA legibility items
 into the upload build.
+
+### Upload-tree execution status (2026-11-19, this tree)
+
+| Item | State | Evidence |
+|---|---|---|
+| A2 batch position and current file in the pinned bar | done | `ui/WorkbenchScreen.kt` ConvertBar; `docs/qa/evidence/upload-tree-en-bar.png`, `upload-tree-ar-bar.png` |
+| A3 saved destination in the completion summary | done | `ui/WorkbenchViewModel.kt` `syncProgress`; `upload-tree-en-done.png`, `upload-tree-ar-done.png` |
+| A4 target-named actions, with an empty-target fallback | done | `workbench_convert_to` / `workbench_convert_files_to` + generic `workbench_convert` / `workbench_convert_files`; CTA captures in the same folder |
+| A5 thrown OCR/PDF failure kinds | done (code + strings) | `engine/ocr/OcrSupport.kt`, `engine/pdf/PdfToTextConverter.kt`; the failure headline itself needs a scanned PDF on a device |
+| A6 Arabic copy corrections | done | `values-ar/strings.xml`, `strings_ui.xml`, `strings_legal.xml`; EN↔AR parity gate |
+| A7 Android 15 foreground-service timeout | done (compile-time) | `work/ConversionService.kt`; not exercised on hardware |
+| A8 unavailable upscaling card removed | done | `ui/ModelPacksScreen.kt`; the unused strings are the five new lint warnings |
+| Gate hardening | done | `scripts/verify.ps1 -ReleaseCandidate`, EN↔AR parity, release-signer record; `docs/qa/evidence/verify-20261119-004710.json` |
+| A1 physical arm64 device / Step Zero | **blocked on the publisher** | no device available to the builder; `docs/plan/publisher-guide.md` Step 0 |
+| Legal placeholders (21 markers) | **blocked on the publisher** | `verify.ps1 -ReleaseCandidate` list; publisher guide Steps 4–5 |
+
+The tree is **not tagged**: the tag is only cut when the placeholders are gone and the device
+checklist has run on the tag (council decision, sequence §6).

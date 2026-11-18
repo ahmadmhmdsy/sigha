@@ -62,11 +62,12 @@ shows success. Record output size and any note shown.
 
 | # | Step | Expected |
 |---|---|---|
-| D1 | Settings → Output → Downloads, convert | file appears in Downloads/Sigha |
+| D1 | Settings → Output → Download folder, convert | file appears in Download/Sigha (the public folder is singular) |
 | D2 | Settings → Output → choose folder (SD card or Drive), convert | file appears in that folder |
 | D3 | Revoke/remove the folder grant, convert again | conversion still succeeds, falls back to Downloads with a note |
 | D4 | Choose a read-only folder in the picker | refused with "cannot be written to" message |
 | D5 | Convert with a full/near-full storage | clear failure, no zero-byte file |
+| D6 | Convert a file with a long name, open Queue | the done row names the saved location and the file name stays readable |
 
 ## E. Background execution and notifications
 
@@ -81,7 +82,7 @@ shows success. Record output size and any note shown.
 
 | # | Step | Expected |
 |---|---|---|
-| F1 | Open History | past conversions listed with localized failure headlines; details expandable |
+| F1 | Open History | past conversions and failures listed; failed rows show a localized headline and expandable technical details |
 | F2 | Tap a history output | opens in the right app or shows a clear message |
 | F3 | Clear history | list empties, survives restart |
 | F4 | Change theme (system/light/dark) | applied everywhere, survives restart |
@@ -95,7 +96,18 @@ shows success. Record output size and any note shown.
 | G1 | First conversion to Downloads on API 26–28 | storage permission asked once, then file appears |
 | G2 | Deny storage permission, convert | localized explanation, no crash |
 
-## H. Sign-off
+## H. Upload-tree legibility (0.2.1 upload build)
+
+| # | Step | Expected |
+|---|---|---|
+| H1 | Select 3 files, choose no target | the action reads "Convert 3 files" (no trailing "to") and is disabled |
+| H2 | Choose the PDF target | the action reads "Convert 3 files to PDF" |
+| H3 | Convert a 3-file batch to PDF and watch the pinned bar | "Converting i of 3 to PDF" plus the current file name; Cancel stops the batch |
+| H4 | Let the batch finish | the summary reads "All files converted · saved to Download/Sigha" (or the chosen folder) |
+| H5 | Set the app to Arabic (`adb shell cmd locale set-app-locales com.sigha.converter --locales ar`), repeat H1–H4 | "حوّل 3 ملفات" / "حوّل 3 ملفات إلى PDF" / "جارٍ تحويل 1 من 3 إلى PDF" / "اكتمل تحويل جميع الملفات · حُفظت في Download/Sigha"; bar and summary fully RTL, nothing clipped |
+| H6 | Scanned PDF → TXT without the OCR pack (same file as B6) | the failure row shows the localized "install OCR pack" headline, not the generic failure headline |
+
+## I. Sign-off
 
 - [ ] All rows above pass, or every failure has a filed issue with device/Android version.
 - [ ] No ANR and no crash in `adb logcat -b crash` during the run.

@@ -139,6 +139,43 @@ they are fixed here, without changing the 0.2.1 scope or the format catalogue.
 Re-verified with `scripts/verify.ps1` and `scripts/device-smoke.ps1` on 2026-11-18; measured
 numbers live in `docs/qa/verification.md` and the evidence JSON files.
 
+### Upload-tree additions (2026-11-19)
+
+Work on the first upload build, from the council decision in
+`docs/council/2026-11-18-next/council-decision.md`. Same unreleased version; no new features.
+
+- **Batch position in the pinned bar.** While a batch runs the bar shows "Converting 2 of 5 to PDF"
+  and the current file name (bidi-wrapped, one line) instead of a spinner and "Converting…".
+- **The batch result says where the files went.** The completion snackbar appends the saved
+  destination from the queue's own path ("… · saved to Download/Sigha"), and the primary action
+  names its target ("Convert to PDF", "Convert 3 files to PDF") in both languages.
+- **The action never ends in a dangling "to".** With no target selected the bar falls back to
+  "Convert" / "Convert 3 files" (both languages) instead of "Convert 3 files to "; the target is
+  named only once one is chosen.
+- **OCR failures carry their kind.** `NO_TEXT_LAYER` and `MODEL_PACK_MISSING` were declared and
+  mapped but never thrown, so a scanned PDF without the pack showed the generic failure headline
+  instead of the install instruction; `PdfToTextConverter` and `OcrSupport` now set the kind, and
+  the same fix covers password-protected and damaged PDFs.
+- **Android 15+ foreground-service timeout.** `ConversionService` overrides both `onTimeout`
+  overloads and stops the service instead of letting the platform throw a
+  `RemoteServiceException` after the `dataSync` budget (6 h in 24 h).
+- **The AI-upscaling card is gone from the shipped build** — the screen no longer advertises a
+  feature the build does not have. The pack copy stays for the 0.3 work.
+- **Arabic copy corrections.** The technical-details label says the text is English, the OCR pack
+  title starts in Arabic, the privacy date matches the policy, and the destination label uses the
+  real folder name (`Download/Sigha`, singular) in both languages.
+- **The gate can now fail a release on shipped placeholders.** `verify.ps1 -ReleaseCandidate`
+  scans the shipped legal assets for placeholder markers (EN and AR) and fails while any remain;
+  every run also checks EN↔AR key/placeholder parity and all six Arabic plural categories, and
+  records the release signer certificate in the evidence JSON.
+- **Docs:** device checklist D1/D6 and F1 corrected; the closed-test script says where files land.
+
+Not yet device-verified: the arm64 release build has never run on a phone (see the council decision,
+Step Zero). The evidence for these changes is the JVM suite, lint, the full gate
+(`docs/qa/evidence/verify-20261119-004710.json`) and the English/Arabic emulator legibility pass
+recorded in `docs/qa/verification.md` §7.2. The release gate still fails on 21 placeholder markers
+in the shipped legal assets (`verify.ps1 -ReleaseCandidate`), so the tree is not tagged yet.
+
 ## 0.2.0 — 2026-11-17 — production-readiness (closed-test build)
 
 First build intended for the Play **closed test**. Not published to any store. Nothing here is a

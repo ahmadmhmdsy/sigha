@@ -79,7 +79,17 @@
         <item quantity="many">حوّل %1$d ملفًا</item>
         <item quantity="other">حوّل %1$d ملف</item>
     </plurals>
+    <string name="workbench_convert_to">تحويل إلى %1$s</string>
+    <plurals name="workbench_convert_files_to">
+        <item quantity="zero">لا ملفات للتحويل إلى %2$s</item>
+        <item quantity="one">حوّل ملفًا واحدًا إلى %2$s</item>
+        <item quantity="two">حوّل ملفين إلى %2$s</item>
+        <item quantity="few">حوّل %1$d ملفات إلى %2$s</item>
+        <item quantity="many">حوّل %1$d ملفًا إلى %2$s</item>
+        <item quantity="other">حوّل %1$d ملف إلى %2$s</item>
+    </plurals>
     <string name="workbench_converting">جارٍ التحويل…</string>
+    <string name="workbench_converting_progress">جارٍ تحويل %1$d من %2$d إلى %3$s</string>
     <string name="workbench_progress_title">التقدّم</string>
     <string name="workbench_open_queue">عرض النتائج</string>
     <string name="workbench_detect_failed">تعذّر قراءة الملفات المحددة.</string>
@@ -88,6 +98,7 @@
     <string name="workbench_storage_permission_denied">رُفض الوصول إلى التخزين، لذا لا يمكن حفظ الملفات في التنزيلات.</string>
     <!-- العدّان صيغتان منفصلتان؛ workbench_summary يجمع العبارتين. -->
     <string name="workbench_summary">%1$s · %2$s</string>
+    <string name="workbench_summary_saved">%1$s · حُفظت في %2$s</string>
     <plurals name="workbench_summary_done">
         <item quantity="zero">لم يُحوَّل أي ملف</item>
         <item quantity="one">حُوِّل ملف واحد</item>
@@ -113,6 +124,7 @@
         <item quantity="other">أُضيف %1$d ملف</item>
     </plurals>
     <string name="workbench_all_done">اكتمل تحويل جميع الملفات</string>
+    <string name="workbench_all_done_saved">اكتمل تحويل جميع الملفات · حُفظت في %1$s</string>
     <string name="workbench_cancelled">أُلغي التحويل</string>
     <string name="workbench_no_target_selected">اختر صيغة الهدف أولًا.</string>
     <string name="workbench_ocr_install">ثبّت حزمة OCR (%1$s)</string>
@@ -162,7 +174,7 @@
     <string name="theme_dark">داكنة</string>
     <string name="settings_output">الإخراج</string>
     <string name="settings_output_mode">حفظ الملفات المحوّلة</string>
-    <string name="output_mode_downloads">التنزيلات/Sigha</string>
+    <string name="output_mode_downloads">Download/Sigha</string>
     <string name="output_mode_downloads_desc">يُحفظ كل ملف في مجلد التنزيلات العام.</string>
     <string name="output_mode_folder">اختيار مجلد</string>
     <string name="output_mode_folder_desc">اختر مجلدًا مرة واحدة وأعد استخدامه.</string>
@@ -212,7 +224,7 @@
     <string name="model_packs_license_unknown">ترخيص غير معروف</string>
     <string name="model_packs_no_packs">لا توجد حزم نماذج متاحة بعد.</string>
     <!-- نص الحزمة يُحلّ من معرّفها (PackCatalog.titleRes/descriptionRes). -->
-    <string name="pack_ocr_title">OCR: الإنجليزية + العربية</string>
+    <string name="pack_ocr_title">التعرّف على النص: الإنجليزية + العربية</string>
     <string name="pack_ocr_description">يقرأ النص من الصور وملفات PDF الممسوحة بالإنجليزية والعربية. يُنزَّل مرة واحدة ثم لا يحتاج إلى اتصال.</string>
     <string name="model_packs_upscale_title">تكبير بالذكاء الاصطناعي</string>
     <string name="model_packs_upscale_coming_soon">غير متاح بعد</string>

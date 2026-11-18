@@ -9,7 +9,7 @@
     <string name="ui_error_no_storage">لا توجد مساحة تخزين كافية. فرّغ مساحة ثم أعد المحاولة.</string>
     <string name="ui_error_file_too_large">هذا الملف كبير جدًا للتحويل على هذا الجهاز.</string>
     <string name="ui_error_drm">هذا الكتاب محمي بـ DRM ولا يمكن تحويله.</string>
-    <string name="ui_details_show">إظهار التفاصيل التقنية</string>
+    <string name="ui_details_show">إظهار التفاصيل التقنية (بالإنكليزية)</string>
     <string name="ui_details_hide">إخفاء التفاصيل التقنية</string>
     <string name="ui_note_label">ملاحظة: %1$s</string>
     <string name="ui_conversion_from_to">%1$s إلى %2$s</string>

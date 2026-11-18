@@ -1,6 +1,7 @@
 package com.sigha.converter.ui
 
 import android.net.Uri
+import androidx.core.text.BidiFormatter
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sigha.converter.AppGraph
@@ -315,7 +316,28 @@ class WorkbenchViewModel : ViewModel() {
                     context.getString(R.string.workbench_summary, doneText, failedText)
                 }
             }
-            _messages.tryEmit(message)
+            // The batch result must say where the files went: a count alone sends the user
+            // looking for them. The saved path is the queue's own fact, so use its parent.
+            val destination = rows.firstNotNullOfOrNull { row ->
+                if (row.status == QueueStatus.DONE) {
+                    row.displayPath?.substringBeforeLast('/')?.takeIf { it.isNotEmpty() }
+                } else {
+                    null
+                }
+            }
+            val finalMessage = when {
+                destination == null || done == 0 -> message
+                failed == 0 && !cancelled -> context.getString(
+                    R.string.workbench_all_done_saved,
+                    BidiFormatter.getInstance().unicodeWrap(destination)
+                )
+                else -> context.getString(
+                    R.string.workbench_summary_saved,
+                    message,
+                    BidiFormatter.getInstance().unicodeWrap(destination)
+                )
+            }
+            _messages.tryEmit(finalMessage)
         }
     }
 

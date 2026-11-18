@@ -872,12 +872,42 @@ private fun ConvertBar(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (state.isConverting) {
+                    val rows = state.progressRows
+                    val total = rows.size.takeIf { it > 0 } ?: state.files.size
+                    val runningIndex = rows.indexOfFirst { it.status == QueueStatus.RUNNING }
+                    val finished = rows.count {
+                        it.status == QueueStatus.DONE || it.status == QueueStatus.FAILED ||
+                            it.status == QueueStatus.CANCELLED
+                    }
+                    val position = when {
+                        runningIndex >= 0 -> runningIndex + 1
+                        else -> (finished + 1).coerceAtMost(total.coerceAtLeast(1))
+                    }
+                    val current = rows.getOrNull(if (runningIndex >= 0) runningIndex else finished)
+                    val bidi = BidiFormatter.getInstance()
                     CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
-                    Text(
-                        text = stringResource(R.string.workbench_converting),
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(
+                                R.string.workbench_converting_progress,
+                                position,
+                                total,
+                                bidi.unicodeWrap(state.target?.label ?: current?.targetLabel.orEmpty())
+                            ),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                        current?.let { row ->
+                            Text(
+                                text = bidi.unicodeWrap(row.displayName),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    textDirection = TextDirection.Content
+                                ),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
                     TextButton(onClick = onCancel) {
                         Text(stringResource(R.string.action_cancel))
                     }
@@ -903,14 +933,24 @@ private fun ConvertBar(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(Modifier.width(8.dp))
+                        val targetLabel = state.target?.label
                         Text(
-                            text = if (state.files.size == 1) {
-                                stringResource(R.string.workbench_convert)
-                            } else {
-                                pluralStringResource(
+                            text = when {
+                                // No target yet: the CTA must not end in a dangling "to".
+                                targetLabel == null && state.files.size == 1 ->
+                                    stringResource(R.string.workbench_convert)
+                                targetLabel == null -> pluralStringResource(
                                     R.plurals.workbench_convert_files,
                                     state.files.size,
                                     state.files.size
+                                )
+                                state.files.size == 1 ->
+                                    stringResource(R.string.workbench_convert_to, targetLabel)
+                                else -> pluralStringResource(
+                                    R.plurals.workbench_convert_files_to,
+                                    state.files.size,
+                                    state.files.size,
+                                    targetLabel
                                 )
                             }
                         )

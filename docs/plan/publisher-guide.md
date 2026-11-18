@@ -27,8 +27,10 @@ values to supply, and the evidence that closes it. Work top to bottom: the order
 | 10 | Production access application | public release | days |
 
 **Current state (2026-11-19):** no device, no Play account, no key, no policy URL, no source bundle,
-no counsel. The code lane is in progress in parallel and does not need you until Step 4's final text
-and Step 5's mailbox exist.
+no counsel — all of that is yours. The code lane is **done and locally verified** (full gate green,
+EN/AR legibility pass on the emulator, 21 legal placeholders still blocking the release gate), so
+nothing in the build lane needs you until Step 4's final text and Step 5's mailbox exist. Your
+critical path is Step 0 → Step 1 → Step 2, in that order.
 
 ---
 
@@ -260,9 +262,20 @@ Per step: account verification screenshot; search log; key fingerprint + backup 
 listing asset files; AAB SHA-256 + versionCode; tester list with opt-in dates; production-access
 decision. Paste paths into `docs/qa/verification.md` or a dated report under `docs/qa/`.
 
-## Appendix C — what the builder is doing in parallel
+## Appendix C — what the builder has done in parallel
 
-The upload tree: final legal text slots, `ConversionService.onTimeout`, OCR failure kind, five Arabic
-strings, AI-card removal, gate hardening, then the batch-bar/CTA legibility commit. The tree is tagged
-only when every placeholder is gone; the device checklist runs on that tag; the AAB is built from the
-same tag. Nothing in this lane needs your account until Step 4/5 values exist.
+Done on 2026-11-19 (full gate `verify-20261119-004710.json`, legibility captures in
+`docs/qa/verification.md` §7.2):
+
+- batch position, current file and Cancel in the pinned bar; the saved destination in the completion
+  summary; actions that name the target, with an empty-target fallback;
+- thrown `NO_TEXT_LAYER` / `MODEL_PACK_MISSING` / password / corrupt-PDF failure kinds;
+- `ConversionService.onTimeout` (the Android 15 foreground-service budget);
+- five Arabic copy corrections, and the unavailable upscaling card removed;
+- gate hardening: `-ReleaseCandidate` placeholder gate, EN↔AR key/placeholder/plural parity, and the
+  release signer recorded in the evidence JSON.
+
+Still blocked, and not the builder's to unblock: the 21 placeholder markers in the shipped legal
+assets (your Step 4 values, Step 5 mailbox), the arm64 device (Step 0), and everything Play Console.
+The tree is tagged only when every placeholder is gone; the device checklist runs on that tag; the
+AAB is built from the same tag.

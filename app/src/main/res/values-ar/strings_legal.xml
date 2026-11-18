@@ -22,7 +22,7 @@
     <!-- شاشة الخصوصية (WS4). يُختار النص العربي من assets/legal/privacy-policy.ar.md حسب لغة التطبيق. -->
     <string name="legal_privacy_title">الخصوصية</string>
     <string name="legal_privacy_headline">لا نجمع أي بيانات.</string>
-    <string name="legal_privacy_effective">سارية اعتباراً من 17 تشرين الثاني (نوفمبر) 2026</string>
+    <string name="legal_privacy_effective">سارية اعتباراً من 17 نوفمبر 2026</string>
     <string name="legal_privacy_loading">جارٍ تحميل السياسة…</string>
     <string name="legal_privacy_load_error">تعذّر تحميل سياسة الخصوصية من التطبيق.</string>
 </resources>
