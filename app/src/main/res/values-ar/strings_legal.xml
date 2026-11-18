@@ -19,7 +19,7 @@
     <string name="legal_licenses_full_notice">الإشعارات الكاملة لأطراف ثالثة</string>
     <string name="legal_licenses_contact">أسئلة التراخيص: opensource@sigha.app</string>
 
-    <!-- شاشة الخصوصية (WS4). نص السياسة يُعرض من assets/legal/privacy-policy.md. -->
+    <!-- شاشة الخصوصية (WS4). يُختار النص العربي من assets/legal/privacy-policy.ar.md حسب لغة التطبيق. -->
     <string name="legal_privacy_title">الخصوصية</string>
     <string name="legal_privacy_headline">لا نجمع أي بيانات.</string>
     <string name="legal_privacy_effective">سارية اعتباراً من 17 تشرين الثاني (نوفمبر) 2026</string>

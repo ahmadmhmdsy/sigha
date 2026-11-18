@@ -1,5 +1,6 @@
 package com.sigha.converter.ui
 
+import android.text.BidiFormatter
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Cancel
@@ -46,8 +46,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,6 +60,7 @@ import com.sigha.converter.data.Repo
 import com.sigha.converter.ui.components.EmptyState
 import com.sigha.converter.ui.components.FormatBadge
 import com.sigha.converter.ui.components.SectionHeader
+import com.sigha.converter.ui.components.SighaCard
 import com.sigha.converter.ui.components.SighaTopAppBar
 import com.sigha.converter.ui.components.StatusPill
 import com.sigha.converter.ui.components.mimeOrDefault
@@ -119,18 +122,23 @@ fun QueueScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         if (entries.isEmpty()) {
-            Column(
+            // Scrollable for the same reason as the workbench empty state: landscape phones
+            // and font scale 2.0 must not clip the only content on the screen.
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                EmptyState(
-                    icon = Icons.Outlined.FormatListBulleted,
-                    title = stringResource(R.string.queue_empty_title),
-                    body = stringResource(R.string.queue_empty_body)
-                )
+                item {
+                    EmptyState(
+                        icon = Icons.Outlined.FormatListBulleted,
+                        title = stringResource(R.string.queue_empty_title),
+                        body = stringResource(R.string.queue_empty_body)
+                    )
+                }
             }
         } else {
             LazyColumn(
@@ -178,17 +186,13 @@ private fun QueueRow(entry: QueueEntry, showMessage: (String) -> Unit) {
     val toLabel = toFormat?.label ?: entry.toId
     val routeDescription = stringResource(R.string.ui_conversion_from_to, fromLabel, toLabel)
 
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
-    ) {
+    SighaCard {
         Column(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
+                modifier = Modifier.semantics(mergeDescendants = true) {},
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -214,7 +218,7 @@ private fun QueueRow(entry: QueueEntry, showMessage: (String) -> Unit) {
                     )
                     Spacer(Modifier.height(6.dp))
                     Row(
-                        modifier = Modifier.semantics { contentDescription = routeDescription },
+                        modifier = Modifier.clearAndSetSemantics { contentDescription = routeDescription },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
@@ -233,7 +237,12 @@ private fun QueueRow(entry: QueueEntry, showMessage: (String) -> Unit) {
             if (entry.status == QueueStatus.RUNNING || entry.status == QueueStatus.QUEUED) {
                 LinearProgressIndicator(
                     progress = { if (entry.status == QueueStatus.QUEUED) 0f else entry.progress },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = if (entry.status == QueueStatus.QUEUED) {
+                        // Queued has no progress yet; announcing a determinate 0% is misleading.
+                        Modifier.fillMaxWidth().clearAndSetSemantics {}
+                    } else {
+                        Modifier.fillMaxWidth()
+                    }
                 )
             }
             if (entry.status == QueueStatus.FAILED) {
@@ -279,11 +288,18 @@ private fun QueueRow(entry: QueueEntry, showMessage: (String) -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = entry.displayPath
-                            ?.let { path -> stringResource(R.string.queue_saved_to, path) }
+                            ?.let { path ->
+                                stringResource(
+                                    R.string.queue_saved_to,
+                                    BidiFormatter.getInstance().unicodeWrap(path)
+                                )
+                            }
                             ?: stringResource(R.string.queue_saved_generic),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            textDirection = TextDirection.Content
+                        ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )

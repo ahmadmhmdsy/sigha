@@ -15,13 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,8 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,6 +55,7 @@ import com.sigha.converter.ui.components.ConfirmDialog
 import com.sigha.converter.ui.components.EmptyState
 import com.sigha.converter.ui.components.FormatBadge
 import com.sigha.converter.ui.components.FormatIcon
+import com.sigha.converter.ui.components.SighaCard
 import com.sigha.converter.ui.components.SighaTopAppBar
 import com.sigha.converter.ui.components.mimeOrDefault
 import kotlinx.coroutines.launch
@@ -178,17 +176,9 @@ private fun HistoryRow(entry: HistoryEntry, onOpen: () -> Unit, onShare: () -> U
     val toLabel = toFormat?.label ?: entry.toId
     val routeDescription = stringResource(R.string.ui_conversion_from_to, fromLabel, toLabel)
 
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
-        onClick = onOpen
-    ) {
+    SighaCard(onClick = onOpen) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -212,7 +202,7 @@ private fun HistoryRow(entry: HistoryEntry, onOpen: () -> Unit, onShare: () -> U
                 )
                 Spacer(Modifier.height(6.dp))
                 Row(
-                    modifier = Modifier.semantics { contentDescription = routeDescription },
+                    modifier = Modifier.clearAndSetSemantics { contentDescription = routeDescription },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
@@ -278,12 +268,7 @@ private fun HistoryRow(entry: HistoryEntry, onOpen: () -> Unit, onShare: () -> U
                 }
             }
             if (entry.success) {
-                IconButton(onClick = onOpen) {
-                    Icon(
-                        imageVector = Icons.Outlined.OpenInNew,
-                        contentDescription = stringResource(R.string.action_open_file)
-                    )
-                }
+                // The row itself opens the file; a second open control only added a focus stop.
                 IconButton(onClick = onShare) {
                     Icon(
                         imageVector = Icons.Outlined.Share,

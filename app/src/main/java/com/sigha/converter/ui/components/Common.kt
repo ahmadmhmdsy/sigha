@@ -147,7 +147,8 @@ fun EmptyState(
         Text(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.semantics { heading() }
         )
         Spacer(Modifier.height(if (compact) 6.dp else 12.dp))
         Text(
@@ -194,8 +195,8 @@ fun statusColor(status: QueueStatus): Color = when (status) {
 /**
  * Status chip on tonal Material 3 containers rather than accent-on-its-own-tint: the tone
  * pairs measure 5.8:1-13.4:1 across both themes (the old tinted-accent version bottomed out at
- * 3.99:1 in light theme) and the label is exposed as a state description so TalkBack announces
- * it as a status.
+ * 3.99:1 in light theme). The label stays plain text: a stateDescription duplicating it made
+ * TalkBack read the status twice.
  */
 @Composable
 fun StatusPill(status: QueueStatus, modifier: Modifier = Modifier) {
@@ -215,7 +216,6 @@ fun StatusPill(status: QueueStatus, modifier: Modifier = Modifier) {
         style = MaterialTheme.typography.labelMedium,
         color = content,
         modifier = modifier
-            .semantics { stateDescription = label }
             .background(container, RoundedCornerShape(8.dp))
             .padding(horizontal = 8.dp, vertical = 2.dp)
     )

@@ -7,8 +7,9 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 
 /**
- * System font stack keeps Arabic and Latin glyphs consistent on every OEM skin.
- * Only weights and rhythm are tuned: a slightly tighter display face and calmer body copy.
+ * Latin type scale: weights and rhythm only. Both scales use the system font stack, so the
+ * actual letterforms belong to the device; a bundled Arabic family is a design decision
+ * (0.2.2), not something this file can promise.
  */
 val SighaTypography = Typography(
     headlineMedium = TextStyle(

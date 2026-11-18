@@ -28,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.sigha.converter.R
 import com.sigha.converter.ui.components.SighaCard
@@ -172,12 +174,16 @@ fun PrivacyScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                         is PolicyBlock.Heading -> Text(
                             text = block.text,
                             style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.padding(top = 4.dp)
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .semantics { heading() }
                         )
                         is PolicyBlock.Subheading -> Text(
                             text = block.text,
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(top = 8.dp)
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .semantics { heading() }
                         )
                         is PolicyBlock.Paragraph -> Text(
                             text = block.text,

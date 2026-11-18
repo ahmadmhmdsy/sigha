@@ -92,7 +92,7 @@ this release. No converter, routing or capability change; the format catalogue i
 - `PRODUCT.md` / `docs/product/PRODUCT.md`: OCR inline install and live target refresh, resumable
   pack download, no per-row retry in this release, and tablets/foldables/desktop declared out of
   scope for the Arabic-first phone path.
-- `docs/qa/verification.md`: 0.2.1 facts, the emulator-5566 visual/RTL evidence, and the corrected
+- `docs/qa/verification.md`: 0.2.1 facts, the emulator-5556 visual/RTL evidence, and the corrected
   statement about engine notes (now localised; failure diagnostics stay English).
 - `docs/plan/production-readiness.md`: the "engine note text stays English" claim corrected.
 
@@ -103,10 +103,41 @@ this release. No converter, routing or capability change; the format catalogue i
 | JVM tests | 137 tests, 16 classes, 0 failures/errors/skips |
 | Debug APK, release APKs/AAB, signing, 16 KB, ABI split | green; sizes, SHA-256 and version re-recorded in `docs/qa/verification.md` |
 | Emulator smoke (install, cold start, resumed activity, 120-event monkey, no crash) | pass on emulator-5554 |
-| Emulator visual pass (AR, portrait/landscape, font scale 2.0, dark) | pass on emulator-5566; screenshots in `docs/qa/evidence/ui-021/` |
+| Emulator visual pass (AR, portrait/landscape, font scale 2.0, dark) | pass on emulator-5556; screenshots in `docs/qa/evidence/ui-021/` |
 | OCR inline install | exercised end to end on the emulator: card → dialog → 28 MB download → TXT target appears live |
 | Arabic policy native review | **not run** — release gate |
 | Device QA (physical phones, EN+AR) | **not run** |
+
+### Follow-up — critique re-run regressions (2026-11-18)
+
+The 0.2.1 UI was re-critiqued after the fix pass (`docs/council/2026-11-18-ui-review/`). The design
+score moved 19 → 24/40 and no P0 remained, but the re-run found debts created by the pass itself;
+they are fixed here, without changing the 0.2.1 scope or the format catalogue.
+
+- **The pages validation now gates Convert.** An invalid pages range disables the action, the
+  ViewModel refuses it with the field message, the field exposes `error()` semantics and its helper
+  is a polite live region, and the disabled button carries the reason as a `stateDescription`.
+- **A share-in cannot mutate a running batch.** `addFiles` refuses incoming files while converting
+  and says so; the UI-only guard is now enforced in the ViewModel too.
+- **The target hint no longer asks for the impossible.** It renders only when a reachable target
+  exists, so it cannot contradict the "no reachable target" card.
+- **Arabic plural quantity is correct.** `PagesLimited` pluralises on the pages actually read, not
+  the document length (a 101-page scan no longer renders the "one" form); the `two` item keeps the
+  dual; U+066C is dropped instead of becoming a page separator.
+- **One card grammar.** History rows use the outlined `SighaCard` (and lose a duplicate open
+  control); Queue rows use the same card. "Not available yet" uses a neutral container instead of
+  the sand selection colour.
+- **The batch outcome is visible in place.** Done rows in the workbench and the queue render the
+  saved path, two lines and bidi-wrapped, instead of holding it in the model only.
+- **Announcement hygiene.** Status pills no longer announce their label twice, route rows use
+  `clearAndSetSemantics`, exclusive chip rows are selectable groups, a queued row no longer
+  announces "0 percent", and a cancelled summary keeps its done/failed counts.
+- **Platform polish.** The missing `tertiaryContainer`/`surfaceBright`/`surfaceDim`/`scrim` roles
+  are authored, the Queue empty state is scrollable in landscape and at font scale 2.0, and privacy
+  headings are exposed as headings.
+
+Re-verified with `scripts/verify.ps1` and `scripts/device-smoke.ps1` on 2026-11-18; measured
+numbers live in `docs/qa/verification.md` and the evidence JSON files.
 
 ## 0.2.0 — 2026-11-17 — production-readiness (closed-test build)
 

@@ -2,6 +2,7 @@ package com.sigha.converter.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.text.BidiFormatter
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Cancel
@@ -65,10 +67,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -400,6 +406,7 @@ private fun TargetSection(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             FlowRow(
+                                modifier = Modifier.selectableGroup(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
@@ -476,21 +483,31 @@ private fun OptionsSection(
                     BitrateOptions(selected = state.options.bitrateKbps, onSelect = onBitrate)
                 }
                 if (state.showPages) {
+                    val pagesErrorText = stringResource(R.string.option_pages_error)
                     OutlinedTextField(
                         value = state.options.pages.orEmpty(),
                         onValueChange = onPages,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics {
+                                if (state.pagesError) error(pagesErrorText)
+                            },
                         label = { Text(stringResource(R.string.option_pages)) },
                         placeholder = { Text(stringResource(R.string.option_pages_hint)) },
                         supportingText = {
                             Text(
-                                stringResource(
+                                text = stringResource(
                                     if (state.pagesError) {
                                         R.string.option_pages_error
                                     } else {
                                         R.string.option_pages_helper
                                     }
-                                )
+                                ),
+                                modifier = if (state.pagesError) {
+                                    Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+                                } else {
+                                    Modifier
+                                }
                             )
                         },
                         isError = state.pagesError,
@@ -523,6 +540,7 @@ private fun BitrateOptions(selected: Int?, onSelect: (Int?) -> Unit) {
             )
         }
         FlowRow(
+            modifier = Modifier.selectableGroup(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -649,6 +667,23 @@ private fun ProgressRowItem(row: ProgressRow) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+            row.displayPath?.let { path ->
+                if (row.status == QueueStatus.DONE) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(
+                            R.string.queue_saved_to,
+                            BidiFormatter.getInstance().unicodeWrap(path)
+                        ),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            textDirection = TextDirection.Content
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
         StatusPill(status = row.status)
@@ -810,9 +845,18 @@ private fun ConvertBar(
         shadowElevation = 12.dp
     ) {
         Column {
-            if (!state.isConverting && state.target == null && state.files.isNotEmpty()) {
+            // Only explain a target choice that exists: when no format is reachable the target
+            // card already says so, and "choose a target" would be impossible advice.
+            val targetHint = if (!state.isConverting && state.target == null &&
+                state.files.isNotEmpty() && state.targets.isNotEmpty()
+            ) {
+                stringResource(R.string.workbench_target_hint)
+            } else {
+                null
+            }
+            if (targetHint != null) {
                 Text(
-                    text = stringResource(R.string.workbench_target_hint),
+                    text = targetHint,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
@@ -840,8 +884,17 @@ private fun ConvertBar(
                 } else {
                     Button(
                         onClick = onConvert,
-                        enabled = state.target != null && state.files.isNotEmpty() && !state.isLoadingFiles,
-                        modifier = Modifier.weight(1f),
+                        enabled = state.target != null && state.files.isNotEmpty() &&
+                            !state.isLoadingFiles && !state.pagesError,
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(
+                                if (targetHint != null) {
+                                    Modifier.semantics { stateDescription = targetHint }
+                                } else {
+                                    Modifier
+                                }
+                            ),
                         contentPadding = PaddingValues(vertical = 14.dp)
                     ) {
                         Icon(

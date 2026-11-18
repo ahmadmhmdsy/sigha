@@ -82,6 +82,7 @@
     <string name="ui_interrupted_batch">The last batch was interrupted. Files that were not converted can be added again.</string>
     <string name="ui_queue_busy">A conversion is already running. Wait for it to finish or cancel it.</string>
     <string name="ui_unsupported_files">Some files could not be read and were skipped.</string>
+    <string name="ui_add_while_converting">Wait for the current conversion to finish before adding files.</string>
     <string name="ui_ocr_targets_hidden">OCR targets appear after the OCR pack is installed.</string>
 
     <!-- Foreground service -->

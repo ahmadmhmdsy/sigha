@@ -375,12 +375,14 @@ private fun UpscaleCard() {
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f)
                 )
+                // Neutral, not secondaryContainer: sand is the selection colour, so reusing it
+                // for "not available yet" makes two opposite states share one accent.
                 Text(
                     text = stringResource(R.string.model_packs_upscale_coming_soon),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
-                        .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
                         .padding(horizontal = 10.dp, vertical = 3.dp)
                 )
             }

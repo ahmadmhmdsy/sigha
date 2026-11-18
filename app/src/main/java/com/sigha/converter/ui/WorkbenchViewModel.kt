@@ -120,6 +120,12 @@ class WorkbenchViewModel : ViewModel() {
     fun addFiles(uris: List<Uri>) {
         val incoming = uris.distinct().filter { it.scheme != null }
         if (incoming.isEmpty()) return
+        // The UI disables add/remove while a batch runs; a share intent arrives outside that
+        // UI, so guard the same invariant here instead of mutating a running batch's selection.
+        if (_state.value.isConverting) {
+            _messages.tryEmit(context.getString(R.string.ui_add_while_converting))
+            return
+        }
         _openWorkbench.tryEmit(Unit)
         viewModelScope.launch {
             _state.update { it.copy(isLoadingFiles = true) }
@@ -207,6 +213,12 @@ class WorkbenchViewModel : ViewModel() {
             _messages.tryEmit(context.getString(R.string.workbench_no_target_selected))
             return
         }
+        // The pages field already told the user the range is invalid; do not spend a batch
+        // discovering it again as a generic failure per file.
+        if (current.pagesError) {
+            _messages.tryEmit(context.getString(R.string.option_pages_error))
+            return
+        }
         if (queue.isRunning) {
             _messages.tryEmit(context.getString(R.string.ui_queue_busy))
             return
@@ -270,7 +282,24 @@ class WorkbenchViewModel : ViewModel() {
             val failed = rows.count { it.status == QueueStatus.FAILED }
             val cancelled = rows.any { it.status == QueueStatus.CANCELLED }
             val message = when {
-                cancelled -> context.getString(R.string.workbench_cancelled)
+                // Cancelling before the first file finished leaves nothing to count.
+                cancelled && done + failed == 0 -> context.getString(R.string.workbench_cancelled)
+                cancelled -> {
+                    val doneText = context.resources.getQuantityString(
+                        R.plurals.workbench_summary_done,
+                        done,
+                        done
+                    )
+                    val failedText = context.resources.getQuantityString(
+                        R.plurals.workbench_summary_failed,
+                        failed,
+                        failed
+                    )
+                    // Cancellation is the most common interruption; keep the counts the queue
+                    // already produced instead of dropping them.
+                    val summary = context.getString(R.string.workbench_summary, doneText, failedText)
+                    context.getString(R.string.workbench_cancelled) + " · " + summary
+                }
                 failed == 0 -> context.getString(R.string.workbench_all_done)
                 else -> {
                     val doneText = context.resources.getQuantityString(
@@ -339,15 +368,16 @@ class WorkbenchViewModel : ViewModel() {
      */
     private fun normalisePageSelection(raw: String): String = buildString(raw.length) {
         for (char in raw) {
-            append(
-                when (char) {
-                    in '\u0660'..'\u0669' -> '0' + (char - '\u0660')
-                    in '\u06F0'..'\u06F9' -> '0' + (char - '\u06F0')
-                    '\u060C', '\u066C', '\u061B' -> ','
-                    '\u2013', '\u2014', '\u2212' -> '-'
-                    else -> char
-                }
-            )
+            when (char) {
+                in '\u0660'..'\u0669' -> append('0' + (char - '\u0660'))
+                in '\u06F0'..'\u06F9' -> append('0' + (char - '\u06F0'))
+                '\u060C', '\u061B' -> append(',')
+                // U+066C is the Arabic thousands separator, not a list separator: dropping it
+                // makes "١٬٢" read as 12 instead of pages 1 and 2.
+                '\u066C' -> Unit
+                '\u2013', '\u2014', '\u2212' -> append('-')
+                else -> append(char)
+            }
         }
     }
 

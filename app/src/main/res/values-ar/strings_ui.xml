@@ -31,9 +31,9 @@
     <string name="note_markdown_simplified">يُبسَّط Markdown في ملف PDF؛ حُذفت الصور وHTML الخام.</string>
     <string name="note_ocr_fallback">لم توجد طبقة نصية، لذا استُخدم OCR.</string>
     <plurals name="note_pages_limited">
-        <item quantity="zero">لم تُقرأ أي صفحة.</item>
+        <item quantity="zero">لم تُقرأ أي صفحة من أصل %2$d.</item>
         <item quantity="one">قُرئت الصفحة الأولى من أصل صفحة واحدة.</item>
-        <item quantity="two">قُرئت أول صفحة من أصل صفحتين.</item>
+        <item quantity="two">قُرئت أول صفحتين من أصل %2$d.</item>
         <item quantity="few">قُرئت أول %1$d صفحات من أصل %2$d.</item>
         <item quantity="many">قُرئت أول %1$d صفحة من أصل %2$d.</item>
         <item quantity="other">قُرئت أول %1$d صفحة من أصل %2$d.</item>
@@ -118,6 +118,7 @@
     <string name="ui_interrupted_batch">توقّفت الدفعة الأخيرة. يمكنك إضافة الملفات التي لم تُحوَّل مرة أخرى.</string>
     <string name="ui_queue_busy">هناك تحويل قيد التنفيذ. انتظر انتهاءه أو ألغِه.</string>
     <string name="ui_unsupported_files">تعذّرت قراءة بعض الملفات وتم تجاوزها.</string>
+    <string name="ui_add_while_converting">انتظر انتهاء التحويل الحالي قبل إضافة ملفات.</string>
     <string name="ui_ocr_targets_hidden">تظهر أهداف OCR بعد تثبيت حزمة OCR.</string>
 
     <!-- Foreground service -->

@@ -18,7 +18,9 @@ fun noteText(note: Note?): String? = when (note) {
     null -> null
     is Note.PagesLimited -> pluralStringResource(
         R.plurals.note_pages_limited,
-        note.total,
+        // The sentence counts the pages that were read, not the pages in the document:
+        // Arabic must pick one/two/few/many from note.read.
+        note.read,
         note.read,
         note.total
     )
