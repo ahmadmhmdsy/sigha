@@ -1,0 +1,55 @@
+# Arabic-First Editor — round 1 (2026-11-18-next)
+
+**Position:** the dimension's remaining bulk does not block a credible closed test; three instances on the red line and one blind gate do. Close items 1–4 below (small, no UI surgery) and the test can start with systemic bidi in 0.2.2.
+
+## 1. What remains in the dimension
+
+One real objection to the accepted triage: review item N9 is filed "copy polish, not reachability" (`docs/council/2026-11-18-ui-review/council-review.md:178`); on this seat's trust question it is not polish — two of its three strings sit on the error and privacy moments of truth.
+
+- **The copy blocker class is closed, not patched.** Rows pluralise on the true count and the AR `note_pages_limited` carries all six categories (`ui/NoteUi.kt:19-26`; `values-ar/strings_ui.xml:33-40`; `CHANGELOG.md:49-51`); all 255 EN↔AR keys and 16 six-category plural sets are present. No wrong plural remains in a moment of truth.
+- **Saved-path bidi is fixed in code, unverified on device.** Queue and Workbench done rows wrap the path with `BidiFormatter` + `TextDirection.Content`, two lines (`ui/QueueScreen.kt:286-305`; `ui/WorkbenchScreen.kt:671-687`); these are the app's only two wrapped sites (grep: `BidiFormatter` in two files). No checklist row reads the displayed path — D1 checks the file on disk only (`docs/qa/device-checklist.md:65`) — so the fix has emulator evidence, not device evidence.
+- **Error moment violates the red line.** The only raw English a user can reach is the engine diagnostic behind "إظهار التفاصيل التقنية" (`values-ar/strings_ui.xml:12-13`; rendered `ui/QueueScreen.kt:248-275`); the label never says the text is English, so it is not a *clearly labelled* technical disclosure.
+- **Destination moment names a folder that does not exist.** `output_mode_downloads` is "التنزيلات/Sigha" (`values-ar/strings.xml:165`) while files land in `Download/Sigha` (`data/OutputPublisher.kt:92,265`), and the tester script itself says "check the result in Downloads" (`docs/product/store-listing.md:269`). Wrong name at the target/destination decision.
+- **Privacy moment shows one date two ways on one screen.** Header "17 تشرين الثاني (نوفمبر) 2026" (`values-ar/strings_legal.xml:25`; `ui/PrivacyScreen.kt:247`) vs policy body "17 نوفمبر 2026" (`app/src/main/assets/legal/privacy-policy.ar.md:3`); visible in `docs/qa/evidence/ui-021/privacy-policy-ar.png`. Native Arabic review is still outstanding (`CHANGELOG.md:55-57`).
+- **Systemic bidi and locale plumbing are 0.2.2 material.** No wrap helper; settings folder value (`ui/SettingsScreen.kt:189-198`), licences contact (`values-ar/strings_legal.xml:20`) and policy URLs (`ui/PrivacyScreen.kt:72-74`) still interpolate raw data. No per-app language, and three locale sources: `Locale.getDefault()` (`ui/PrivacyScreen.kt:63`; `ui/Formatters.kt:22,29`) vs `configuration.locales` (`data/SettingsStore.kt:66`). Latin-led `pack_ocr_title` "OCR: …" (`values-ar/strings.xml:215`) appears in the OCR flow (tester task 5).
+- **The gate cannot see Arabic.** The 137 JVM tests, lint and locale-agnostic emulator smoke (`docs/qa/evidence/verify-20261118-193810.json`; `device-smoke-20261118-195244.json` records no locale) contain no resource-parity, plural or RTL assertion — the N6 class passed all of them (`council-review.md:175`). The device checklist is not yet a safe oracle either: F1 expects expandable failure details in History that never render (`device-checklist.md:84` vs `ui/HistoryScreen.kt:239-257`).
+
+## 2. Recommended sequence (ordered)
+
+1. Close the three red-line instances as copy/label edits: the details label says "بالإنجليزية" (or the diagnostic is localised); the destination label names `Download/Sigha`; one privacy date spelling; de-Latinise `pack_ocr_title` in the same pass.
+2. Add two gate checks to `scripts/verify.ps1`: an EN↔AR key/plural-category parity test over the XML resources, and a JVM test over an extracted `formatSavedPath()` helper proving saved paths go through the wrapper.
+3. Verify on one physical Arabic phone: A5, D1, and a done-row read of the wrapped path; add the missing checklist row for the displayed path; record it in `docs/qa/verification.md` and fix F1's wording before the pass records a false failure.
+4. Get a native/fluent Arabic read of the six moment-of-truth screens (privacy, error+details, result/notes, saved path, target choice, first run) and record it before the 14-day clock starts.
+5. In 0.2.2 require the wrap helper inside R1/R2 as those surfaces are rewritten — one data wrapper + `TextDirection.ContentOrLtr` per path/name/email/URL — not a separate later pass; then per-app language on one locale source, then the Arabic typeface.
+
+**Not now:** a full bidi retrofit of every screen before testers; pulling composition, identity or per-app language earlier; translating the 45 English licence bodies (they are the legal artefact — keep them behind a disclosure; `docs/plan/production-readiness.md:66`); re-capturing all screenshots before the copy fixes; reviewing all 255 keys instead of the six moments.
+
+## 3. Qiyas card
+
+- **Al-Far' (proposal):** make Arabic enforceable by the gate before the test, not repaired one string at a time — one data-wrapping helper plus resource/plural tests, the three copy instances fixed now, the remaining systemic bidi scheduled inside the surface rewrites.
+- **Al-Asl (precedent, verified in-tree):** the 0.2.1 typed-note migration — `core/Notes.kt:17` sealed interface → exhaustive rendering in `ui/NoteUi.kt` → legacy tolerance in `data/HistoryCodec.kt:57,75`; it removed a whole class of English leakage with no visual regression while the 137-test gate stayed green (`CHANGELOG.md:44-51`; `council-review.md:57,102`).
+- **Al-'Illa (mechanism):** not "type the notes" — move the language decision behind one boundary a compiler or test can enforce (exhaustive `when`, legacy tolerance), so a class of defects becomes unrepresentable instead of fixed instance by instance; for bidi that is one wrap helper + one test, not five hand edits.
+- **Tanqih (incidental, not copied):** the 29 note kinds, serialization, the migration's size and the 137-test count are incidental — those tests never checked Arabic; the transferable minimum is a 20-line helper and one parity test.
+- **Conditions:** the helper is used at every interpolation (grep/lint assertion in the gate); it wraps data only, never the Arabic sentence; direction comes from `TextDirection.ContentOrLtr`; per-app locale only after every locale read collapses to one source; the six moments are read on a device by an Arabic reader.
+
+## 4. Fatal flaw in the obvious plan — Tahqiq al-manat
+
+The obvious plan says: gate green + design health 24/40 (`council-review.md:78,255`) ⇒ start the 12×14 closed test and leave Arabic bidi to 0.2.2. Its premise is that the gate verifies the Arabic-first claim. Tahqiq al-manat: the *manat* is an Arabic moment of truth correct in the actual strings, yet the gate's evidence contains no Arabic check at all — logic tests, lint, locale-agnostic smoke; the N6 bug passed 137 green tests. The plan therefore starts the test on an unverified cause and makes the Play closed test the first Arabic reader: 12 testers, one 14-day compliance window, no telemetry (`docs/product/store-listing.md:239-295`; `PRODUCT.md:114-127`) — a one-shot, not a QA loop. Fix the evidence chain (items 1–4), not the whole design system.
+
+## 5. Red line before the 12-tester closed test
+
+1. No unlabelled English reaches the error moment: the details label states English/technical, or the diagnostic is localised.
+2. Saved path is wrapped, two-line and device-verified on a physical Arabic phone; the destination label truthfully says `Download/Sigha`.
+3. The privacy screen carries one date spelling, and a native/fluent Arabic read of the six moments is recorded.
+4. `scripts/verify.ps1` fails on Arabic resource/plural/wrapper regressions and is green on the exact test commit.
+
+## Round 2 — revision
+
+**Kept.** No bidi sweep before testers; five-site bidi stays after the final R1/R2 surfaces; the two wrapped saved-path rows stand.
+
+**(a) Minimal set inside the upload build — AR strings only, zero code/layout:** `ui_details_show/hide` gain "(بالإنجليزية)" (`values-ar/strings_ui.xml:12-13`); `pack_ocr_title` → "التعرّف على النص: الإنجليزية + العربية" (`values-ar/strings.xml:215`); `legal_privacy_effective` → "سارية اعتبارًا من 17 نوفمبر 2026" matching `assets/legal/privacy-policy.ar.md:3` (`values-ar/strings_legal.xml:25`); `output_mode_downloads` → Arabic-led "مجلد Sigha في التنزيلات" (`values-ar/strings.xml:165`). Everything else — helper, other raw-data sites, per-app language, typeface — is 0.2.2.
+**(b) Native read: human-only.** Fluent Arabic speaker (publisher or independent; never an AI or this seat), 15 min on those five strings and the error-details screen, after the change compiles and before the device pass and screenshot capture; record name/date in `docs/qa/verification.md`. The full six-moment read moves to 0.2.2; if no human is available, record accepted risk — that does not satisfy the separate privacy-policy review.
+**(c) One cheap check, with a fact correction.** No EN↔AR parity or plural check exists anywhere today — `scripts/verify.ps1`, `app/src/test/`, `app/build.gradle.kts` (grep empty) — though the WS-UI-C brief claims verify.ps1 has parity. Add ~15 PowerShell lines to `scripts/verify.ps1`: key parity + all six categories per AR `<plurals>`. Owner: Lead (runs the gate). Prevention, not a blocker: if unowned, drop it to 0.2.2.
+**(d) Dropped/downgraded.** Dropped: pre-test six-moment native review; `formatSavedPath()` JVM test (0.2.2 with the helper). Downgraded: destination label from "wrong folder" to mixed-script label + doc inconsistency — D1 says "Downloads/Sigha" (`device-checklist.md:65`) and tester task 1 says "Downloads" (`store-listing.md:269`), while code and screenshot 6 say `Download/Sigha` (`OutputPublisher.kt:92`; `store-listing.md:173`); it is one AR string + two doc rows, not a red line. Privacy date is likewise ride-along, not a clock blocker.
+**Revised first action.** On the exact test commit and before the device pass: Lead applies the 5 AR strings, corrects D1/task-1 path wording, fixes F1 (`device-checklist.md:84` vs `HistoryScreen.kt:239-257`) and adds a displayed-path row, adds the checker; then one device pass + screenshots from that build; then B3. No device pass is voided — none is recorded (`docs/qa/verification.md:263-266`); the void risk disappears only if this set lands before that pass.
+**Attack answers.** 1: accepted, no sweep; but 6 Arabic testers and one script task (`store-listing.md:258,281`) must not be the discovery channel for a known disclosure miss. 2: accepted; the set is five XML lines in an already-rebuilt build, so marginal cost is five lines — the pass and captures happen after the rebuild anyway. 3: accepted; 2 h is right after the final surfaces, and the single check is 15 lines with the Lead as owner.

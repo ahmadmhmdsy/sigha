@@ -81,3 +81,8 @@
 
 B1 upload key · B2 privacy-policy URL · B3 Play Console data-safety/listing/closed test · B4 merchant entity ·
 B5 trademark · B6 LGPL source hosting · B7 counsel sign-off. See `docs/legal/release-blockers.md`.
+
+**Council decision (2026-11-18):** the path to the closed test — one upload build, the human lane,
+and the 0.2.2 deferrals — is `docs/council/2026-11-18-next/council-decision.md`. It adds the Play
+foreground-service declaration to the console work and folds the batch-outcome/CTA legibility items
+into the upload build.
