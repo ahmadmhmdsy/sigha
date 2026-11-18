@@ -202,6 +202,13 @@ shipped ones.
 node with content description "TXT إلى PDF", the row itself is the open target, and the share
 action keeps its own label.
 
+One emulator artefact, recorded for honesty: while the host was also building the release
+artefacts, the windowed AVD raised one "Sigha isn't responding" dialog during a swipe. The ANR
+trace shows the main thread blocked in the hardware renderer's draw sync
+(`DrawFrameTask::drawFrame`), not in app code; the idle device smoke (120/120 monkey, no crash) and
+every subsequent capture passed. It is treated as an emulator-under-load artefact, not an app
+finding, and it is not covered by the smoke evidence.
+
 Not covered by this pass: TalkBack speech output, a native Arabic copy review, OEM skins, and real
 hardware. Those remain on the device QA checklist.
 
