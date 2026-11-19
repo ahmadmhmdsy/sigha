@@ -104,3 +104,20 @@ into the upload build.
 
 The tree is **not tagged**: the tag is only cut when the placeholders are gone and the device
 checklist has run on the tag (council decision, sequence §6).
+
+### Council 2026-11-19 — state, readiness, ASO
+
+- **Readiness ruled:** usable only as a sideloaded QA build on the tested x86_64 emulator; **not
+  production-ready** (21 placeholders, QA-key signature, B1–B7 open, 0 arm64 runs, 0 upload-key
+  installs, no Play account, no owned domain/mailboxes, foreground-service declaration pending).
+- **Order:** Step Zero on a borrowed arm64 Android 14+ phone → B5 name screen → Play account + B1
+  upload key/App Signing → owned domain + B2/B6/B7 → tag → declarations + demo video → upload-key AAB
+  installed once pre-clock → 12 testers × 14 continuous days → production access.
+- **ASO:** `docs/product/aso-plan-2026-11-19.md` (v3: localized Arabic title, outcome-pair short
+  descriptions, outcome-first screenshot order, no-edit/merge line before the read-more fold, listing
+  parity gate) and `docs/product/store-listing.md` updated; title and copy are **frozen until B5**.
+- **New findings recorded:** `sigha.app` belongs to another product (B2/B6 placeholders unusable —
+  the publisher must own a domain); the Play foreground-service declaration + demo video are
+  mandatory for the targetSdk-36 `dataSync` service (B3); the gate must pass with real values, never
+  by deleting TODO lines; no upload-key-signed AAB has ever been installed.
+- **Full ruling:** `docs/council/2026-11-19-state/council-decision.md`.

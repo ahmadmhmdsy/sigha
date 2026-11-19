@@ -176,6 +176,27 @@ Step Zero). The evidence for these changes is the JVM suite, lint, the full gate
 recorded in `docs/qa/verification.md` §7.2. The release gate still fails on 21 placeholder markers
 in the shipped legal assets (`verify.ps1 -ReleaseCandidate`), so the tree is not tagged yet.
 
+### Council review and ASO (2026-11-19)
+
+Docs-only, from `docs/council/2026-11-19-state/council-decision.md` (app state, production readiness,
+and store-listing optimization). No app code or shipped copy changed in this pass.
+
+- **Readiness ruled honestly:** usable only as a sideloaded QA build on the tested x86_64 emulator;
+  not production-ready — 21 placeholders in shipped assets, QA-key signature, no arm64 run ever, no
+  upload-key-signed install, B1–B7 open, foreground-service declaration pending.
+- **ASO plan v3** (`docs/product/aso-plan-2026-11-19.md`): English title kept as
+  "Sigha: File Converter"; Arabic localized title "صيغة: محوّل ملفات على هاتفك"; short descriptions
+  rewritten as shipped outcome pairs; outcome-first screenshot order; the no-edit/merge/split/compress
+  line moved before the read-more fold; format counts and absolute "offline" wording banned.
+- **Store listing** (`docs/product/store-listing.md`): metadata table, short and full descriptions and
+  the shot list updated to match; localized title row added; a listing-parity gate row added.
+- **Legal/planning docs:** the `sigha.app` domain belongs to another product (B2/B6 placeholders are
+  unusable — the publisher must own a domain); the Play foreground-service declaration + demo video
+  are mandatory for the targetSdk-36 `dataSync` service (B3); the release gate must pass with real
+  values, never by deleting TODO lines; the upload-key-signed AAB must be installed once on an arm64
+  phone before the closed-test clock starts.
+- No measured number changed; the release gate, placeholders and tag status are unchanged.
+
 ## 0.2.0 — 2026-11-17 — production-readiness (closed-test build)
 
 First build intended for the Play **closed test**. Not published to any store. Nothing here is a

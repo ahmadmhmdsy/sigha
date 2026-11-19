@@ -59,9 +59,12 @@ does not satisfy the listing requirement. The repository copy and the in-app scr
 exist so the published page has a single source of truth.
 
 **Steps:**
-1. Publish `docs/legal/privacy-policy.md` at a URL the publisher controls, for example
-   `https://sigha.app/privacy` (static host or custom domain). Requirements: HTTPS, no login, no
-   redirect to an app-store page, stable URL, plain HTML readable on mobile.
+1. Publish `docs/legal/privacy-policy.md` at a URL the publisher controls (static host or custom
+   domain). Requirements: HTTPS, no login, no redirect to an app-store page, stable URL, plain HTML
+   readable on mobile. **`sigha.app` is not available** — it is live and belongs to another product,
+   "Sigha — Salesforce Formula Debugger" (see `docs/legal/name-screen-2026-11-19.md` §4); the
+   publisher must supply a domain they own, and every `sigha.app` placeholder in the legal assets
+   changes with it.
 2. Keep the published page's policy body **identical** to
    `app/src/main/assets/legal/privacy-policy.md` (the Markdown file is the source; the in-app screen
    renders it). When one changes, the other must change in the same commit.
@@ -84,6 +87,10 @@ Markdown).
 **Why human:** all of it is in Play Console and requires the publisher's account and real testers.
 
 **Steps:**
+0. **Pass the release gate with real values, never by deleting TODO lines.** The 21 placeholders in
+   shipped assets must be replaced by the publisher's real B2 URL, B6 source URL and mailbox; a
+   green `-ReleaseCandidate` produced by removing the markers would ship a source offer naming no
+   source — the exact LGPL §4 failure. Record the value of each replacement in the release evidence.
 1. **Data safety** (Play Console → **App content → Data safety**). Answer for this build:
    - Data collected: **none**. Data shared: **none**. No analytics, ads, crash or attribution SDK.
    - "Is all of the user data encrypted in transit?" — the app transmits nothing; the only network
@@ -95,16 +102,25 @@ Markdown).
 2. **App content**: content rating questionnaire (IARC), target audience (not primarily for
    children), ads declaration (**no ads**), news app (**no**), COVID-19 contact tracing (**no**),
    data safety, privacy policy, **App access** ("all functionality is available without
-   restrictions") and government-app declaration (no).
-3. **Store listing**: title (≤30 chars, "Sigha" — Arabic "صيغة" is acceptable in the title), short
-   description (≤80), full description (≤4000) — every claim must match behaviour: local processing
-   is true; do **not** say "never uses the internet" — say "conversion runs on your device; optional
-   OCR packs download once, size shown before download". Icon, feature graphic, phone screenshots.
+   restrictions") and government-app declaration (no). **Foreground-service declaration**
+   (targetSdk 36 declares `dataSync` for the conversion service): description, user impact, use
+   case ("Local processing: Other") and a 30–60 s **demo video** link showing a conversion with the
+   progress notification. Mandatory; the step-by-step answers are in
+   `docs/plan/publisher-guide.md` Step 7.
+3. **Store listing**: title (≤30 chars), short description (≤80), full description (≤4000). The
+   copy is final in `docs/product/aso-plan-2026-11-19.md` §4–§6 (default title "Sigha: File
+   Converter", Arabic localized title) and `docs/product/store-listing.md` §1–§4; every claim must
+   match behaviour: local processing is true; do **not** say "never uses the internet" or "offline"
+   as an absolute — say "conversion runs on your device; optional OCR packs download once, size
+   shown before download". Icon, feature graphic, phone screenshots (shot order in the ASO plan).
    Do not use Filee's name, logo or screenshots.
 4. **Closed testing**: Play Console → **Testing → Closed testing** → create a track, add the 12+
-   testers (email list or Google Group), upload the signed AAB, release, and keep 12 testers opted in
-   for **14 continuous days** (personal accounts created after 13 Nov 2023 must meet this before
-   applying for production access). Feed testers the same build the production track will use.
+   testers (email list or Google Group), upload the **upload-key-signed** AAB — never the QA-key
+   artefact — release, and keep 12 testers opted in for **14 continuous days** (personal accounts
+   created after 13 Nov 2023 must meet this before applying for production access). Before the
+   first tester install: B2 URL live, B6 offer hosted, B7 recorded, zero placeholders
+   (`-ReleaseCandidate` green), declarations complete. Feed testers the same build the production
+   track will use; do not change the build or the track during the 14 days.
 5. **Production access**: after the 14 days, apply in Play Console → **Dashboard → Production
    access**; answer the questions truthfully and describe the testing feedback loop.
 
@@ -174,8 +190,10 @@ and the mailbox in the offer must exist. The repository already contains the off
 text-only and the LGPL-2.1 §6 source duty is unmet for a distributed binary.
 
 **Steps:**
-1. Create the mailbox `opensource@sigha.app` (or a different address the publisher will monitor) and
-   have a human own it. Placeholders currently used: `opensource@sigha.app` in NOTICE.md §1.2 and
+1. Create the mailbox `opensource@` on a domain the publisher owns and monitors — `sigha.app` is
+   already taken by another product, so the placeholder domain cannot be used (see
+   `docs/legal/name-screen-2026-11-19.md` §4). Have a human own it. Placeholders currently used:
+   `opensource@sigha.app` in NOTICE.md §1.2 and
    `assets/legal/source-offer.txt`; `privacy@sigha.app` in the privacy policy. Every placeholder
    must be replaced with a real, monitored address or the offer is not usable.
 2. Assemble the Corresponding Source for **exactly** the shipped build:

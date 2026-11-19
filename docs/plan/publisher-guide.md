@@ -126,8 +126,8 @@ keytool -genkeypair -v -keystore sigha-upload.jks -alias upload \
 
 ## Step 4 — privacy policy at a public HTTPS URL (B2)
 
-1. Supply the final values: publisher legal name, privacy contact address (e.g. `privacy@sigha.app`),
-   effective date. The builder replaces them in `docs/legal/privacy-policy.md`, `app/src/main/assets/
+1. Supply the final values: publisher legal name, privacy contact address (e.g.
+   `privacy@your-domain` — note `sigha.app` is already taken by another product), effective date. The builder replaces them in `docs/legal/privacy-policy.md`, `app/src/main/assets/
    legal/privacy-policy.md` and the Arabic copy, then rebuilds.
 2. Host the rendered page at a URL you control: HTTPS, no login, no redirect, stable, readable on a
    phone, and a **webpage** — not a PDF or a download. A static host (GitHub Pages, Cloudflare Pages)
@@ -146,7 +146,8 @@ keytool -genkeypair -v -keystore sigha-upload.jks -alias upload \
 
 LGPL duties attach to **each copy conveyed**; the first tester install is a conveyance.
 
-1. Create and monitor `opensource@sigha.app` (or a real address). Replace it everywhere it appears.
+1. Create and monitor `opensource@` on a domain you own (not `sigha.app` — it belongs to another
+   product). Replace it everywhere it appears.
 2. Assemble the Corresponding Source for the **exact** shipped build:
    - FFmpegKit fork source at the revision that produced `ffmpeg-kit-full-8.1.9.aar`;
    - the FFmpeg source revision the fork built (read it from the fork's build config — O4 in
@@ -156,7 +157,7 @@ LGPL duties attach to **each copy conveyed**; the first tester install is a conv
    - a note on fork modifications (or "no modifications by Sigha");
    - a README: how to rebuild the `.so` files and how they install (`lib/<abi>/`), pointing at the
      in-app relink text.
-3. Publish the tarball at a stable HTTPS URL you control (release asset or `https://sigha.app/source/`),
+3. Publish the tarball at a stable HTTPS URL you control (release asset or `https://your-domain/source/`),
    with its SHA-256 next to it. Keep it reachable for **three years** from each distribution date.
 4. Update in one change: `NOTICE.md` §1.2, `app/src/main/assets/legal/source-offer.txt`, `docs/legal/
    licence-compliance.md`; regenerate `assets/licenses/THIRD-PARTY-NOTICES.txt` (hash equality is
@@ -204,14 +205,16 @@ mismatch is a review finding, not a warning.
 
 ## Step 8 — listing assets
 
-Texts are drafted in `docs/product/store-listing.md` §2–§3 (title ≤30, short ≤80, full ≤4000, what's
-new). Assets to produce:
+Texts are final in `docs/product/aso-plan-2026-11-19.md` §4–§8 and mirrored in
+`docs/product/store-listing.md` §2–§4 (title ≤30, short ≤80, full ≤4000, what's new; localized Arabic
+title; outcome-first shot order). Assets to produce:
 
 1. **App icon** 512×512 PNG (32-bit, no alpha requirement).
 2. **Feature graphic** 1024×500 PNG/JPG, no text-only.
 3. **8 phone screenshots per language** (EN + AR = 16), 16:9 or 9:16, min 320 px, captured from the
-   **upload build**; the shot list is `docs/product/store-listing.md` §4. No unimplemented feature may
-   appear.
+   **upload build** after the tag; the shot list and order are `docs/product/aso-plan-2026-11-19.md`
+   §8 (shot 1 = one image → PDF result, not a picker). The Arabic set is entirely Arabic UI. No
+   unimplemented feature may appear.
 4. Record device model, Android version and build SHA for the captures.
 
 ---
@@ -219,6 +222,11 @@ new). Assets to produce:
 ## Step 9 — upload and the 14 days
 
 1. Build the AAB from the **tagged** commit with the upload key; record versionCode and SHA-256.
+   Before the track goes live, install this **upload-key-signed** AAB once on the borrowed arm64
+   Android 14+ phone and walk the Step Zero script — the QA-signed APK is a different identity, so
+   this is the first run of the shipped artefact (Expert round 2). Record the **foreground-service
+   demo video** in the same pass on this tagged build (Policy round 2); a later re-shoot costs a
+   second pass and an inconsistent artefact.
 2. Play Console → **Testing → Closed testing** → create a track → upload the AAB → release notes
    (from `CHANGELOG.md`) → save and roll out.
 3. Add testers by email list or Google Group: recruit **15** (12 needed; dropouts do not break the
@@ -247,9 +255,9 @@ per-app language (see the council decision).
 | Value | Where it lands | Placeholder today |
 |---|---|---|
 | Publisher legal name | privacy policy (EN+AR), NOTICE, listing | "legal name to be completed" |
-| Privacy contact email | privacy policy (EN+AR) | `privacy@sigha.app` (placeholder) |
+| Privacy contact email | privacy policy (EN+AR) | `privacy@sigha.app` (placeholder; domain not the publisher's — see B2) |
 | Privacy policy URL | Play Console, listing | — |
-| LGPL mailbox | NOTICE.md §1.2, `source-offer.txt` | `opensource@sigha.app` (placeholder) |
+| LGPL mailbox | NOTICE.md §1.2, `source-offer.txt` | `opensource@sigha.app` (placeholder; domain not the publisher's — see B6) |
 | LGPL source URL + SHA-256 | NOTICE.md, `source-offer.txt`, licence-compliance | — |
 | Upload key fingerprint | release notes, this guide | — |
 | Play account type + developer ID | release notes | — |

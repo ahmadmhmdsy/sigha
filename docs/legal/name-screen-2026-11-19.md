@@ -54,6 +54,8 @@ returned result set, not proof that no app exists.
 | SIGHA | Colombian HR-management software platform ("Sistema Integrado para la Gestión Humana"), part of GIGHA | https://sigha.com.co/ |
 | Grupo Sigha / Sigha Sistemas | Brazilian accounting/ERP software group | https://www.sigha.com.br/ |
 | صياغة (Siyagha) | Arabic text-rewriting SaaS, also the Play app above | https://siyagha.ai/ |
+| **Sigha (sigha.app)** | **A live developer tool: "Sigha — Salesforce Formula Debugger" (client-side, browser). Another software product already owns the `sigha.app` domain.** | https://sigha.app/ |
+| sigha.com | A different, unrelated site (TLS handshake fails from this machine); the domain is registered | — |
 | "Bot Tahwil al-Sigha" | Telegram media/file converter — generic descriptive phrase ("تحويل الصيغة" = format conversion), not a brand | — |
 
 ## 5. Registries NOT queried here
@@ -79,6 +81,11 @@ B5, and a web search is not a substitute:
   (Colombia, Brazil) and one Arabic text-rewriting SaaS whose name is the same word with one letter
   added. Confusion risk in software classes is plausible and needs a real registry search.
 - The Play/App Store titles are not the blocker; the registry search and the decision are.
+- **The domain the legal texts assume does not exist for us.** `privacy@sigha.app`, `opensource@sigha.app`
+  and the LGPL source URL in `assets/legal/*` and `NOTICE.md` all point at `sigha.app`, which is
+  live and belongs to another software product ("Sigha — Salesforce Formula Debugger"). Any mailbox
+  or source host must be on a domain this publisher actually controls; if the name changes under
+  B5, the domain changes with it. This is a new, concrete reason to finish B5 before B2/B6.
 
 ## 7. Decision (publisher / counsel)
 

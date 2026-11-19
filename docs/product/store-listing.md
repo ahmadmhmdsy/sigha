@@ -4,16 +4,20 @@
 > gate in §9 passes. Every claim below was checked against the source tree and
 > [`PRODUCT.md`](PRODUCT.md); if a maximum length is exceeded, Play truncates or rejects it.
 > This file owns the listing; the app's own strings are owned by the UI workstream.
+> The keyword evidence, the localized title and the shot order are ruled in
+> [`aso-plan-2026-11-19.md`](aso-plan-2026-11-19.md) (council 2026-11-19: title/description frozen
+> until B5 answers).
 
 ## 1. Listing metadata
 
 | Field | Proposed value | Limit | Status |
 |---|---|---|---|
 | App name | `Sigha: File Converter` | 30 chars | fits (21) |
-| Short description EN | see §2 | 80 chars | 59 |
-| Short description AR | see §2 | 80 chars | 54 |
-| Full description EN | see §2 | 4,000 chars | 1987 usable (1,880 spare) |
-| Full description AR | see §2 | 4,000 chars | 1896 usable |
+| App name AR (localized) | `صيغة: محوّل ملفات على هاتفك` | 30 chars | fits (27); confirm the console exposes a localized title field |
+| Short description EN | see §2 | 80 chars | 71 |
+| Short description AR | see §2 | 80 chars | 79 |
+| Full description EN | see §2 | 4,000 chars | 2,138 usable (1,862 spare) |
+| Full description AR | see §2 | 4,000 chars | 2,045 usable |
 | Release notes EN | see §3 | 500 chars | 327 |
 | Release notes AR | see §3 | 500 chars | 318 |
 | Category | Tools | — | proposed; Product category must not imply office-suite fidelity |
@@ -31,22 +35,24 @@ Converter" is verifiable, "Offline" invites a policy argument about the one netw
 
 ## 2. Store copy (AR + EN)
 
-### Short description — English (59/80)
+### Short description — English (71/80)
 
 ```
-Convert files on your phone. No upload, no account, no ads.
+Image to PDF, PDF to text, DOCX to PDF, video to MP3 — free, no upload.
 ```
 
-### Short description — Arabic (54/80)
+### Short description — Arabic (79/80)
 
 ```
-حوّل ملفاتك على هاتفك. دون رفع، دون حساب، دون إعلانات.
+تحويل صورة إلى PDF، وPDF إلى نص، وDOCX إلى PDF، وفيديو إلى MP3. مجاني، دون رفع.
 ```
 
-### Full description — English (1987/4,000)
+### Full description — English (2,138/4,000)
 
 ```
 Sigha converts files on your phone. Pick a file with the system picker, or share it from any app, choose a target format, and Sigha converts it without uploading it anywhere.
+
+Sigha converts PDFs and to PDFs, but it does not edit, merge, split or compress them; extracting text from a scanned PDF needs the optional OCR pack.
 
 WHAT YOU CAN DO
 • Documents: DOCX, ODT and PPTX to text; DOCX and XLSX to PDF; XLSX and ODS to CSV; CSV to XLSX; TXT and Markdown to PDF; HTML to text.
@@ -80,10 +86,12 @@ Sigha requires Android 8.0 or newer.
 It is true for the closed test and false algorithmically once production users install the app.
 Keep the "HONEST LIMITS" block in every version.
 
-### Full description — Arabic (1896/4,000)
+### Full description — Arabic (2,045/4,000)
 
 ```
 يحوّل Sigha ملفاتك على هاتفك. اختر ملفًا من مدير الملفات أو شاركه من أي تطبيق، ثم اختر الصيغة المطلوبة، ويحوّله Sigha دون رفعه إلى أي مكان.
+
+يحوّل Sigha ملفات PDF وإلى PDF، لكنه لا يحرّرها ولا يدمجها ولا يقسّمها ولا يضغطها؛ واستخراج النص من ملف PDF ممسوح ضوئيًا يحتاج حزمة OCR الاختيارية.
 
 ما يمكنك فعله
 • المستندات: تحويل DOCX وODT وPPTX إلى نص؛ وDOCX وXLSX إلى PDF؛ وXLSX وODS إلى CSV؛ وCSV إلى XLSX؛ وTXT وMarkdown إلى PDF؛ وHTML إلى نص.
@@ -163,16 +171,24 @@ will be uploaded, on a device or emulator with a realistic screen (16:9 or 9:16,
 no test ad placeholders, no developer overlays). Seed real-looking but harmless files; never show
 real personal data. Arabic shots require an Arabic system locale and RTL layout.
 
+Order is outcome-first (council 2026-11-19): the first two shots prove a selection and a saved
+result — the old set opened on an empty picker and never showed a result. Shot 1 uses **one** image,
+not three: three images with a PDF target imply many-images-to-one-PDF, which 0.2.1 does not ship.
+
 | # | Screen | State to capture | Caption EN | Caption AR |
 |---|---|---|---|---|
-| 1 | Convert | Empty state, drop/pick call to action | Pick a file, or share one from any app | اختر ملفًا أو شاركه من أي تطبيق |
-| 2 | Convert | 3 images selected, targets row visible (JPG/PNG/WebP/PDF) | Only the formats your file can become | فقط الصيغ التي يمكن أن يصبحها ملفك |
-| 3 | Options sheet | Image quality slider at 85 | Choose quality or bitrate | اختر الجودة أو معدل البت |
-| 4 | PDF | PDF selected, page-range field and page-export targets | Export PDF pages, or take the text | صدّر صفحات PDF أو استخرج النص |
-| 5 | Queue | Batch in progress with per-file progress | Convert a whole batch, one by one | حوّل دفعة كاملة، ملفًا بعد ملف |
-| 6 | Queue | Completed row with the saved path `Download/Sigha` | Results land in Download/Sigha | تُحفظ النتائج في Download/Sigha |
-| 7 | Model packs | OCR pack row: name, 28 MB, Apache-2.0, Download button | OCR pack for scanned PDFs — English and Arabic | حزمة OCR للملفات الممسوحة — الإنجليزية والعربية |
-| 8 | About | Version, privacy statement, licence link | No ads. No account. No upload. | دون إعلانات. دون حساب. دون رفع. |
+| 1 | Convert | One image selected, PDF target visible, convert CTA on screen | One photo becomes one PDF | صورة واحدة تصبح PDF واحدًا |
+| 2 | Queue/history | Completed rows with the saved path `Download/Sigha` | Saved to Download/Sigha | تُحفظ في Download/Sigha |
+| 3 | PDF | PDF selected, page-range field and page-export targets | PDF pages to JPG, or the text out | صفحات PDF إلى صور أو النص |
+| 4 | Result | Extracted text, selectable, with the source PDF name | The text out of a PDF, selectable | النص من PDF، قابل للتحديد |
+| 5 | Model packs | OCR pack row: name, 28 MB, Apache-2.0, Download button | OCR pack for scanned PDFs — English and Arabic | حزمة OCR للملفات الممسوحة — الإنجليزية والعربية |
+| 6 | Queue | Batch in progress with per-file progress | Convert a whole batch, one by one | حوّل دفعة كاملة، ملفًا بعد ملف |
+| 7 | Options sheet | Image quality slider at 85 | Choose quality or bitrate | اختر الجودة أو معدل البت |
+| 8 | About | Version, privacy statement, licence link | No upload. No account. No ads. | دون رفع. دون حساب. دون إعلانات. |
+
+The Arabic set mirrors the eight screens **entirely in Arabic UI** — shots 1 and 2 must be Arabic,
+not shot 6 of an English set (Expert round 2). Capture both sets from the upload-key build after the
+tag; record the device model, Android version and build SHA.
 
 Do **not** capture: upscaling (not shipped), camera scanning (not shipped), merge/compress
 screens (do not exist), a notification if the notification flow is not final, or a mock result
@@ -302,11 +318,19 @@ tester cohort or opt-in list changes materially.
 
 ## 9. Gate before anything here is submitted
 
-- [ ] `scripts/verify.ps1` green on the release commit
+- [ ] `scripts/verify.ps1` green on the release commit **with real B2/B6 values** — never greened by
+      deleting placeholder lines
 - [ ] Device QA checklist recorded (not just emulator smoke)
 - [ ] Privacy policy URL live; Data safety submitted; content rating done
-- [ ] AR and EN descriptions both ≤ limits, both true **today**, limits block present
-- [ ] 8 screenshots per language, captured from the upload build, no unimplemented feature
+- [ ] Foreground-service declaration completed with the demo video recorded on the tagged build
+- [ ] The **upload-key-signed** AAB has been installed once on an arm64 Android 14+ phone and the
+      Step Zero script walked on it, before the closed-test clock starts
+- [ ] Title, short and full descriptions match `aso-plan-2026-11-19.md` §4–§6 (EN default +
+      Arabic localized title); the no-edit/merge/split/compress line is before the read-more fold;
+      both locales ≤ limits and both true **today**
+- [ ] Listing parity: the EN and AR title/short carry the same claim set (no locale-only promise)
+- [ ] 8 screenshots per language, outcome-first order, captured from the upload build, no
+      unimplemented feature; the Arabic set is entirely Arabic UI
 - [ ] Permissions table above matches the merged manifest (`aapt2 dump permissions`)
 - [ ] Human blockers B1–B7 from `docs/plan/production-readiness.md` cleared
 - [ ] Legal counsel sign-off on "privacy-safe" wording and the licence/relink statement
