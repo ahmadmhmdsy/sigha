@@ -91,7 +91,10 @@ later is expensive.
 | Clearance memo §5.8 | "Filee", "Filey", "Filee Pro" and the Filee donut logo |
 
 Record each query: source, date, result, link. Then write the decision (keep "Sigha" / change) in
-`docs/legal/release-blockers.md` B5. If the name changes, the package name, label, listing, icon and
+`docs/legal/release-blockers.md` B5. A builder-side public-source screen (2026-11-19) is already
+recorded in `docs/legal/name-screen-2026-11-19.md`: no exact Play/App Store app named Sigha, but
+three software businesses use Sigha/Siyagha, and the registry searches and decision remain yours or
+counsel's. If the name changes, the package name, label, listing, icon and
 every legal text change **before** the first upload, in one change.
 
 The builder can run public web searches and record what is visible; the legal decision and any filing

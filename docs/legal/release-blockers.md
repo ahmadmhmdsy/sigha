@@ -153,6 +153,13 @@ preferred candidate).
    policy header and `docs/`. If the final name differs from "Sigha", the compliance texts that name
    the app must be updated in the same change.
 
+**Builder-side screen (2026-11-19):** `docs/legal/name-screen-2026-11-19.md` records what public
+sources show from this machine: no Google Play or US App Store app titled "Sigha", but three software
+businesses use the name — SIGHA (Colombian HR software), Grupo Sigha (Brazilian ERP) and صياغة /
+Siyagha (Arabic text-rewriting SaaS, also a Play app with +100 installs). The registry searches
+(WIPO, Iraqi, EUIPO, USPTO) and the keep/change decision are still open; see §5 and §7 of that
+record. This does not close B5.
+
 **Evidence to close:** search reports with dates, filing numbers/status, IP counsel note if any
 conflict is found.
 
