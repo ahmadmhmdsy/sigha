@@ -1,0 +1,78 @@
+{
+  "generatedAt": "2026-11-19T18:40:15.4955906+03:00",
+  "apk": "C:\\Users\\AHMADM~1\\AppData\\Local\\Temp\\sigha-tools\\sigha-universal-from-aab.apk",
+  "steps": [
+    {
+      "step": "debug APK exists",
+      "ok": true,
+      "detail": "C:\\Users\\AHMADM~1\\AppData\\Local\\Temp\\sigha-tools\\sigha-universal-from-aab.apk"
+    },
+    {
+      "step": "adb available",
+      "ok": true,
+      "detail": "C:\\Android\\Sdk\\platform-tools\\adb.exe"
+    },
+    {
+      "step": "device attached",
+      "ok": true,
+      "detail": "emulator-5554, emulator-5556"
+    },
+    {
+      "step": "device booted",
+      "ok": true,
+      "detail": "sys.boot_completed=True"
+    },
+    {
+      "step": "install",
+      "ok": true,
+      "detail": "Performing Streamed Install\r\nSuccess"
+    },
+    {
+      "step": "notification permission (for the run)",
+      "ok": true,
+      "detail": "granted"
+    },
+    {
+      "step": "cold start",
+      "ok": true,
+      "detail": "Status: ok LaunchState: COLD TotalTime: 3962"
+    },
+    {
+      "step": "process alive after start",
+      "ok": true,
+      "detail": "pid=8109"
+    },
+    {
+      "step": "activity resumed",
+      "ok": true,
+      "detail": "topResumedActivity=ActivityRecord{162510538 u0 com.sigha.converter/.MainActivity t50}"
+    },
+    {
+      "step": "monkey run",
+      "ok": true,
+      "detail": "injected=80 requested=80"
+    },
+    {
+      "step": "no app crash",
+      "ok": true,
+      "detail": "matching crash entries=0"
+    },
+    {
+      "step": "process alive after monkey",
+      "ok": true,
+      "detail": "pid=8109 crashEntries=0"
+    }
+  ],
+  "facts": {
+    "serial": "emulator-5554",
+    "sdk": "36",
+    "abi": "x86_64",
+    "stoppedCompetingApp": "com.sabeel.steps",
+    "pid": "8109",
+    "topResumedActivity": "topResumedActivity=ActivityRecord{162510538 u0 com.sigha.converter/.MainActivity t50}",
+    "monkeyEvents": 80,
+    "pidAfterMonkey": "8109",
+    "crashBufferLines": 0
+  },
+  "failures": []
+}

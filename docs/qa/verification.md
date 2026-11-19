@@ -263,6 +263,35 @@ killed emulators on ports 5554/5556 while the gate was building; one of those bo
 quiet host, and the gate run is `verify-20261119-004710.json`. The emulator is not a substitute for
 the physical-device checklist.
 
+### 7.3 Release-artefact install and run (2026-11-19, emulator-5554/5562)
+
+Until this pass the release artefacts had only been inspected and signed; **no release build had
+ever been installed and started**. Three builds were installed and run through
+`scripts/device-smoke.ps1` (which gained `-Serial` and an API-26-compatible resumed-activity check
+in this pass):
+
+| Evidence | Artefact | Device | Result |
+|---|---|---|---|
+| `device-smoke-20261119-183558.json` | `app-universal-release.apk` | API 36, x86_64 | **FAIL** — "activity resumed" only: the POST_NOTIFICATIONS dialog took the foreground. The app had not crashed; the script now grants the permission for the run. |
+| `device-smoke-20261119-183748.json` | `app-universal-release.apk` | API 36, x86_64 | **PASS** — install Success, cold start 3910 ms, process alive (pid 7972), activity resumed, 60/60 monkey events, empty crash buffer. |
+| `device-smoke-20261119-184015.json` | universal APK **extracted from `app-release.aab`** with bundletool 1.18.0, signed by the QA key | API 36, x86_64 | **PASS** — install Success, cold start 3962 ms, resumed, 60/60 monkey events, no crash. This is the artefact chain Play actually ingests: the AAB the store would receive yields an installable, runnable APK. |
+| `device-smoke-20261119-184317.json` | `app-universal-release.apk` | **API 26**, x86_64 | **FAIL** — script bug only: API 26 prints `mResumedActivity`, not `topResumedActivity`; the app was resumed. Fixed in the script. |
+| `device-smoke-20261119-184528.json` | `app-universal-release.apk` | **API 26**, x86_64 | **PASS** — install Success, cold start 5959 ms, activity resumed (`mResumedActivity`), 60/60 monkey events, no crash. |
+
+Static facts of the AAB-derived APK (`aapt2 dump badging/xmltree`): `com.sigha.converter`,
+versionCode 3, versionName 0.2.1, minSdk 26, targetSdk 36, ABIs `arm64-v8a`, `x86_64` (32 native
+libraries), `extractNativeLibs=false`, `ConversionService` with
+`android:foregroundServiceType="dataSync"`. The extracted universal APK is 96,144,613 B (the
+`.apks` container is 96,144,917 B).
+
+What this pass found and did **not** fix: while exercising a video→MP3 conversion on the AAB-derived
+build, the queue failed with the generic "Conversion failed." The sample clip
+(`/sdcard/Movies/clip-sage.mp4`, generated in an earlier visual pass) carries **no audio track** —
+verified by pulling the file and finding `vide`/`avc1` but no `soun`/`mp4a` atom. The failure is
+therefore correct behaviour for a silent video, but two product issues remain: (a) the video still
+offers every audio target, and (b) the message does not say why. Both are candidates for the next
+app-side pass; they are not a release-build regression (R8 did not change this path).
+
 ## 8. Known gaps and limitations (as shipped)
 
 1. **OCR pack is download-only** (28,004,325 B, tessdata_best eng+ara, Apache-2.0, SHA-256
@@ -286,6 +315,19 @@ the physical-device checklist.
    only the arm64 `PT_LOAD` alignment is checked by the gate.
 9. **Debug/release keystore**: the release artefacts here are signed with a throwaway local key.
    Play needs the publisher's upload key (blocker B1 in `docs/legal/release-blockers.md`).
+10. **No arm64 execution evidence.** Every runtime record in this document is an x86_64 emulator. This
+    host cannot run the arm64 system image locally — QEMU2 refuses it
+    (`Avd's CPU Architecture 'arm64' is not supported by the QEMU2 emulator on x86_64 host`). Prove it
+    on a borrowed Android 14+ phone or Samsung Remote Test Lab before release; the Play pre-launch
+    report is a startup crawl, not a flow test.
+11. **Release conversion matrix not yet re-run.** The release APK and the APK extracted from the AAB
+    are proven to install, start, resume and survive a monkey run (§7.3), but the full conversion
+    matrix on a release artefact is still to run. The conversion code is the same as the JVM-tested
+    code and was exercised on the debug build (§7.2); R8 keeps were not re-tested end to end.
+12. **Silent media still offers audio targets.** A video with no audio track shows MP3/M4A/AAC/WAV/
+    FLAC/OGG/OPUS as targets and then fails with the generic "Conversion failed." (§7.3). Fix
+    candidate: probe the source with `MediaExtractor` and hide audio targets, or give the failure a
+    specific cause.
 
 ## 9. Reproduce
 

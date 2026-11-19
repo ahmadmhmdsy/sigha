@@ -12,7 +12,8 @@
 [CmdletBinding()]
 param(
     [string]$Apk = "",
-    [int]$Events = 120
+    [int]$Events = 120,
+    [string]$Serial = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -47,8 +48,11 @@ Add-Step "adb available" (Test-Path $adb) $adb
 if ($summary.failures.Count -eq 0) {
     $devices = @(& $adb devices 2>&1 | Where-Object { $_ -match "\sdevice$" } | ForEach-Object { ($_ -split "\s+")[0] })
     Add-Step "device attached" ($devices.Count -gt 0) ($devices -join ", ")
+    if ($Serial) {
+        Add-Step "requested serial attached" ($devices -contains $Serial) $Serial
+    }
     if ($devices.Count -gt 0) {
-        $serial = $devices[0]
+        $serial = if ($Serial) { $Serial } else { $devices[0] }
         $summary.facts.serial = $serial
         $summary.facts.sdk = (& $adb -s $serial shell getprop ro.build.version.sdk 2>&1) -join ""
         $summary.facts.abi = (& $adb -s $serial shell getprop ro.product.cpu.abi 2>&1) -join ""
@@ -66,6 +70,13 @@ if ($summary.failures.Count -eq 0) {
         & $adb -s $serial logcat -b crash -c 2>&1 | Out-Null
         $install = (& $adb -s $serial install -r $Apk 2>&1) -join [Environment]::NewLine
         Add-Step "install" ($install -match "Success") $install.Trim()
+
+        # API 33+ asks for POST_NOTIFICATIONS on first start; the permission dialog would steal the
+        # resumed activity and fail the resume check. Grant it (best effort) so the smoke run measures
+        # the app, not the system dialog. Older API levels reject the grant harmlessly.
+        & $adb -s $serial shell pm grant com.sigha.converter android.permission.POST_NOTIFICATIONS 2>&1 | Out-Null
+        $granted = ((& $adb -s $serial shell dumpsys package com.sigha.converter 2>&1 | Select-String "POST_NOTIFICATIONS: granted=true") -join "").Trim()
+        Add-Step "notification permission (for the run)" ($true) ($(if ($granted) { "granted" } else { "not granted on this API; dialog may appear" }))
 
         # This emulator is shared: another app (com.sabeel.steps) auto-starts and steals the
         # foreground, which would make the monkey inject into the wrong package. Stop it for the
@@ -87,7 +98,7 @@ if ($summary.failures.Count -eq 0) {
 
         $resumed = ""
         for ($i = 0; $i -lt 10; $i++) {
-            $resumed = ((& $adb -s $serial shell dumpsys activity activities 2>&1 | Select-String "topResumedActivity" | Select-Object -First 1) -join "").Trim()
+            $resumed = ((& $adb -s $serial shell dumpsys activity activities 2>&1 | Select-String "topResumedActivity|mResumedActivity|ResumedActivity" | Select-Object -First 1) -join "").Trim()
             if ($resumed -match "com\.sigha\.converter") { break }
             Start-Sleep -Milliseconds 500
         }

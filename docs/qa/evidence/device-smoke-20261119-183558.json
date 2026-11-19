@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-11-19T18:35:58.7439324+03:00",
+  "apk": "E:\\android_apps\\digital_converter\\app\\build\\outputs\\apk\\release\\app-universal-release.apk",
+  "steps": [
+    {
+      "step": "debug APK exists",
+      "ok": true,
+      "detail": "E:\\android_apps\\digital_converter\\app\\build\\outputs\\apk\\release\\app-universal-release.apk"
+    },
+    {
+      "step": "adb available",
+      "ok": true,
+      "detail": "C:\\Android\\Sdk\\platform-tools\\adb.exe"
+    },
+    {
+      "step": "device attached",
+      "ok": true,
+      "detail": "emulator-5554, emulator-5556"
+    },
+    {
+      "step": "device booted",
+      "ok": true,
+      "detail": "sys.boot_completed=True"
+    },
+    {
+      "step": "install",
+      "ok": true,
+      "detail": "Performing Streamed Install\r\nSuccess"
+    },
+    {
+      "step": "cold start",
+      "ok": true,
+      "detail": "Status: ok LaunchState: COLD TotalTime: 3138"
+    },
+    {
+      "step": "process alive after start",
+      "ok": true,
+      "detail": "pid=7795"
+    },
+    {
+      "step": "activity resumed",
+      "ok": false,
+      "detail": "topResumedActivity=ActivityRecord{196824489 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t48}"
+    },
+    {
+      "step": "monkey run",
+      "ok": true,
+      "detail": "injected=60 requested=60"
+    },
+    {
+      "step": "no app crash",
+      "ok": true,
+      "detail": "matching crash entries=0"
+    },
+    {
+      "step": "process alive after monkey",
+      "ok": true,
+      "detail": "pid=7795 crashEntries=0"
+    }
+  ],
+  "facts": {
+    "serial": "emulator-5554",
+    "sdk": "36",
+    "abi": "x86_64",
+    "stoppedCompetingApp": "com.sabeel.steps",
+    "pid": "7795",
+    "topResumedActivity": "topResumedActivity=ActivityRecord{196824489 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t48}",
+    "monkeyEvents": 60,
+    "pidAfterMonkey": "7795",
+    "crashBufferLines": 0
+  },
+  "failures": [
+    "activity resumed topResumedActivity=ActivityRecord{196824489 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t48}"
+  ]
+}

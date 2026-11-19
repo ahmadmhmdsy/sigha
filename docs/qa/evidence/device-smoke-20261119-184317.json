@@ -1,0 +1,84 @@
+{
+  "generatedAt": "2026-11-19T18:43:17.1457954+03:00",
+  "apk": "E:\\android_apps\\digital_converter\\app\\build\\outputs\\apk\\release\\app-universal-release.apk",
+  "steps": [
+    {
+      "step": "debug APK exists",
+      "ok": true,
+      "detail": "E:\\android_apps\\digital_converter\\app\\build\\outputs\\apk\\release\\app-universal-release.apk"
+    },
+    {
+      "step": "adb available",
+      "ok": true,
+      "detail": "C:\\Android\\Sdk\\platform-tools\\adb.exe"
+    },
+    {
+      "step": "device attached",
+      "ok": true,
+      "detail": "emulator-5554, emulator-5556, emulator-5562"
+    },
+    {
+      "step": "requested serial attached",
+      "ok": true,
+      "detail": "emulator-5562"
+    },
+    {
+      "step": "device booted",
+      "ok": true,
+      "detail": "sys.boot_completed=True"
+    },
+    {
+      "step": "install",
+      "ok": true,
+      "detail": "Performing Streamed Install\r\nSuccess"
+    },
+    {
+      "step": "notification permission (for the run)",
+      "ok": true,
+      "detail": "not granted on this API; dialog may appear"
+    },
+    {
+      "step": "cold start",
+      "ok": true,
+      "detail": "Status: ok TotalTime: 7482"
+    },
+    {
+      "step": "process alive after start",
+      "ok": true,
+      "detail": "pid=2788"
+    },
+    {
+      "step": "activity resumed",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "step": "monkey run",
+      "ok": true,
+      "detail": "injected=60 requested=60"
+    },
+    {
+      "step": "no app crash",
+      "ok": true,
+      "detail": "matching crash entries=0"
+    },
+    {
+      "step": "process alive after monkey",
+      "ok": true,
+      "detail": "pid=2788 crashEntries=0"
+    }
+  ],
+  "facts": {
+    "serial": "emulator-5562",
+    "sdk": "26",
+    "abi": "x86_64",
+    "pid": "2788",
+    "topResumedActivity": "",
+    "monkeyEvents": 60,
+    "pidAfterMonkey": "2788",
+    "crashBufferLines": 0
+  },
+  "failures": [
+    "activity resumed "
+  ]
+}

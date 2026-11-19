@@ -197,6 +197,26 @@ and store-listing optimization). No app code or shipped copy changed in this pas
   phone before the closed-test clock starts.
 - No measured number changed; the release gate, placeholders and tag status are unchanged.
 
+### Release-artefact run and smoke-script fixes (2026-11-19)
+
+QA-only: no shipped code or copy changed. The release artefacts had never been installed; they now
+have been, and the smoke script can target a chosen device and older Android versions.
+
+- **Release APK and AAB-derived APK run.** `app-universal-release.apk` installs, cold-starts, resumes
+  and survives 60 monkey events on Android 16 (API 36). The universal APK **extracted from
+  `app-release.aab`** with bundletool (signed by the QA key) does the same — the store's bundle chain
+  yields an installable, runnable APK. Evidence:
+  `docs/qa/evidence/device-smoke-20261119-183748.json` and `-184015.json`.
+- **Android 8.0 (API 26) run.** The release universal APK installs and runs on API 26 as well
+  (`device-smoke-20261119-184528.json`). The first attempt failed only because the script looked for
+  `topResumedActivity`, which API 26 does not print; it now accepts `mResumedActivity` too.
+- **Script changes** (`scripts/device-smoke.ps1`): `-Serial` picks the emulator/device to test instead
+  of the first attached one, and the run grants POST_NOTIFICATIONS so the runtime dialog cannot steal
+  the resumed activity between the start check and the crash check.
+- **Found, not fixed:** a video with no audio track (the earlier visual-pass `clip-sage.mp4`) still
+  offers audio targets and fails with the generic "Conversion failed."; it should hide those targets
+  or name the cause. Recorded in `docs/qa/verification.md` §7.3 and §8.
+
 ## 0.2.0 — 2026-11-17 — production-readiness (closed-test build)
 
 First build intended for the Play **closed test**. Not published to any store. Nothing here is a
