@@ -217,6 +217,28 @@ have been, and the smoke script can target a chosen device and older Android ver
   offers audio targets and fails with the generic "Conversion failed."; it should hide those targets
   or name the cause. Recorded in `docs/qa/verification.md` §7.3 and §8.
 
+### Release conversion matrix, OCR and legacy save path (2026-11-19)
+
+QA-only: no shipped code or copy changed. Until this pass the release artefacts had only been started
+and monkey-tested; now the R8-processed build has actually converted files.
+
+- **Nine conversions through the real UI on the AAB-derived release universal APK** (the artefact
+  chain Play ingests): PNG → JPG, PNG → PDF, PDF → PNG (21 of 21 pages exported), PDF → TXT (35 kB,
+  791 lines), DOCX → PDF (with the typed fidelity note in History), TXT → PDF (app-made unique name),
+  MP4 → GIF, WAV → MP3. Every output was checked in MediaStore `Download/Sigha/` and again on the
+  host by magic bytes and size. Evidence: `docs/qa/evidence/conversion-matrix-20261119/`.
+- **OCR is now runtime-proven.** The 28 MB English+Arabic pack was installed through the in-app
+  "Download model pack?" dialog on the release build; download progress was observed, the Text → TXT
+  target appeared on the same screen without reselecting the file, and PNG → TXT returned the
+  screenshot's own UI text. This drives the tesseract JNI under R8, which the JVM suite cannot cover.
+- **Legacy save path proven on Android 8.0 (API 26).** The release universal APK wrote
+  `/sdcard/Download/Sigha/uitest1.jpg` directly, with no MediaStore insert — the intended API 26–28
+  branch.
+- **Still uncovered on a release artefact:** archive sources, the scanned-PDF OCR fallback, the
+  remaining media/office targets and multi-file batches; nothing here is arm64 evidence.
+- One automation artefact recorded rather than hidden: the driver missed the PDF → TXT completion
+  banner (the file and History row were already written), so that case is PASS on output evidence.
+
 ## 0.2.0 — 2026-11-17 — production-readiness (closed-test build)
 
 First build intended for the Play **closed test**. Not published to any store. Nothing here is a

@@ -279,8 +279,9 @@ in this pass):
 | `device-smoke-20261119-184528.json` | `app-universal-release.apk` | **API 26**, x86_64 | **PASS** — install Success, cold start 5959 ms, activity resumed (`mResumedActivity`), 60/60 monkey events, no crash. |
 
 Static facts of the AAB-derived APK (`aapt2 dump badging/xmltree`): `com.sigha.converter`,
-versionCode 3, versionName 0.2.1, minSdk 26, targetSdk 36, ABIs `arm64-v8a`, `x86_64` (32 native
-libraries), `extractNativeLibs=false`, `ConversionService` with
+versionCode 3, versionName 0.2.1, minSdk 26, targetSdk 36, ABIs `arm64-v8a`, `x86_64`, 32 native
+libraries stored uncompressed in the APK and loaded from there (not extracted at install time),
+`ConversionService` with
 `android:foregroundServiceType="dataSync"`. The extracted universal APK is 96,144,613 B (the
 `.apks` container is 96,144,917 B).
 
@@ -291,6 +292,49 @@ verified by pulling the file and finding `vide`/`avc1` but no `soun`/`mp4a` atom
 therefore correct behaviour for a silent video, but two product issues remain: (a) the video still
 offers every audio target, and (b) the message does not say why. Both are candidates for the next
 app-side pass; they are not a release-build regression (R8 did not change this path).
+
+### 7.4 Release conversion matrix and OCR runtime proof (2026-11-19, emulator-5554)
+
+Nine conversions were then run **through the real UI** on the same AAB-derived universal APK — the
+R8-processed build the store chain produces. Each case went: cold start → DocumentsUI picker
+(Show roots → Downloads) → source row → target chip → target-named Convert action. Every output was
+checked twice: MediaStore `content://media/external/downloads` (`relative_path = Download/Sigha/`)
+and a host-side pull with magic-byte and size checks. Evidence:
+`docs/qa/evidence/conversion-matrix-20261119/` (`matrix.json`, `README.md`, eight screenshots).
+The installed base APK SHA-256 is `e3b6c481…f1037e`, matching the bundletool-extracted universal APK.
+
+| Case | Source | Result |
+|---|---|---|
+| PNG → JPG | `uitest1.png` (120,061 B) | **PASS** — `uitest1.jpg`, 93,573 B, JFIF magic |
+| PNG → PDF | `uitest1.png` | **PASS** — `uitest1.pdf`, 82,883 B, %PDF-1.4 |
+| PDF → PNG | `law.pdf` (539,474 B, 21 pages) | **PASS** — `law.png` + `law (1)…(20).png` = **21 PNGs, one per page** (no page dropped, no 20-page cap) |
+| PDF → TXT | `law.pdf` | **PASS** — `law.txt`, 35,346 B, 791 lines of real extracted text |
+| DOCX → PDF | `notes.docx` (minimal OOXML) | **PASS** — `notes.pdf`, 18,112 B; History carries the typed fidelity note ("Images and tables were not rendered; headings and lists were kept.") |
+| TXT → PDF | `notes.txt` | **PASS** — `notes (1).pdf`, 16,123 B; unique name made by the app on collision |
+| MP4 → GIF | `clip-sage.mp4` (no audio track) | **PASS** — `clip-sage.gif`, 4,392,362 B, GIF89a (FFmpeg path) |
+| WAV → MP3 | `test.wav`, 16,044 B | **PASS** — `test.mp3`, 10,701 B, ID3 (FFmpeg path) |
+| PNG → TXT (OCR) | `uitest1.png` | **PASS** — after the in-app pack install, `uitest1.txt` 273 B; the screenshot's own UI text came back as "Sigha", "Your files, converted on this phone", "Nothing is uploaded — everything happens on your device" |
+
+The OCR case is the one the JVM suite cannot reach: the "Download model pack?" dialog (English +
+Arabic, 28 MB) was confirmed in-app, download progress was observed on the same screen, and the
+Text → TXT target appeared without reselecting the file. The resulting convert drove the tesseract
+JNI under R8, so the pack install, the download state and the OCR engine are now runtime-proven —
+previously §8 item 1 was describing them from code inspection only.
+
+One automation artefact, recorded rather than hidden: the driver missed the transient completion
+banner for PDF → TXT and timed out after 150 s, although the file had been written at 20:28 and its
+History row is present. The case is marked PASS on the output and History evidence, not on the
+banner.
+
+**Legacy save path (API 26–28) proven too.** On Android 8.0 (API 26, `emulator-5562`, x86_64) the
+Gradle-built release universal APK converted PNG → JPG and wrote
+`/sdcard/Download/Sigha/uitest1.jpg` (117,784 B, JPEG magic) through the direct-file branch, with no
+MediaStore insert — exactly the design for 26–28. The automation's MediaStore check correctly found
+nothing there; the file on disk and the app's completion state are the evidence. That closes the
+"MediaStore publishing on API 26–28" caveat for the write path itself.
+
+Not covered by §7.4: archive sources, scanned-PDF OCR fallback (blank text layer), the remaining
+media/office targets, a 20+-file batch on the release build, and any physical arm64 device.
 
 ## 8. Known gaps and limitations (as shipped)
 
@@ -320,10 +364,12 @@ app-side pass; they are not a release-build regression (R8 did not change this p
     (`Avd's CPU Architecture 'arm64' is not supported by the QEMU2 emulator on x86_64 host`). Prove it
     on a borrowed Android 14+ phone or Samsung Remote Test Lab before release; the Play pre-launch
     report is a startup crawl, not a flow test.
-11. **Release conversion matrix not yet re-run.** The release APK and the APK extracted from the AAB
-    are proven to install, start, resume and survive a monkey run (§7.3), but the full conversion
-    matrix on a release artefact is still to run. The conversion code is the same as the JVM-tested
-    code and was exercised on the debug build (§7.2); R8 keeps were not re-tested end to end.
+11. **Release conversion matrix is partial, not complete.** Nine conversions (images, PDF both ways,
+    text, office, FFmpeg audio/video, OCR) now pass on the AAB-derived release APK, and the legacy
+    save path passes on an API 26 release APK (§7.4). Still untested on a release artefact: archive
+    sources, the scanned-PDF OCR fallback, the remaining 32 converters/targets (AAC, M4A, OGG, OPUS,
+    FLAC, XLSX, PPTX, ODS, …) and multi-file batches. Those paths rest on the JVM suite and the debug
+    build (§7.2), not on release-run evidence.
 12. **Silent media still offers audio targets.** A video with no audio track shows MP3/M4A/AAC/WAV/
     FLAC/OGG/OPUS as targets and then fails with the generic "Conversion failed." (§7.3). Fix
     candidate: probe the source with `MediaExtractor` and hide audio targets, or give the failure a
@@ -357,9 +403,10 @@ from the commands in §9, and the claim-drift check keeps the public docs tied t
 **Device verification: partial.** Install, cold start, resumed activity, a 120-event monkey run
 and an empty crash buffer are recorded. On the emulator, real conversions through the real
 DocumentsUI picker and the upload-tree bar/action/summary states are now recorded too (§7.2), in
-English and Arabic. They are still **emulator** results: run `docs/qa/device-checklist.md` on a
-physical arm64 API 26–36 device before submitting to Play. The app must not be described as
-device-tested until that is done.
+English and Arabic, and a nine-case conversion matrix plus OCR now passes on the AAB-derived release
+APK, with the legacy save path proven on API 26 (§7.4). They are still **emulator** results and the
+matrix is not the whole catalogue: run `docs/qa/device-checklist.md` on a physical arm64 API 26–36
+device before submitting to Play. The app must not be described as device-tested until that is done.
 
 **Upload tree: green locally, blocked on the human lane.** The upload-tree commit passes the full
 gate (`verify-20261119-004710.json`), and `verify.ps1 -ReleaseCandidate` still fails on the 21

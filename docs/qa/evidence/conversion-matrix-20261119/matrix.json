@@ -1,0 +1,143 @@
+{
+  "generatedAt": "2026-11-19T20:45:00+03:00",
+  "kind": "release-conversion-matrix",
+  "device": {
+    "serial": "emulator-5554",
+    "androidRelease": "16",
+    "apiLevel": 36,
+    "abi": "x86_64",
+    "form": "emulator"
+  },
+  "artefact": {
+    "name": "universal APK extracted from app-release.aab",
+    "producedWith": "bundletool 1.18.0 build-apks --mode=universal",
+    "signature": "local QA keystore (CN=Sigha Local Verification)",
+    "installedBaseApkSha256": "e3b6c481f4d3c04439f22225dae431fdac5663ab49c4568d519dd8c873f1037e",
+    "versionCode": 3,
+    "versionName": "0.2.1",
+    "aab": true
+  },
+  "method": "Each case driven through the real UI: app cold start, DocumentsUI file picker (Show roots -> Downloads), source row, target chip, target-named Convert action. Outputs then verified twice: MediaStore content query on content://media/external/downloads (relative_path Download/Sigha/) and a host-side byte check of the pulled file (magic bytes, byte size). OCR case additionally installed the 28 MB English+Arabic pack through the in-app confirmation dialog before converting.",
+  "cases": [
+    {
+      "id": "png-to-jpg",
+      "source": "uitest1.png (120,061 B)",
+      "target": "JPG",
+      "status": "PASS",
+      "outputs": [
+        "Download/Sigha/uitest1.jpg (93,573 B, JFIF magic)"
+      ],
+      "screenshot": "01-png-to-jpg.png"
+    },
+    {
+      "id": "png-to-pdf",
+      "source": "uitest1.png (120,061 B)",
+      "target": "PDF",
+      "status": "PASS",
+      "outputs": [
+        "Download/Sigha/uitest1.pdf (82,883 B, %PDF-1.4)"
+      ],
+      "screenshot": "02-png-to-pdf.png"
+    },
+    {
+      "id": "pdf-to-png",
+      "source": "law.pdf (539,474 B, 21 pages)",
+      "target": "PNG",
+      "status": "PASS",
+      "outputs": [
+        "Download/Sigha/law.png plus law (1)..(20).png - 21 PNGs, one per page, 177,548-473,589 B each, PNG magic on both checked pages"
+      ],
+      "screenshot": "03-pdf-to-png.png"
+    },
+    {
+      "id": "pdf-to-txt",
+      "source": "law.pdf (539,474 B)",
+      "target": "TXT",
+      "status": "PASS",
+      "outputs": [
+        "Download/Sigha/law.txt (35,346 B, 791 lines of real extracted text)"
+      ],
+      "screenshot": null,
+      "automationNote": "The driver missed the transient completion banner and timed out after 150 s, but the app had written the file at 20:28 and the History row 'law.txt - PDF to TXT - 35 kB' is present; output and history are the evidence."
+    },
+    {
+      "id": "docx-to-pdf",
+      "source": "notes.docx (982 B, minimal OOXML)",
+      "target": "PDF",
+      "status": "PASS",
+      "outputs": [
+        "Download/Sigha/notes.pdf (18,112 B, %PDF-1.4)"
+      ],
+      "notes": [
+        "History row carries the typed fidelity note: 'Images and tables were not rendered; headings and lists were kept.'"
+      ],
+      "screenshot": "04-docx-to-pdf.png"
+    },
+    {
+      "id": "txt-to-pdf",
+      "source": "notes.txt (58 B)",
+      "target": "PDF",
+      "status": "PASS",
+      "outputs": [
+        "Download/Sigha/notes (1).pdf (16,123 B, %PDF-1.4); the source name collides with the previous case, and the app made the unique name itself"
+      ],
+      "screenshot": "05-txt-to-pdf.png"
+    },
+    {
+      "id": "mp4-to-gif",
+      "source": "clip-sage.mp4 (456,479 B, no audio track)",
+      "target": "GIF",
+      "status": "PASS",
+      "outputs": [
+        "Download/Sigha/clip-sage.gif (4,392,362 B, GIF89a)"
+      ],
+      "screenshot": "06-mp4-to-gif.png"
+    },
+    {
+      "id": "wav-to-mp3",
+      "source": "test.wav (16,044 B)",
+      "target": "MP3",
+      "status": "PASS",
+      "outputs": [
+        "Download/Sigha/test.mp3 (10,701 B, ID3 header)"
+      ],
+      "screenshot": "07-wav-to-mp3.png"
+    },
+    {
+      "id": "png-to-txt-ocr",
+      "source": "uitest1.png (120,061 B)",
+      "target": "TXT (OCR)",
+      "status": "PASS",
+      "outputs": [
+        "Download/Sigha/uitest1.txt (273 B of OCR text; the screenshot's own UI text was recognised: 'Sigha', 'Your files, converted on this phone', 'Nothing is uploaded - everything happens on your device')"
+      ],
+      "details": [
+        "In-app dialog 'Download model pack? OCR: English + Arabic (28 MB) downloads once and works offline afterwards' confirmed via Download button",
+        "Download progressed to completion while the screen was on the workbench (progress 'Downloading... 49%' observed); the pack installed and the Text/TXT target appeared on the same screen without reselecting the file",
+        "This is the tesseract JNI path running under R8, which the JVM tests cannot cover"
+      ],
+      "screenshot": "08-png-to-txt-ocr.png"
+    }
+  ],
+  "legacySavePath": {
+    "device": "emulator-5562, Android 8.0 (API 26), x86_64",
+    "artefact": "app-universal-release.apk (Gradle-built release universal APK, QA key)",
+    "versionCode": 3,
+    "versionName": "0.2.1",
+    "case": "PNG -> JPG (uitest1.png 153,281 B)",
+    "status": "PASS",
+    "output": "/sdcard/Download/Sigha/uitest1.jpg (117,784 B, FF D8 FF E0 JPEG magic)",
+    "detail": "On API 26-28 the app writes straight to Download/Sigha and does not insert into MediaStore Downloads; the UI reported the save, the file is on disk, and the automation's MediaStore query correctly returned nothing. This proves the legacy write path end to end on a release build."
+  },
+  "notCovered": [
+    "archive family sources (e.g. ZIP) - see catalogue: no user-facing archive conversion was exercised in this pass",
+    "scanned-PDF OCR fallback (blank text layer) - only image OCR was exercised",
+    "AAC/M4A/OGG/OPUS/FLAC targets, XLSX/PPTX/ODS/ODP sources, and the remaining 32 converters",
+    "multi-file batch on the release build",
+    "physical arm64 device"
+  ],
+  "caveats": [
+    "Emulator x86_64 only: no arm64 runtime evidence.",
+    "The QA keystore is a throwaway local key; it is not the Play upload key."
+  ]
+}
