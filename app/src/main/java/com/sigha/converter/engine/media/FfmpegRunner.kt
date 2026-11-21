@@ -11,7 +11,9 @@ import com.arthenica.ffmpegkit.ReturnCode
 import com.arthenica.ffmpegkit.Statistics
 import com.arthenica.ffmpegkit.StatisticsCallback
 import com.sigha.converter.core.ConversionException
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.ConversionRequest
+import com.sigha.converter.core.FormatCategory
 import com.sigha.converter.core.ConversionResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -124,7 +126,8 @@ internal class FfmpegRunner(private val app: Application) {
                 runCatching { FFmpegKit.cancel(session.sessionId) }
                 request.outputFile.delete()
                 throw ConversionException(
-                    "The conversion timed out after 20 minutes. The file may be too large or damaged."
+                    "The conversion timed out after 20 minutes. The file may be too large or damaged.",
+                    kind = ConversionFailureKind.TIMEOUT
                 )
             }
             val result = ExecResult(
@@ -153,14 +156,15 @@ internal class FfmpegRunner(private val app: Application) {
         val output = request.outputFile
         if (!output.exists() || output.length() == 0L) {
             throw ConversionException(
-                "The conversion finished but no $targetLabel file was written. The input may be empty or damaged."
+                "The conversion finished but no $targetLabel file was written. The input may be empty or damaged.",
+                kind = ConversionFailureKind.EMPTY_OUTPUT
             )
         }
     }
 
     /** Builds a readable error: a human sentence first, then the tail of the FFmpeg log. */
     fun failure(result: ExecResult, request: ConversionRequest): ConversionException {
-        val friendly = friendlyMessage(result.logTail, request)
+        val (friendly, kind) = classifyFailure(result.logTail, request)
         val details = result.logTail.lineSequence()
             .map { line -> line.trim() }
             .filter { line -> line.isNotEmpty() && !line.startsWith("frame=") && !line.startsWith("size=") }
@@ -168,7 +172,10 @@ internal class FfmpegRunner(private val app: Application) {
             .takeLast(3)
             .joinToString("\n")
             .take(DETAILS_LIMIT)
-        return ConversionException(if (details.isBlank()) friendly else "$friendly\n\n$details")
+        return ConversionException(
+            message = if (details.isBlank()) friendly else "$friendly\n\n$details",
+            kind = kind
+        )
     }
 
     private suspend fun prepare(request: ConversionRequest): PreparedInput = withContext(Dispatchers.IO) {
@@ -210,7 +217,11 @@ internal class FfmpegRunner(private val app: Application) {
         val stream = try {
             resolver.openInputStream(request.input)
         } catch (e: SecurityException) {
-            throw ConversionException("The app no longer has access to this file. Pick it again from storage.", e)
+            throw ConversionException(
+                "The app no longer has access to this file. Pick it again from storage.",
+                e,
+                ConversionFailureKind.STORAGE_PERMISSION
+            )
         } catch (e: Exception) {
             throw ConversionException("The selected file could not be opened.", e)
         } ?: throw ConversionException("The selected file could not be opened. It may have been moved or deleted.")
@@ -243,7 +254,8 @@ internal class FfmpegRunner(private val app: Application) {
         val available = runCatching { StatFs(directory.absolutePath).availableBytes }.getOrNull() ?: return
         if (available < needed) {
             throw ConversionException(
-                "There is not enough free storage to convert this file. Free up space and try again."
+                "There is not enough free storage to convert this file. Free up space and try again.",
+                kind = ConversionFailureKind.NO_STORAGE
             )
         }
     }
@@ -277,23 +289,42 @@ internal class FfmpegRunner(private val app: Application) {
         }
     }
 
-    private fun friendlyMessage(log: String, request: ConversionRequest): String {
+    /**
+     * Maps the FFmpeg log tail to a human sentence plus the localized headline the UI should show.
+     * A generic "Conversion failed." is the last resort; the common causes are typed so the user
+     * gets a cause and a next step instead of a dead end.
+     */
+    private fun classifyFailure(
+        log: String,
+        request: ConversionRequest
+    ): Pair<String, ConversionFailureKind> {
         val lower = log.lowercase()
+        val targetIsAudio = request.to.category == FormatCategory.AUDIO
         return when {
             "no space left" in lower ->
-                "There is not enough free storage to finish this conversion."
+                "There is not enough free storage to finish this conversion." to ConversionFailureKind.NO_STORAGE
             "invalid data found" in lower || "moov atom not found" in lower ||
                 "could not find codec parameters" in lower || "error while decoding" in lower ->
-                "This file is damaged or is not a valid ${request.from.label} file."
-            "does not contain any stream" in lower || "matches no streams" in lower ->
-                "This file has no track that could be converted to ${request.to.label}."
+                "This file is damaged or is not a valid ${request.from.label} file." to
+                    ConversionFailureKind.CORRUPT_INPUT
+            "does not contain any stream" in lower || "matches no streams" in lower ||
+                "has no audio" in lower || "has no video" in lower ->
+                if (targetIsAudio) {
+                    "This video has no audio track that can be converted." to
+                        ConversionFailureKind.NO_AUDIO_TRACK
+                } else {
+                    "This file has no track that could be converted to ${request.to.label}." to
+                        ConversionFailureKind.UNKNOWN
+                }
             "unknown encoder" in lower || "encoder not found" in lower ||
                 "error while opening encoder" in lower || "could not open encoder" in lower ->
-                "This device cannot encode ${request.to.label} from this file."
+                "This device cannot encode ${request.to.label} from this file." to
+                    ConversionFailureKind.UNKNOWN
             "permission denied" in lower || "operation not permitted" in lower ->
-                "The app could not read the selected file."
+                "The app could not read the selected file." to ConversionFailureKind.STORAGE_PERMISSION
             else ->
-                "The media conversion failed. The file may be damaged or use a codec this device does not support."
+                ("The media conversion failed. The file may be damaged or use a codec this device does not support." to
+                    ConversionFailureKind.UNKNOWN)
         }
     }
 

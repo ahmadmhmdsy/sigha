@@ -3,6 +3,7 @@ package com.sigha.converter.work
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -10,6 +11,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.sigha.converter.MainActivity
 import com.sigha.converter.R
 
 /**
@@ -27,8 +29,13 @@ class ConversionService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    /** Set once the queue stops the batch; late update() calls must not repost the notification. */
+    @Volatile
+    private var stopped = false
+
     override fun onCreate() {
         super.onCreate()
+        stopped = false
         instance = this
         createChannel()
     }
@@ -43,7 +50,9 @@ class ConversionService : Service() {
             startForeground(NOTIFICATION_ID, buildNotification(text, null))
         } catch (_: Exception) {
             // A foreground service can be refused (missing permission or OS restriction).
-            // Conversion still runs in the process; only the notification is lost.
+            // Conversion still runs in the process; only the notification is lost -- and any
+            // notification left from an earlier run must not survive as a ghost.
+            cancelNotification()
             stopSelf()
             return START_NOT_STICKY
         }
@@ -65,8 +74,16 @@ class ConversionService : Service() {
     }
 
     override fun onDestroy() {
+        stopped = true
         if (instance === this) instance = null
+        cancelNotification()
         super.onDestroy()
+    }
+
+    private fun cancelNotification() {
+        runCatching {
+            getSystemService(NotificationManager::class.java)?.cancel(NOTIFICATION_ID)
+        }
     }
 
     private fun createChannel() {
@@ -85,6 +102,17 @@ class ConversionService : Service() {
         manager.createNotificationChannel(channel)
     }
 
+    /**
+     * Tapping the progress notification must bring the app back: a user who starts a batch and
+     * leaves the screen otherwise has no way to see results or cancel, and taps do nothing.
+     */
+    private fun contentIntent(): PendingIntent? = runCatching {
+        val launch = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+        PendingIntent.getActivity(this, 0, launch, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+    }.getOrNull()
+
     private fun buildNotification(text: String, progress: Float?): Notification {
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_download)
@@ -95,6 +123,7 @@ class ConversionService : Service() {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setSilent(true)
+        contentIntent()?.let(builder::setContentIntent)
         if (progress != null) {
             val percent = (progress.coerceIn(0f, 1f) * 100).toInt()
             builder.setProgress(100, percent, false)
@@ -122,9 +151,22 @@ class ConversionService : Service() {
             }
         }
 
+        /**
+         * Stops the service even when [instance] is still null (a stop pressed in the window
+         * between startForegroundService and onCreate). startService(ACTION_STOP) would throw
+         * from the background and leave the service, and its notification, running forever;
+         * stopService is allowed from the background.
+         */
+        private fun stopNow(context: Context) {
+            runCatching {
+                context.stopService(Intent(context, ConversionService::class.java))
+            }
+        }
+
         /** Updates the ongoing notification; a no-op when the service is not running. */
         fun update(context: Context, text: String, progress: Float?) {
             val service = instance ?: return
+            if (service.stopped) return
             runCatching {
                 val manager = context.getSystemService(NotificationManager::class.java) ?: return
                 manager.notify(NOTIFICATION_ID, service.buildNotification(text, progress))
@@ -135,14 +177,17 @@ class ConversionService : Service() {
         fun stop(context: Context) {
             val service = instance
             if (service != null) {
+                service.stopped = true
                 runCatching { service.stopForeground(STOP_FOREGROUND_REMOVE) }
+                runCatching { service.cancelNotification() }
                 runCatching { service.stopSelf() }
                 instance = null
             } else {
+                // No instance yet (or already destroyed): stopService plus an explicit cancel
+                // clears a notification posted by a start whose onCreate never ran.
+                stopNow(context)
                 runCatching {
-                    context.startService(
-                        Intent(context, ConversionService::class.java).setAction(ACTION_STOP)
-                    )
+                    context.getSystemService(NotificationManager::class.java)?.cancel(NOTIFICATION_ID)
                 }
             }
         }

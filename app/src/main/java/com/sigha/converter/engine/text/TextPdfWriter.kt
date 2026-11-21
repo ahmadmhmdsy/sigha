@@ -8,6 +8,8 @@ import android.graphics.pdf.PdfDocument
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import com.sigha.converter.core.ConversionException
+import com.sigha.converter.core.ConversionFailureKind
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -162,6 +164,15 @@ class TextPdfWriter(
     }
 
     private fun startPage() {
+        // PdfDocument keeps every page in memory until finish() writes the file, so a huge
+        // text input can exhaust the heap before a single byte reaches disk. Failing with a
+        // typed "too large" error is better than an OOM that looks like a broken app.
+        if (pagesWritten >= MAX_PAGES) {
+            throw ConversionException(
+                "The document is longer than the " + MAX_PAGES + "-page PDF limit.",
+                kind = ConversionFailureKind.FILE_TOO_LARGE
+            )
+        }
         val info = PdfDocument.PageInfo.Builder(
             PAGE_WIDTH.toInt(),
             PAGE_HEIGHT.toInt(),
@@ -230,6 +241,7 @@ class TextPdfWriter(
         const val BOTTOM = PAGE_HEIGHT - MARGIN
         const val CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN
         const val BUFFER_SIZE = 64 * 1024
+        const val MAX_PAGES = 400
         const val BULLET = "\u2022"
     }
 }

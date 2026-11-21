@@ -1,6 +1,7 @@
 package com.sigha.converter.engine
 
 import android.app.Application
+import android.util.Log
 import com.sigha.converter.core.Converter
 import com.sigha.converter.engine.archive.archiveConverters
 import com.sigha.converter.engine.data.dataConverters
@@ -22,15 +23,24 @@ import com.sigha.converter.engine.upscale.upscaleConverters
  * the route planner picks the cheapest path regardless of registration order.
  */
 fun buildBuiltInConverters(app: Application): List<Converter> = buildList {
-    addAll(imageConverters(app))
-    addAll(pdfConverters(app))
-    addAll(officeConverters(app))
-    addAll(textConverters(app))
-    addAll(dataConverters(app))
-    addAll(subtitleConverters(app))
-    addAll(ebookConverters(app))
-    addAll(mediaConverters(app))
-    addAll(ocrConverters(app))
-    addAll(archiveConverters(app))
-    addAll(upscaleConverters(app))
+    // Each family is wired independently. A drifted format id inside one family used to throw
+    // at Application.onCreate and take the whole app down; now only that family disappears
+    // from the planner, the rest of the catalogue keeps working, and the log names the cause.
+    fun family(name: String, build: () -> List<Converter>) {
+        val converters = runCatching(build)
+            .onFailure { Log.e("Sigha", "Converter family skipped: " + name, it) }
+            .getOrDefault(emptyList())
+        addAll(converters)
+    }
+    family("image") { imageConverters(app) }
+    family("pdf") { pdfConverters(app) }
+    family("office") { officeConverters(app) }
+    family("text") { textConverters(app) }
+    family("data") { dataConverters(app) }
+    family("subtitle") { subtitleConverters(app) }
+    family("ebook") { ebookConverters(app) }
+    family("media") { mediaConverters(app) }
+    family("ocr") { ocrConverters(app) }
+    family("archive") { archiveConverters(app) }
+    family("upscale") { upscaleConverters(app) }
 }

@@ -87,6 +87,11 @@ fun noteText(note: Note?): String? = when (note) {
     Note.DatesAsSerial -> stringResource(R.string.note_dates_as_serial)
     Note.MarkdownSimplified -> stringResource(R.string.note_markdown_simplified)
     Note.OcrFallback -> stringResource(R.string.note_ocr_fallback)
+    is Note.PartialPublish -> pluralStringResource(
+        R.plurals.note_partial_publish,
+        note.failed,
+        note.failed
+    )
     is Note.Composite -> compositeNoteText(note.parts)
 }
 

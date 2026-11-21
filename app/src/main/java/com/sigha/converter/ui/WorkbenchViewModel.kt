@@ -15,9 +15,13 @@ import com.sigha.converter.model.ModelPacks
 import com.sigha.converter.data.ConversionInput
 import com.sigha.converter.data.ConversionRunner
 import com.sigha.converter.data.IncomingFilesBus
+import com.sigha.converter.data.MediaTrackProbe
+import com.sigha.converter.data.supportsTargetCategory
+import com.sigha.converter.core.hidesAudioTargets
 import com.sigha.converter.work.QueueEntry
 import com.sigha.converter.data.PackDownloadState
 import com.sigha.converter.data.Repo
+import com.sigha.converter.data.releasePersistableReadPermission
 import com.sigha.converter.data.takePersistableReadPermission
 import com.sigha.converter.engine.pdf.parsePageSpans
 import com.sigha.converter.work.QueueStatus
@@ -67,7 +71,9 @@ data class WorkbenchUiState(
     /** Live state of the OCR pack download, mirrored so the workbench can offer the install. */
     val ocrPackState: PackDownloadState = PackDownloadState.Idle,
     /** True when the typed page selection cannot be parsed as pages or ranges. */
-    val pagesError: Boolean = false
+    val pagesError: Boolean = false,
+    /** True when a selected video has no audio track, so audio targets are hidden. */
+    val audioTargetsHidden: Boolean = false
 )
 
 /**
@@ -111,7 +117,9 @@ class WorkbenchViewModel : ViewModel() {
             Repo.packDownloads.states.collect { _state.update { current -> withDerived(current) } }
         }
         viewModelScope.launch {
-            if (Repo.settings.takeInterruptedBatch()) {
+            // Preferences I/O must not take the whole workbench down on a corrupt DataStore.
+            val interrupted = runCatching { Repo.settings.takeInterruptedBatch() }.getOrDefault(false)
+            if (interrupted) {
                 _messages.tryEmit(context.getString(R.string.ui_interrupted_batch))
             }
         }
@@ -133,15 +141,22 @@ class WorkbenchViewModel : ViewModel() {
             val detected = withContext(Dispatchers.IO) {
                 incoming.mapNotNull { uri ->
                     takePersistableReadPermission(context, uri)
-                    runCatching { AppGraph.formats.detect(context, uri) }.getOrNull()
+                    runCatching { AppGraph.formats.detect(context, uri) }.getOrNull()?.let { file ->
+                        // Probe once, while the URI is known-readable: the target list can then
+                        // skip audio formats that a silent video can never produce.
+                        val hasAudio = if (file.format.category == FormatCategory.VIDEO) {
+                            MediaTrackProbe.hasAudioTrack(context, file.uri)
+                        } else {
+                            null
+                        }
+                        ConversionInput(file.uri, file.displayName, file.size, file.format, hasAudio)
+                    }
                 }
             }
             var addedCount = 0
             _state.update { current ->
                 val existing = current.files.map { it.uri }.toSet()
-                val added = detected
-                    .filter { it.uri !in existing }
-                    .map { ConversionInput(it.uri, it.displayName, it.size, it.format) }
+                val added = detected.filter { it.uri !in existing }
                 addedCount = added.size
                 withDerived(current.copy(files = current.files + added, isLoadingFiles = false))
             }
@@ -169,13 +184,20 @@ class WorkbenchViewModel : ViewModel() {
         _state.update { current ->
             withDerived(current.copy(files = current.files.filterNot { it.uri == uri }))
         }
+        // The persisted read grant is no longer needed; keeping it wastes one of the 128 slots
+        // Android allows per app. Best effort: a released-by-OS grant throws nothing we act on.
+        runCatching { releasePersistableReadPermission(context, uri) }
     }
 
     fun clearSelection() {
         if (_state.value.isConverting) return
         batchIds = emptyList()
+        val removed = _state.value.files.map { it.uri }
         _state.update { current ->
             withDerived(current.copy(files = emptyList(), progressRows = emptyList()))
+        }
+        removed.forEach { uri ->
+            runCatching { releasePersistableReadPermission(context, uri) }
         }
     }
 
@@ -359,6 +381,9 @@ class WorkbenchViewModel : ViewModel() {
         val pagesError = showPages && state.options.pages?.let { pages ->
             runCatching { parsePageSpans(pages) }.isFailure
         } == true
+        // The engine refuses a silent video's audio targets anyway; hide them up front and say
+        // why, instead of offering a conversion that is guaranteed to fail.
+        val audioTargetsHidden = hidesAudioTargets(state.files.map { it.format.category to it.hasAudio })
         val defaults = ConversionOptions()
         var options = state.options
         if (!showQuality && options.quality != defaults.quality) {
@@ -380,7 +405,8 @@ class WorkbenchViewModel : ViewModel() {
             showOcrHint = showOcrHint,
             ocrPackInstalled = ocrInstalled,
             ocrPackState = Repo.packDownloads.stateOf(ModelPacks.OCR_PACK_ID),
-            pagesError = pagesError
+            pagesError = pagesError,
+            audioTargetsHidden = audioTargetsHidden
         )
     }
 
@@ -414,6 +440,7 @@ class WorkbenchViewModel : ViewModel() {
         val ocrInstalled = Repo.packs.isInstalled(ModelPacks.OCR_PACK_ID)
         return AppGraph.formats.all().filter { format ->
             format.id !in sourceIds && files.all { input ->
+                if (!input.supportsTargetCategory(format.category)) return@all false
                 val route = AppGraph.planner.plan(input.format, format, ConversionRunner.MAX_HOPS)
                 route != null && (ocrInstalled || route.none { it.requiresModelPack })
             }

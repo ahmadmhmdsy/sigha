@@ -1,6 +1,7 @@
 package com.sigha.converter.engine.data
 
 import com.sigha.converter.core.ConversionException
+import com.sigha.converter.core.ConversionFailureKind
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -20,6 +21,7 @@ import kotlinx.serialization.json.JsonPrimitive
 internal object JsonCsv {
 
     const val MAX_ROWS = 1_000_000
+    private const val MAX_NESTING = 256
 
     fun csvToJson(parser: Csv.Parser, target: Appendable, onRow: (Int) -> Unit): Int {
         val header = parser.readRow()
@@ -56,12 +58,20 @@ internal object JsonCsv {
     }
 
     fun jsonToCsv(text: String, target: Appendable): Int {
+        requireReasonableNesting(text)
         val root = try {
             Json.parseToJsonElement(text)
         } catch (_: SerializationException) {
             throw ConversionException("The file is not valid JSON.")
         } catch (_: IllegalArgumentException) {
             throw ConversionException("The file is not valid JSON.")
+        } catch (_: StackOverflowError) {
+            // Hostile nesting makes the recursive parser overflow the thread stack; report it
+            // as a too-large input instead of letting an Error escape the engine.
+            throw ConversionException(
+                "The JSON file is nested too deeply.",
+                kind = ConversionFailureKind.FILE_TOO_LARGE
+            )
         }
         val array = root as? JsonArray
             ?: throw ConversionException("Only a JSON array of objects can be converted to CSV.")
@@ -87,6 +97,42 @@ internal object JsonCsv {
             Csv.appendRow(target, values, ',', "\r\n")
         }
         return rows.size
+    }
+
+    /**
+     * Counts the deepest []/{} nesting before parsing. The kotlinx parser is recursive, so a
+     * file made of thousands of nested arrays would otherwise overflow the stack inside a
+     * conversion (and, on old devices, look like a crash rather than a rejected file).
+     */
+    private fun requireReasonableNesting(text: String) {
+        var depth = 0
+        var maxDepth = 0
+        var inString = false
+        var escaped = false
+        for (character in text) {
+            if (inString) {
+                when {
+                    escaped -> escaped = false
+                    character == '\\' -> escaped = true
+                    character == '"' -> inString = false
+                }
+                continue
+            }
+            when (character) {
+                '"' -> inString = true
+                '{', '[' -> {
+                    depth++
+                    if (depth > maxDepth) maxDepth = depth
+                    if (maxDepth > MAX_NESTING) {
+                        throw ConversionException(
+                            "The JSON file is nested too deeply (limit " + MAX_NESTING + " levels).",
+                            kind = ConversionFailureKind.FILE_TOO_LARGE
+                        )
+                    }
+                }
+                '}', ']' -> if (depth > 0) depth--
+            }
+        }
     }
 
     private fun readRow(element: JsonElement, headers: MutableSet<String>): Map<String, String> {

@@ -6,6 +6,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.media.MediaScannerConnection
+import android.content.ContentUris
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -18,6 +19,7 @@ import com.sigha.converter.R
 import com.sigha.converter.core.ConversionException
 import com.sigha.converter.core.ConversionFailureKind
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -53,14 +55,17 @@ data class PublishedOutput(
  */
 class OutputPublisher(private val context: Context) {
 
-    fun hasWriteAccess(target: PublishTarget): Boolean = when (target) {
-        PublishTarget.Downloads -> Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ||
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
-        is PublishTarget.Folder -> DocumentFile.fromTreeUri(context, target.treeUri)?.canWrite() == true
-    }
+    fun hasWriteAccess(target: PublishTarget): Boolean = runCatching {
+        when (target) {
+            PublishTarget.Downloads -> Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ||
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED
+            is PublishTarget.Folder ->
+                DocumentFile.fromTreeUri(context, target.treeUri)?.canWrite() == true
+        }
+    }.getOrDefault(false)
 
     suspend fun publish(
         source: File,
@@ -87,7 +92,7 @@ class OutputPublisher(private val context: Context) {
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun publishToMediaStore(source: File, fileName: String, mime: String): PublishedOutput {
+    private suspend fun publishToMediaStore(source: File, fileName: String, mime: String): PublishedOutput {
         val resolver = context.contentResolver
         val relativePath = Environment.DIRECTORY_DOWNLOADS + "/" + SUBFOLDER
         val displayName = UniqueNames.unique(fileName) { candidate ->
@@ -99,14 +104,15 @@ class OutputPublisher(private val context: Context) {
             put(MediaStore.Downloads.RELATIVE_PATH, relativePath)
             put(MediaStore.Downloads.IS_PENDING, 1)
         }
-        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-            ?: throw ConversionException(
-                context.getString(R.string.err_save_failed),
-                kind = ConversionFailureKind.SAVE_FAILED
-            )
+        var uri: Uri? = null
         try {
+            uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                ?: throw ConversionException(
+                    context.getString(R.string.err_save_failed),
+                    kind = ConversionFailureKind.SAVE_FAILED
+                )
             resolver.openOutputStream(uri)?.use { output ->
-                source.inputStream().use { input -> input.copyTo(output, BUFFER_SIZE) }
+                copyCancellable(source, output)
             } ?: throw ConversionException(
                 context.getString(R.string.err_save_failed),
                 kind = ConversionFailureKind.SAVE_FAILED
@@ -114,7 +120,7 @@ class OutputPublisher(private val context: Context) {
             val finished = ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) }
             resolver.update(uri, finished, null, null)
         } catch (error: Exception) {
-            runCatching { resolver.delete(uri, null, null) }
+            uri?.let { pending -> runCatching { resolver.delete(pending, null, null) } }
             if (error is ConversionException) throw error
             throw ConversionException(
                 context.getString(R.string.err_save_failed),
@@ -122,11 +128,14 @@ class OutputPublisher(private val context: Context) {
                 ConversionFailureKind.SAVE_FAILED
             )
         }
+        val savedUri = uri
+        // The provider may rename the entry; report the name it actually stored.
+        val savedName = readBackDisplayName(resolver, savedUri) ?: displayName
         return PublishedOutput(
-            fileName = displayName,
+            fileName = savedName,
             mime = mime,
-            uri = uri,
-            displayPath = relativePath + "/" + displayName,
+            uri = savedUri,
+            displayPath = relativePath + "/" + savedName,
             sizeBytes = source.length()
         )
     }
@@ -173,9 +182,7 @@ class OutputPublisher(private val context: Context) {
         val displayName = UniqueNames.unique(fileName) { candidate -> File(directory, candidate).exists() }
         val destination = File(directory, displayName)
         try {
-            source.inputStream().use { input ->
-                destination.outputStream().use { output -> input.copyTo(output, BUFFER_SIZE) }
-            }
+            destination.outputStream().use { output -> copyCancellable(source, output) }
         } catch (error: Exception) {
             runCatching { destination.delete() }
             throw ConversionException(
@@ -184,11 +191,12 @@ class OutputPublisher(private val context: Context) {
                 ConversionFailureKind.SAVE_FAILED
             )
         }
+        // The file is already on disk and visible to file managers even when the media scanner
+        // is slow or never calls back on this ROM (some API 26-28 builds). Reporting SAVE_FAILED
+        // there would make the user convert the same file again and collect duplicates.
         val uri = scanIntoMediaStore(destination, mime)
-            ?: throw ConversionException(
-                context.getString(R.string.err_save_failed),
-                kind = ConversionFailureKind.SAVE_FAILED
-            )
+            ?: resolveMediaStoreUriByPath(destination)
+            ?: Uri.fromFile(destination)
         return PublishedOutput(
             fileName = displayName,
             mime = mime,
@@ -210,7 +218,26 @@ class OutputPublisher(private val context: Context) {
         }
     }
 
-    private fun publishToFolder(source: File, fileName: String, mime: String, treeUri: Uri): PublishedOutput {
+    /**
+     * When the scanner does not call back in time the row often still exists: some ROMs index
+     * the file lazily. Querying by path gives the result a content URI that other apps can
+     * open, instead of the file:// URI that Android refuses to expose across apps.
+     */
+    @Suppress("DEPRECATION")
+    private fun resolveMediaStoreUriByPath(file: File): Uri? = runCatching {
+        val collection = MediaStore.Files.getContentUri("external")
+        context.contentResolver.query(
+            collection,
+            arrayOf(BaseColumns._ID),
+            MediaStore.Files.FileColumns.DATA + " = ?",
+            arrayOf(file.absolutePath),
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) ContentUris.withAppendedId(collection, cursor.getLong(0)) else null
+        }
+    }.getOrNull()
+
+    private suspend fun publishToFolder(source: File, fileName: String, mime: String, treeUri: Uri): PublishedOutput {
         val directory = DocumentFile.fromTreeUri(context, treeUri)
             ?: throw ConversionException(
                 context.getString(R.string.err_output_folder),
@@ -235,7 +262,7 @@ class OutputPublisher(private val context: Context) {
             )
         try {
             context.contentResolver.openOutputStream(document.uri)?.use { output ->
-                source.inputStream().use { input -> input.copyTo(output, BUFFER_SIZE) }
+                copyCancellable(source, output)
             } ?: throw ConversionException(
                 context.getString(R.string.err_save_failed),
                 kind = ConversionFailureKind.SAVE_FAILED
@@ -249,17 +276,41 @@ class OutputPublisher(private val context: Context) {
                 ConversionFailureKind.SAVE_FAILED
             )
         }
+        // A provider may adjust the created document's name; report what it really is.
+        val savedName = document.name?.takeIf { it.isNotBlank() } ?: displayName
         // The SAF tree hides its real filesystem path; the folder's display name plus the file
         // name is the most specific destination the queue and history can honestly show.
         val folderName = directory.name?.takeIf { it.isNotBlank() }
         return PublishedOutput(
-            fileName = displayName,
+            fileName = savedName,
             mime = mime,
             uri = document.uri,
-            displayPath = if (folderName != null) folderName + "/" + displayName else displayName,
+            displayPath = if (folderName != null) folderName + "/" + savedName else savedName,
             sizeBytes = source.length()
         )
     }
+
+    /**
+     * Copies with a cancellation check every buffer, so Cancel during a long save does not leave
+     * a half-written file behind: the catch in each publish path deletes the partial entry.
+     */
+    private suspend fun copyCancellable(source: File, output: java.io.OutputStream) {
+        source.inputStream().use { input ->
+            val buffer = ByteArray(BUFFER_SIZE)
+            while (true) {
+                kotlin.coroutines.coroutineContext.ensureActive()
+                val read = input.read(buffer)
+                if (read < 0) break
+                output.write(buffer, 0, read)
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun readBackDisplayName(resolver: ContentResolver, uri: Uri): String? = runCatching {
+        resolver.query(uri, arrayOf(MediaStore.Downloads.DISPLAY_NAME), null, null, null)
+            ?.use { cursor -> if (cursor.moveToFirst()) cursor.getString(0) else null }
+    }.getOrNull()
 
     private companion object {
         const val SUBFOLDER = "Sigha"

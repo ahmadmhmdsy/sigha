@@ -71,15 +71,11 @@ class FormatRegistry {
             // Non-fatal: fall through to extension-only detection.
         }
         val extension = name?.substringAfterLast('.', "")?.lowercase().orEmpty()
-        val format = fromMime(mime)
-            ?: fromExtension(extension)
-            ?: if (mime != null) FileFormat(
-                id = extension.ifBlank { "unknown" },
-                extension = extension,
-                mime = mime,
-                label = extension.uppercase(),
-                category = FormatCategory.DATA
-            ) else null
+        // Only catalogue formats are detected. An earlier version invented an "unknown"
+        // DATA format for unknown MIME types; that id then leaked into targets, history and
+        // failure messages, and could never be routed anywhere. Skipping the file produces
+        // the honest "can't read this file" message instead.
+        val format = fromMime(mime) ?: fromExtension(extension)
         return if (format == null) null else DetectedFile(uri, name ?: "file", size, format)
     }
 

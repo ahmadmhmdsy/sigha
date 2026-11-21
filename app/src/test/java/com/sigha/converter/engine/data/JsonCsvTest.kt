@@ -95,6 +95,24 @@ class JsonCsvTest {
     }
 
     @Test
+    fun rejectsDeeplyNestedInputBeforeParsing() {
+        // The parser is recursive; 300 nested arrays would overflow a small thread stack.
+        val raw = "[".repeat(300) + "]".repeat(300)
+        assertThrows(ConversionException::class.java) {
+            JsonCsv.jsonToCsv(raw, StringBuilder())
+        }
+    }
+
+    @Test
+    fun shallowNestingStillParses() {
+        // Guard must not reject ordinary nesting; the nested value is then rejected as before.
+        val raw = "[" + "[1]".repeat(10) + "]"
+        assertThrows(ConversionException::class.java) {
+            JsonCsv.jsonToCsv(raw, StringBuilder())
+        }
+    }
+
+    @Test
     fun writesNullAsEmptyField() {
         val builder = StringBuilder()
         JsonCsv.jsonToCsv("[{\"a\":null}]", builder)

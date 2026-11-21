@@ -59,7 +59,9 @@ enum class ConversionFailureKind {
     STORAGE_PERMISSION,
     OUTPUT_FOLDER_UNAVAILABLE,
     FILE_TOO_LARGE,
-    DRM_PROTECTED
+    DRM_PROTECTED,
+    NO_AUDIO_TRACK,
+    NO_VIDEO_TRACK
 }
 
 /**

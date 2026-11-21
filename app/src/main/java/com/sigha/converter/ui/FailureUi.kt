@@ -24,5 +24,7 @@ fun ConversionFailureKind.headlineRes(): Int = when (this) {
     ConversionFailureKind.OUTPUT_FOLDER_UNAVAILABLE -> R.string.err_output_folder
     ConversionFailureKind.FILE_TOO_LARGE -> R.string.ui_error_file_too_large
     ConversionFailureKind.DRM_PROTECTED -> R.string.ui_error_drm
+    ConversionFailureKind.NO_AUDIO_TRACK -> R.string.ui_error_no_audio
+    ConversionFailureKind.NO_VIDEO_TRACK -> R.string.ui_error_no_video
     ConversionFailureKind.UNKNOWN -> R.string.ui_error_unknown
 }

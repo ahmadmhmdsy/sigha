@@ -94,11 +94,15 @@ class ConversionQueue(
                 toId = target.id
             )
         }
-        _entries.update { current -> (batch + current).take(MAX_ENTRIES) }
+        // Every row of the batch stays visible: the queue used to show 60 rows while the
+        // runner converted all inputs, so files beyond the cap had progress nowhere.
+        _entries.update { current -> batch + current }
         activeJob = AppScope.launch {
             try {
                 ConversionService.start(context)
-                settingsStore.markBatchActive(true)
+                // The flag only feeds the "last batch was interrupted" banner; a preferences
+                // write failure must not stop a batch that can still convert everything.
+                runCatching { settingsStore.markBatchActive(true) }
                 ConversionService.update(
                     context,
                     context.getString(R.string.ui_service_preparing),
@@ -113,10 +117,25 @@ class ConversionQueue(
                     message = context.getString(R.string.err_conversion_failed, target.label),
                     kind = ConversionFailureKind.UNKNOWN
                 )
+            } catch (error: Throwable) {
+                // The runner catches per item, so anything reaching here is a process-level
+                // failure (LinkageError from a broken engine, StackOverflowError from a
+                // pathological document, OOM). Leaving rows RUNNING would show progress that
+                // never moves; a VirtualMachineError other than OOM is rethrown untouched.
+                if (error is VirtualMachineError && error !is OutOfMemoryError) throw error
+                markUnfinished(
+                    status = QueueStatus.FAILED,
+                    message = context.getString(R.string.err_conversion_failed, target.label),
+                    kind = ConversionFailureKind.UNKNOWN
+                )
             } finally {
                 ConversionService.stop(context)
-                withContext(NonCancellable) { settingsStore.markBatchActive(false) }
-                inputs.forEach { input -> releasePersistableReadPermission(context, input.uri) }
+                // A failing DataStore write must never crash the process from a finally block;
+                // the durable flag stays set so the next launch can still report the interruption.
+                withContext(NonCancellable) { runCatching { settingsStore.markBatchActive(false) } }
+                inputs.forEach { input ->
+                    runCatching { releasePersistableReadPermission(context, input.uri) }
+                }
                 val job = coroutineContext[Job]
                 if (job?.isActive == false) {
                     markUnfinished(status = QueueStatus.CANCELLED, message = null)
@@ -199,7 +218,7 @@ class ConversionQueue(
                     }
                 }
                 result.outputs.forEach { output ->
-                    historyStore.record(
+                    runCatching { historyStore.record(
                         HistoryEntry(
                             inputName = input.displayName,
                             outputName = output.fileName,
@@ -212,7 +231,7 @@ class ConversionQueue(
                             success = true,
                             note = result.note
                         )
-                    )
+                    ) }
                 }
             } else {
                 val message = result.errorMessage
@@ -230,7 +249,7 @@ class ConversionQueue(
                         )
                     }
                 }
-                historyStore.record(
+                runCatching { historyStore.record(
                     HistoryEntry(
                         inputName = input.displayName,
                         outputName = ConversionRunner.outputName(input.displayName, target.extension, 0),
@@ -244,7 +263,7 @@ class ConversionQueue(
                         error = message,
                         errorKind = result.errorKind.name
                     )
-                )
+                ) }
             }
         }
     }
@@ -282,7 +301,4 @@ class ConversionQueue(
         }
     }
 
-    private companion object {
-        const val MAX_ENTRIES = 60
-    }
 }

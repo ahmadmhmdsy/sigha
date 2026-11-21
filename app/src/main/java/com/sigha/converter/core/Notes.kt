@@ -157,6 +157,14 @@ sealed interface Note {
     data object OcrFallback : Note
 
     /**
+     * [failed] of the produced files could not be saved (disk full, revoked folder, provider
+     * error); the rest were saved and are listed normally.
+     */
+    @Serializable
+    @SerialName("partial_publish")
+    data class PartialPublish(val failed: Int) : Note
+
+    /**
      * Several notes for one conversion (for example OCR fallback plus a page window, or a
      * multi-hop route where every engine reported something). The UI renders each part.
      */

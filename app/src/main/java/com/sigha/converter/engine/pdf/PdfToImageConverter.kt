@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import com.sigha.converter.core.ConversionException
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
 import com.sigha.converter.core.Converter
@@ -143,6 +144,13 @@ internal class PdfToImageConverter(private val context: Context) : Converter {
                 "The page selection does not match this PDF, which has " + pageCount + " page(s)."
             )
         }
+        if (pages.size > MAX_PAGES) {
+            throw ConversionException(
+                "This PDF has more pages than the " + MAX_PAGES +
+                    "-page image limit. Select a page range first.",
+                kind = ConversionFailureKind.FILE_TOO_LARGE
+            )
+        }
         return pages
     }
 
@@ -165,5 +173,6 @@ internal class PdfToImageConverter(private val context: Context) : Converter {
     private companion object {
         const val MIN_DPI = 72
         const val MAX_DPI = 300
+        const val MAX_PAGES = 500
     }
 }

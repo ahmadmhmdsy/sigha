@@ -25,6 +25,15 @@ fun shareFile(context: Context, uri: Uri, mime: String): Boolean {
     return launchSafely(context, Intent.createChooser(send, null))
 }
 
+/** Opens this app's system settings page (permissions, notifications, storage). */
+fun openAppSettings(context: Context): Boolean {
+    val intent = Intent(
+        android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", context.packageName, null)
+    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    return launchSafely(context, intent)
+}
+
 /** Opens a web page (used only for model pack license links). */
 fun openUrl(context: Context, url: String): Boolean {
     if (url.isBlank()) return false

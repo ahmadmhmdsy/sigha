@@ -141,14 +141,39 @@ class ConversionRunner(
                 }
                 PublishTarget.Downloads -> publishTarget
             }
-            val published = finalFiles.mapIndexed { index, file ->
-                publisher.publish(
-                    source = file,
-                    fileName = outputName(input.displayName, target.extension, index),
-                    mime = target.mime.ifBlank { DEFAULT_MIME },
-                    target = effectiveTarget
+            // Save each produced file on its own: one failed page must not throw away the pages
+            // that were saved, and the user must be told how many made it. The engine already
+            // names multi-page outputs ("report-page3.png"), so keep that name instead of
+            // flattening them into "report (1).png" and losing the page number.
+            val multipleOutputs = finalFiles.size > 1
+            val published = ArrayList<PublishedOutput>(finalFiles.size)
+            var publishFailures = 0
+            var firstPublishError: Throwable? = null
+            finalFiles.forEach { file ->
+                coroutineContext.ensureActive()
+                val name = if (multipleOutputs) file.name else
+                    outputName(input.displayName, target.extension, 0)
+                runCatching {
+                    publisher.publish(
+                        source = file,
+                        fileName = name,
+                        mime = target.mime.ifBlank { DEFAULT_MIME },
+                        target = effectiveTarget
+                    )
+                }.onSuccess { output -> published += output }.onFailure { error ->
+                    publishFailures++
+                    if (firstPublishError == null) firstPublishError = error
+                }
+            }
+            if (published.isEmpty()) {
+                val error = firstPublishError
+                throw if (error is ConversionException) error else ConversionException(
+                    context.getString(R.string.err_save_failed),
+                    error,
+                    ConversionFailureKind.SAVE_FAILED
                 )
             }
+            if (publishFailures > 0) notes += Note.PartialPublish(publishFailures)
             onProgress(1f)
             ConversionItemResult(
                 input = input,
@@ -180,6 +205,18 @@ class ConversionRunner(
                 error.message ?: context.getString(R.string.err_conversion_failed, target.label)
             )
         } catch (error: Exception) {
+            failed(
+                input,
+                target,
+                startedAt,
+                ConversionFailureKind.UNKNOWN,
+                context.getString(R.string.err_conversion_failed, target.label)
+            )
+        } catch (error: Throwable) {
+            // A non-OOM Error is still one failed item, not a dead app: StackOverflowError from
+            // hostile nested input, UnsatisfiedLinkError/ExceptionInInitializerError when a
+            // native engine cannot load, NoClassDefFoundError after a bad update. Letting it
+            // escape would kill the process and leave the queue without its cleanup.
             failed(
                 input,
                 target,

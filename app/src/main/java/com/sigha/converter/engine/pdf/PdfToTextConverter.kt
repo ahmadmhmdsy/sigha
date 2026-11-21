@@ -124,6 +124,13 @@ internal class PdfToTextConverter(private val context: Context) : Converter {
                 "The page selection does not match this PDF, which has " + pageCount + " page(s)."
             )
         }
+        if (pages.size > MAX_PAGES) {
+            throw ConversionException(
+                "This PDF has more pages than the " + MAX_PAGES +
+                    "-page text limit. Select a page range first.",
+                kind = ConversionFailureKind.FILE_TOO_LARGE
+            )
+        }
         return pages
     }
 
@@ -203,5 +210,9 @@ internal class PdfToTextConverter(private val context: Context) : Converter {
         } catch (e: IOException) {
             false
         }
+    }
+
+    private companion object {
+        const val MAX_PAGES = 2000
     }
 }

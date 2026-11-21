@@ -2,6 +2,8 @@
 <resources>
     <!-- Failure headlines -->
     <string name="ui_error_unknown">فشل التحويل.</string>
+    <string name="ui_error_no_audio">لا يحتوي هذا الفيديو على مسار صوتي، لذا لا يوجد صوت لاستخراجه. اختر صيغة هدف أخرى أو ملفًا آخر.</string>
+    <string name="ui_error_no_video">لا يحتوي هذا الملف على مسار فيديو قابل للتحويل.</string>
     <string name="ui_error_password">ملف PDF محمي بكلمة مرور. أزل الحماية ثم أعد المحاولة.</string>
     <string name="ui_error_no_text_layer">لا يحتوي ملف PDF على طبقة نصية (يبدو أنه صورة ممسوحة). ثبّت حزمة OCR لقراءة الملفات الممسوحة.</string>
     <string name="ui_error_model_pack_missing">يحتاج هذا التحويل إلى حزمة نماذج. ثبّتها من الإعدادات ← حزم النماذج.</string>
@@ -30,6 +32,14 @@
     <string name="note_dates_as_serial">تبقى التواريخ أرقامًا تسلسلية في Excel.</string>
     <string name="note_markdown_simplified">يُبسَّط Markdown في ملف PDF؛ حُذفت الصور وHTML الخام.</string>
     <string name="note_ocr_fallback">لم توجد طبقة نصية، لذا استُخدم OCR.</string>
+    <plurals name="note_partial_publish">
+        <item quantity="zero">لم يُحفظ أي ملف من الملفات الناتجة.</item>
+        <item quantity="one">تعذّر حفظ ملف واحد؛ بقية الملفات في مجلد الحفظ.</item>
+        <item quantity="two">تعذّر حفظ ملفين؛ بقية الملفات في مجلد الحفظ.</item>
+        <item quantity="few">تعذّر حفظ %1$d ملفات؛ بقية الملفات في مجلد الحفظ.</item>
+        <item quantity="many">تعذّر حفظ %1$d ملفًا؛ بقية الملفات في مجلد الحفظ.</item>
+        <item quantity="other">تعذّر حفظ %1$d ملف؛ بقية الملفات في مجلد الحفظ.</item>
+    </plurals>
     <plurals name="note_pages_limited">
         <item quantity="zero">لم تُقرأ أي صفحة من أصل %2$d.</item>
         <item quantity="one">قُرئت الصفحة الأولى من أصل صفحة واحدة.</item>
@@ -139,6 +149,7 @@
     <string name="ui_no_file_picker">لا يوجد منتقي ملفات على هذا الجهاز.</string>
 
     <!-- Settings links -->
+    <string name="ui_settings_save_failed">تعذّر حفظ هذا الإعداد. أعد المحاولة.</string>
     <string name="ui_settings_privacy">سياسة الخصوصية</string>
     <string name="ui_settings_privacy_desc">ما تفعله صيغة بملفاتك وبياناتك.</string>
 </resources>

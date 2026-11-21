@@ -60,23 +60,24 @@ Release and bundle are **separate Gradle invocations on purpose**: AGP 8.9+ fail
 `app/build.gradle.kts` enables splits only when the requested task list does not contain
 `bundle`. Play splits the AAB itself, so the bundle does not need splits.
 
-Lint: **0 errors, 63 warnings** (`app/build/reports/lint-results-debug.txt`). The gate
-fails on any error; warnings are accepted for now. The five new warnings are the unused
-`model_packs_upscale_*` strings left behind when the unavailable upscaling card was removed; they
-are dead resources, not behaviour.
+Lint: **0 errors, 65 warnings** (`app/build/reports/lint-results-debug.txt`). The gate
+fails on any error; warnings are accepted for now, and the set is unchanged in kind: dead
+resources (`model_packs_upscale_*`), deprecation notices and benign API-level notes, not behaviour.
 
 ## 4. Unit tests (`:app:testDebugUnitTest`)
 
-**16 test classes, 137 tests, 0 failures, 0 errors, 0 skipped.**
+**18 test classes, 149 tests, 0 failures, 0 errors, 0 skipped.**
 
 | Test class | Tests |
 |---|---|
+| core.FormatRegistryTest | 3 |
 | core.RoutePlannerTest | 4 |
-| data.HistoryCodecTest | 8 |
+| core.TargetRulesTest | 6 |
+| data.HistoryCodecTest | 11 |
 | data.UniqueNamesTest | 7 |
 | engine.archive.ArchiveGuardsTest | 7 |
 | engine.data.CsvTest | 11 |
-| engine.data.JsonCsvTest | 12 |
+| engine.data.JsonCsvTest | 14 |
 | engine.media.FfmpegArgsTest | 26 |
 | engine.media.FfmpegProgressTest | 3 |
 | engine.PdfPageSelectionTest | 8 |
@@ -88,18 +89,22 @@ are dead resources, not behaviour.
 | model.OcrPageRangeTest | 7 |
 | model.PackCatalogTest | 6 |
 
+The 2026-11-21 additions cover the silent-video target rules (`TargetRulesTest`), catalogue
+id/extension integrity and unknown-id detection (`FormatRegistryTest`), corrupt-history-row
+isolation (`HistoryCodecTest`) and the JSON nesting guard (`JsonCsvTest`).
+
 Coverage is logic-level only: routing, argument builders, progress parsing, parsers, digests,
-pack catalogue. No Android framework, SAF, MediaStore, FFmpegKit or Tesseract code is exercised
-by JVM tests.
+pack catalogue, target rules. No Android framework, SAF, MediaStore, FFmpegKit or Tesseract code
+is exercised by JVM tests.
 
 ## 5. Debug APK facts (universal, the one the smoke test installs)
 
 | Fact | Value |
 |---|---|
 | Path | `app/build/outputs/apk/debug/app-universal-debug.apk` |
-| Size | **115,120,790 bytes** (109.8 MiB) |
-| SHA-256 | `C346BBAE99FD7C3B1C5B1721FBE262D7200EEE6222E231816A180F03683BCC86` |
-| ABI splits | `app-arm64-v8a-debug.apk` 68,798,114 B · `app-x86_64-debug.apk` 75,912,658 B |
+| Size | **115,141,034 bytes** (109.8 MiB) |
+| SHA-256 | `14F1969B15F58527D19A59A6AD826A9E9C6696ABEB686C2EB257180AF6D41A33` |
+| ABI splits | `app-arm64-v8a-debug.apk` 68,818,358 B · `app-x86_64-debug.apk` 75,932,902 B (SHA-256 `5D9EBC0F908E7A3A7AE14A766FE4662854BB3858C7B8C1B52D7982C03DC9BFFF`) |
 | Version | `versionCode 3`, `versionName 0.2.1` |
 | Package / label | `com.sigha.converter` · Sigha / صيغة |
 | minSdk / targetSdk | 26 / 36 |
@@ -121,10 +126,10 @@ Built with the git-ignored local verification keystore (`keystore/`, documented 
 
 | Artefact | Size | SHA-256 | Signature |
 |---|---|---|---|
-| `app-arm64-v8a-release.apk` | 49,817,303 B | `8E2B7D6CED9745CF1BDB49CF8BF262CEAD8BBF106A419FAEF47B86AA7A172406` | `apksigner verify` pass (CN=Sigha Local Verification) |
-| `app-x86_64-release.apk` | 56,931,847 B | `0F58728B8354FEC645625E5C4DAAE07DE0304764E0D3CA0D04C03D9315763BCA` | `apksigner verify` pass |
-| `app-universal-release.apk` | 96,139,979 B | `0832E6214BB4FDBA612FA89970301B6907506CD7E9F4F95C793A1B82154CDB03` | `apksigner verify` pass |
-| `app-release.aab` | 51,159,496 B | `CAC83C515489F75B108CCA02786539765BC56D0C6B0FB8741A247AD612E6CEA8` | built by AGP with the same signing config |
+| `app-arm64-v8a-release.apk` | 49,824,435 B | `2F081C6BCA4FB2EB60727041603DF5087F159BF3A8A16B6210C55CA3B4072B27` | `apksigner verify` pass (CN=Sigha Local Verification) |
+| `app-x86_64-release.apk` | 56,938,979 B | `36FF8E480AA37F17B92A1F8436C9AB08FB0281BEC6DCA9ED22876E565D0DD624` | `apksigner verify` pass |
+| `app-universal-release.apk` | 96,147,111 B | `EDE930827E6274039D248BB84C48655A17E4A9A240061878C1E1B6C7B64C94A5` | `apksigner verify` pass |
+| `app-release.aab` | 51,177,850 B | `C1240FEF55E9D398C71E3CE04D07FB1B1F98A6E3217E84B306A0BA40248B2DF8` | built by AGP with the same signing config |
 
 Release builds run R8 (`minifyRelease`, `shrinkReleaseResources`) and the release manifest does
 not opt into legacy native-lib extraction, so native libraries are page-aligned and stored
@@ -285,13 +290,13 @@ libraries stored uncompressed in the APK and loaded from there (not extracted at
 `android:foregroundServiceType="dataSync"`. The extracted universal APK is 96,144,613 B (the
 `.apks` container is 96,144,917 B).
 
-What this pass found and did **not** fix: while exercising a video→MP3 conversion on the AAB-derived
-build, the queue failed with the generic "Conversion failed." The sample clip
+What this pass found and did **not** fix at the time: while exercising a video→MP3 conversion on the
+AAB-derived build, the queue failed with the generic "Conversion failed." The sample clip
 (`/sdcard/Movies/clip-sage.mp4`, generated in an earlier visual pass) carries **no audio track** —
-verified by pulling the file and finding `vide`/`avc1` but no `soun`/`mp4a` atom. The failure is
-therefore correct behaviour for a silent video, but two product issues remain: (a) the video still
-offers every audio target, and (b) the message does not say why. Both are candidates for the next
-app-side pass; they are not a release-build regression (R8 did not change this path).
+verified by pulling the file and finding `vide`/`avc1` but no `soun`/`mp4a` atom. The failure was
+therefore correct behaviour for a silent video, but two product issues remained: (a) the video
+offered every audio target, and (b) the message did not say why. **Both are fixed in §11** (typed
+no-audio/no-video failures and audio-target hiding); this paragraph records the original finding.
 
 ### 7.4 Release conversion matrix and OCR runtime proof (2026-11-19, emulator-5554)
 
@@ -370,10 +375,11 @@ media/office targets, a 20+-file batch on the release build, and any physical ar
     sources, the scanned-PDF OCR fallback, the remaining 32 converters/targets (AAC, M4A, OGG, OPUS,
     FLAC, XLSX, PPTX, ODS, …) and multi-file batches. Those paths rest on the JVM suite and the debug
     build (§7.2), not on release-run evidence.
-12. **Silent media still offers audio targets.** A video with no audio track shows MP3/M4A/AAC/WAV/
-    FLAC/OGG/OPUS as targets and then fails with the generic "Conversion failed." (§7.3). Fix
-    candidate: probe the source with `MediaExtractor` and hide audio targets, or give the failure a
-    specific cause.
+12. ~~Silent media still offers audio targets.~~ **Fixed 2026-11-21** (§11): the workbench probes
+    the source with `MediaExtractor`, hides audio targets for a video with no audio track and shows
+    a one-line hint, and the media converters throw typed `NO_AUDIO_TRACK` / `NO_VIDEO_TRACK`
+    failures. Emulator evidence: silent clip → no audio chips, GIF written; video with AAC → all
+    seven audio targets, MP3 written.
 
 ## 9. Reproduce
 
@@ -396,9 +402,11 @@ Gradle/Kotlin daemons before `:app:clean` (Windows keeps the lint cache locked o
 
 ## 10. Verdict
 
-**Build, packaging and JVM verification: green.** Clean build, 137 unit tests, stored and 16
+**Build, packaging and JVM verification: green.** Clean build, 149 unit tests, stored and 16
 KB-aligned native libraries, zipalign, signed release APKs, an AAB and zero lint errors all pass
 from the commands in §9, and the claim-drift check keeps the public docs tied to measured numbers.
+The 2026-11-21 hardening pass (§11) re-ran the full gate green on the final tree
+(`verify-20261121-234013.json`).
 
 **Device verification: partial.** Install, cold start, resumed activity, a 120-event monkey run
 and an empty crash buffer are recorded. On the emulator, real conversions through the real
@@ -413,3 +421,61 @@ gate (`verify-20261119-004710.json`), and `verify.ps1 -ReleaseCandidate` still f
 placeholder markers in the shipped legal assets — deliberately, until the publisher supplies the
 legal name, contact, policy URL and LGPL mailbox. No tag, no AAB for Play and no closed test until
 then; the order is in `docs/plan/publisher-guide.md`.
+
+## 11. Production-hardening pass (2026-11-21, emulator-5558 / AVD `sighaqa36`)
+
+Scope: the fixes listed in `CHANGELOG.md` under "Production-hardening pass (2026-11-21)" and the
+council decision in `docs/council/2026-11-21-hardening/`. Same unreleased version
+(`versionCode 3`, `versionName 0.2.1`); no new formats or targets.
+
+### 11.1 Gate
+
+Full `scripts/verify.ps1` on the final tree: **ALL CHECKS PASSED**
+(`docs/qa/evidence/verify-20261121-234013.json`), and after the documentation edits the same
+checks re-passed on the exact committed tree with `-SkipBuild`
+(`docs/qa/evidence/verify-20261122-000407.json`). 149 unit tests in 18 classes, 0 failures;
+debug APK facts and 16 KB alignment as recorded in §5; release APKs/AAB regenerated and re-signed
+by the local QA key as recorded in §6; lint 0 errors / 65 warnings; EN↔AR parity clean; claim
+drift clean. The 21 shipped-legal placeholders are still reported, so `-ReleaseCandidate` still
+fails by design — that is the publisher's lane, not a code regression.
+
+### 11.2 Installed build
+
+`app/build/outputs/apk/debug/app-x86_64-debug.apk`, SHA-256
+`5D9EBC0F908E7A3A7AE14A766FE4662854BB3858C7B8C1B52D7982C03DC9BFFF`, signed with the debug key,
+installed with `adb install -r`. The emulator was a fresh API 36 x86_64 AVD with no prior app data.
+
+### 11.3 Runtime evidence through the real UI
+
+| Check | Result | Evidence |
+|---|---|---|
+| Silent video (no audio track) → GIF | **PASS** — one-line "audio targets are hidden" hint, **no audio chips**, GIF chip still offered, `Download/Sigha/clip-sage.gif` written and MediaStore-visible | `hardening-20261121/silent-video.png` |
+| Video **with** AAC audio → MP3 | **PASS** — hint absent, all seven audio chips (MP3, M4A, AAC, WAV, FLAC, OGG, OPUS), `with-audio.mp3` written | `hardening-20261121/audio-video.png` |
+| Workbench result row actions | **PASS** — a finished row exposes `Share` and `Open file` buttons plus "Saved to Download/Sigha/…"; the notification tap target was added in the same pass but is not separately automated | UI dump `hardening-20261121/workbench-share-ui.xml` |
+| Batch: PNG + TXT → PDF in one queue run | **PASS** — two files selected, "Convert 2 files to PDF", both outputs published (`uitest1.pdf`, `notes.pdf`) and found in `Download/Sigha/` | `hardening-20261121/batch.png` |
+| `scripts/device-smoke.ps1` on the same APK | **PASS** — install, cold start 3,293 ms, resumed activity, 120/120 monkey events, 0 crash entries | `device-smoke-20261122-000244.json` |
+
+Run notes, recorded rather than hidden:
+
+- The two older AVDs (`emulator-5554`, `emulator-5558`) are shared with another concurrent agent on
+  this host (a different app kept taking the foreground). After one collision the silent/audio checks
+  were rerun on the hardened APK and the batch + smoke run was moved to a dedicated AVD
+  (`sighaqa42`, `emulator-5564`) that nothing else used; the results above are from that clean run.
+- A failed batch attempt before the dedicated AVD was caused by that foreground collision (another
+  app's photo picker was on screen), not by Sigha; the same script then passed on the dedicated AVD.
+- The screenshot of the batch run shows the completed state with both PDFs queued; the outputs were
+  additionally re-read from MediaStore by the script.
+
+### 11.4 Not covered by this pass
+
+- **No arm64 and no physical device.** Every result above is x86_64 emulator, exactly like §7.
+- **Release APK/AAB were rebuilt but not reinstalled.** The post-hardening release artefacts are
+  signed and aligned (§6) but the release-run matrix in §7.4 predates these edits; run
+  `device-smoke.ps1` against `app-universal-release.apk` before the upload build.
+- **Not re-exercised in this pass:** archive sources, scanned-PDF OCR fallback, the office/archive
+  converters and the full 32-converter matrix (§7.4 stands as the last release-artefact matrix).
+- **API 26 legacy save path** was not re-run; the hardening changed the fallback branches, so the
+  §7.4 API 26 result should be repeated on the next release candidate.
+- The 21 legal placeholders, QA-key signature, Play account, owned domain/mailboxes, FGS
+  declaration/demo video and the closed-test clock are unchanged (see §10 and
+  `docs/legal/release-blockers.md`).

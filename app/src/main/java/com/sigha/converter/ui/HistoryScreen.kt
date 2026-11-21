@@ -116,7 +116,7 @@ fun HistoryScreen(modifier: Modifier = Modifier) {
                 contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(items = entries, key = { entry -> entry.timestamp.toString() + entry.outputUri }) { entry ->
+                items(items = entries) { entry ->
                     HistoryRow(
                         entry = entry,
                         onOpen = {

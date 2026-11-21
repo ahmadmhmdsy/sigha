@@ -60,6 +60,7 @@
     <string name="workbench_target_title">التحويل إلى</string>
     <string name="workbench_target_hint">اختر صيغة الهدف</string>
     <string name="workbench_no_target">لا توجد صيغة هدف مشتركة لهذه الملفات. جرّب ملفات من النوع نفسه.</string>
+    <string name="workbench_audio_hidden">أهداف الصوت مخفية لأن الفيديو المحدد لا يحتوي على مسار صوتي.</string>
     <string name="workbench_options_title">الخيارات</string>
     <string name="option_image_quality">جودة الصورة</string>
     <string name="option_value_percent">%1$d%%</string>
@@ -95,7 +96,8 @@
     <string name="workbench_detect_failed">تعذّر قراءة الملفات المحددة.</string>
     <string name="workbench_unsupported">ملف غير مدعوم: %1$s</string>
     <string name="workbench_storage_permission_message">اسمح بالوصول إلى التخزين ليتم حفظ الملفات المحوّلة في التنزيلات.</string>
-    <string name="workbench_storage_permission_denied">رُفض الوصول إلى التخزين، لذا لا يمكن حفظ الملفات في التنزيلات.</string>
+    <string name="workbench_storage_permission_denied">رُفض الوصول إلى التخزين، لذا لا يمكن حفظ الملفات في التنزيلات. يمكنك السماح به من الإعدادات، أو اختيار مجلد للحفظ من الإعدادات.</string>
+    <string name="action_open_settings">فتح الإعدادات</string>
     <!-- العدّان صيغتان منفصلتان؛ workbench_summary يجمع العبارتين. -->
     <string name="workbench_summary">%1$s · %2$s</string>
     <string name="workbench_summary_saved">%1$s · حُفظت في %2$s</string>

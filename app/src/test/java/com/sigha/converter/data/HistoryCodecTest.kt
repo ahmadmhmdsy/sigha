@@ -55,6 +55,19 @@ class HistoryCodecTest {
     }
 
     @Test
+    fun oneCorruptEntryDoesNotDiscardTheRest() {
+        // A row written by a different app version must cost one row, not the whole list.
+        val raw = """{"version":2,"entries":[""" +
+            """{"inputName":"a","outputName":"b","fromId":"jpg","toId":"pdf","timestamp":1},""" +
+            """{"inputName":42,"outputName":"broken"},""" +
+            """{"inputName":"c","outputName":"d","fromId":"png","toId":"jpg","timestamp":2}""" +
+            """]}"""
+        val decoded = HistoryCodec.decode(raw)
+        assertEquals(2, decoded.size)
+        assertEquals(listOf(1L, 2L), decoded.map { it.timestamp }.sorted())
+    }
+
+    @Test
     fun addPutsNewestEntryFirst() {
         val entries = listOf(entry(1L), entry(2L), entry(3L))
         val updated = HistoryCodec.add(entries, entry(99L))

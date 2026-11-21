@@ -4,6 +4,7 @@ import com.sigha.converter.core.Note
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -55,16 +56,21 @@ object HistoryCodec {
         // Notes used to be free-text English strings; drop those before decoding so a legacy
         // history file keeps its entries instead of failing into an empty list.
         val sanitized = stripLegacyNotes(raw)
-        return try {
-            json.decodeFromString<Payload>(sanitized).entries.take(MAX_ENTRIES)
-        } catch (_: Exception) {
-            // Older or unexpected shape: accept a bare array, otherwise give up quietly.
-            try {
-                json.decodeFromString<List<HistoryEntry>>(sanitized).take(MAX_ENTRIES)
-            } catch (_: Exception) {
-                emptyList()
-            }
-        }
+        // Decode entry by entry: one row written by a different app version (a renamed field,
+        // a note shape we no longer model) must not wipe the other 49 conversions the user
+        // expected to keep. Rows that still fail are dropped silently.
+        val root = runCatching { json.parseToJsonElement(sanitized) }.getOrNull()
+            ?: return emptyList()
+        val array = when (root) {
+            is JsonObject -> root["entries"] as? JsonArray
+            is JsonArray -> root
+            else -> null
+        } ?: return emptyList()
+        return array.mapNotNull { element ->
+            runCatching {
+                json.decodeFromJsonElement<HistoryEntry>(stripLegacyNote(element))
+            }.getOrNull()
+        }.filter { it.inputName.isNotBlank() && it.outputName.isNotBlank() }.take(MAX_ENTRIES)
     }
 
     /**

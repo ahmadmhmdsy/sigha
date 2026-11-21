@@ -239,6 +239,83 @@ and monkey-tested; now the R8-processed build has actually converted files.
 - One automation artefact recorded rather than hidden: the driver missed the PDF → TXT completion
   banner (the file and History row were already written), so that case is PASS on output evidence.
 
+### Production-hardening pass (2026-11-21)
+
+Same unreleased 0.2.1 build (versionCode 3), no new formats or targets. This pass closes the
+correctness and failure-path findings from the engine/app audits and the first upload-tree runs; it
+changes behaviour, not the capability catalogue.
+
+**Silent video (the 2026-11-19 finding).** The workbench now probes the selected video with
+`MediaExtractor` and hides audio targets when the file has no audio track, with a one-line hint;
+if the probe fails the targets stay visible and optimistic. The media converters throw typed
+`NO_AUDIO_TRACK` / `NO_VIDEO_TRACK` failures instead of a generic "Conversion failed", so even a
+residual mismatch names its cause. Verified end to end on the API 36 x86_64 emulator: silent clip →
+no audio chips, GIF still offered and written; video with AAC → all seven audio targets offered and
+MP3 written.
+
+**Nothing silently loses a file.**
+- Publishing is per output: a page that cannot be saved no longer discards the pages that were, the
+  result reports `PartialPublish(failed)`, and only a total failure raises `SAVE_FAILED`.
+- MediaStore inserts are one transaction with the pending row deleted on failure; the display name
+  is read back from the provider, and the legacy (API 26–28) path resolves the scanned URI by path
+  when `scanFile` returns null, so History cannot hold a dead `file://` row.
+- Copying to a SAF folder is cancellation-aware per buffer; the destination file name is read back.
+- A removed/revoked output folder falls back to Downloads with the existing `FolderFallback` note
+  instead of failing a conversion the user waited for.
+
+**Crash and error bounding.**
+- Every converter family is registered inside `runCatching`; a factory bug logs and skips that
+  family instead of crashing app start. The OCR family builds its format list defensively.
+- The queue's top-level catch now also handles non-`Exception` throwables (rethrows
+  `VirtualMachineError` except OOM, which becomes `FILE_TOO_LARGE`).
+- History decoding is per entry: a row written by another version is dropped, not the whole list;
+  legacy string notes are stripped; blank names are filtered.
+- Settings writes are wrapped and report `ui_settings_save_failed`; the theme/output-mode/
+  OCR-language/folder pickers can no longer throw out of a click handler.
+- `AppScope` has a `CoroutineExceptionHandler` that logs uncaught errors; the workbench
+  duplicate-key crash in History is gone; start-up lookups cannot `error()` the app.
+- Resource bounds: JSON nesting is checked before the recursive parser (`FILE_TOO_LARGE`;
+  `StackOverflowError` also maps there), text→PDF is capped at 400 pages, PDF→images at 500 pages
+  and PDF→text at 2,000 pages with an actionable "select a page range" message.
+- Pack download resume verifies a full-length `.part` before issuing a range request and restarts
+  from zero if it is corrupt; terminal HTTP 4xx answers do not loop.
+- Foreground service: `stopService` is used when no instance exists yet, the notification is
+  cancelled explicitly, `update()` no-ops after stop, and start-foreground failures cancel the
+  notification. The progress notification now has a tap target that brings the app back.
+- Storage denial on API 26–28 now offers a Settings action and keeps the SAF-folder escape hatch;
+  the workbench also treats a persisted-but-unusable folder as unavailable before Convert.
+
+**Subtle additions.**
+- Share is now on the workbench result row (Queue and History already had it) — the most common
+  next action after a conversion.
+- The action bar and completion copy name the real destination; partial batches say how many saved
+  and how many failed.
+
+**Tests.** +12 JVM tests (149 total, 18 classes, 0 failures): silent-video target rules, catalogue
+id/extension integrity (the drift that used to crash startup), corrupt-history-row isolation, legacy
+note stripping and JSON nesting rejection.
+
+**Docs.** New `docs/research/2026-11-21-ux-retention.md` and
+`docs/research/2026-11-21-competitive-gap.md` record the UX/retention and build-vs-buy research
+(completion contract, image-collection problem, PDF-workshop gap, ML Kit scanner, ComPDFKit/Apryse/
+ABBYY thresholds). `docs/council/2026-11-21-hardening/council-decision.md` records the readiness
+verdict and what remains.
+
+**Not fixed here:** the persistent result card and "Share all", completion notification, contextual
+POST_NOTIFICATIONS priming, batch retry-failed, image/video/audio collection routing, launcher
+shortcuts, History re-run/delete and "open folder/copy path". They are queued in the research notes;
+none is a crash path.
+
+Re-verified with `scripts/verify.ps1` on the final tree (149 tests, 0 failures; lint 0 errors,
+65 warnings; EN↔AR parity and claim drift clean; evidence
+`docs/qa/evidence/verify-20261121-234013.json`) and on an API 36 x86_64 emulator through the real
+UI: silent video → GIF with no audio chips and the hint visible, video with AAC → all seven audio
+chips and MP3, PNG+TXT batch → two PDFs in `Download/Sigha/`, the workbench result row exposes
+Share and Open, and `device-smoke.ps1` records a 3.3 s cold start, 120 monkey events and no crash
+(`device-smoke-20261122-000244.json`; screenshots in `docs/qa/evidence/hardening-20261121/`). Still
+not device-tested on arm64, still blocked on the human lane: use `verify.ps1 -ReleaseCandidate`
+when the publisher supplies the legal values.
+
 ## 0.2.0 — 2026-11-17 — production-readiness (closed-test build)
 
 First build intended for the Play **closed test**. Not published to any store. Nothing here is a

@@ -15,15 +15,15 @@ import com.sigha.converter.core.FormatRegistry
 @Suppress("UNUSED_PARAMETER")
 fun ocrConverters(app: Application): List<Converter> {
     val formats = FormatRegistry.DATA.associateBy { it.id }
-    fun format(id: String): FileFormat =
-        formats[id] ?: error("Unknown format id: " + id)
-
-    val text = format("txt")
+    // A catalogue edit that drops or renames an id must not crash app start: the affected
+    // OCR edge simply disappears from the planner until the ids agree again.
+    val text = formats["txt"] ?: return emptyList()
     val images = listOf("jpg", "png", "webp", "bmp", "gif", "heic")
-        .map { format(it) }
+        .mapNotNull { formats[it] }
         .toSet()
-    return listOf(
-        ImageToTextConverter(images, text),
-        PdfTextConverter(format("pdf"), text)
-    )
+    val pdf = formats["pdf"]
+    return buildList {
+        if (images.isNotEmpty()) add(ImageToTextConverter(images, text))
+        if (pdf != null) add(PdfTextConverter(pdf, text))
+    }
 }

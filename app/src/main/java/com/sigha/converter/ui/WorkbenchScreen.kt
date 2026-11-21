@@ -5,7 +5,9 @@ import android.content.pm.PackageManager
 import android.text.BidiFormatter
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +37,7 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.FormatListBulleted
 import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material3.AlertDialog
@@ -50,8 +53,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -86,6 +91,7 @@ import com.sigha.converter.core.FormatCategory
 import com.sigha.converter.data.ConversionInput
 import com.sigha.converter.data.OutputMode
 import com.sigha.converter.data.PackDownloadState
+import com.sigha.converter.data.PublishTarget
 import com.sigha.converter.data.Repo
 import com.sigha.converter.model.ModelPacks
 import com.sigha.converter.ui.components.EmptyState
@@ -138,16 +144,30 @@ fun WorkbenchScreen(
         if (granted) {
             viewModel.convert()
         } else {
+            // A denial is not a dead end: the user can grant it in Settings or pick an output
+            // folder there instead, so the snackbar carries the way out.
             scope.launch {
-                snackbarHostState.showSnackbar(context.getString(R.string.workbench_storage_permission_denied))
+                val result = snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.workbench_storage_permission_denied),
+                    actionLabel = context.getString(R.string.action_open_settings),
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Long
+                )
+                if (result == SnackbarResult.ActionPerformed) openAppSettings(context)
             }
         }
     }
 
     // API 29+ uses MediaStore, the folder mode uses a persisted SAF grant: neither needs
-    // WRITE_EXTERNAL_STORAGE. Only legacy Downloads publishing does.
+    // WRITE_EXTERNAL_STORAGE. Only legacy Downloads publishing does -- and that includes a
+    // chosen folder that is no longer writable, because the runner then falls back to Downloads.
+    val folderUnavailable = appSettings.outputMode == OutputMode.FOLDER && run {
+        val raw = appSettings.outputFolderUri ?: return@run true
+        val uri = runCatching { Uri.parse(raw) }.getOrNull() ?: return@run true
+        !Repo.publisher.hasWriteAccess(PublishTarget.Folder(uri))
+    }
     val needsStoragePermission = Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
-        appSettings.outputMode == OutputMode.DOWNLOADS
+        (appSettings.outputMode == OutputMode.DOWNLOADS || folderUnavailable)
 
     val requestConvert: () -> Unit = {
         val granted = !needsStoragePermission || ContextCompat.checkSelfPermission(
@@ -291,6 +311,7 @@ fun WorkbenchScreen(
                     TargetSection(
                         targets = state.targets,
                         selected = state.target,
+                        audioTargetsHidden = state.audioTargetsHidden,
                         onSelect = viewModel::selectTarget
                     )
                 }
@@ -381,10 +402,18 @@ private fun FileCard(
 private fun TargetSection(
     targets: List<FileFormat>,
     selected: FileFormat?,
+    audioTargetsHidden: Boolean,
     onSelect: (FileFormat) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionHeader(title = stringResource(R.string.workbench_target_title))
+        if (audioTargetsHidden) {
+            Text(
+                text = stringResource(R.string.workbench_audio_hidden),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         if (targets.isEmpty()) {
             SighaCard {
                 Text(
@@ -689,11 +718,23 @@ private fun ProgressRowItem(row: ProgressRow) {
         StatusPill(status = row.status)
         val output = row.outputUri
         if (row.status == QueueStatus.DONE && output != null) {
+            val mime = AppGraph.formats.get(row.toId)?.mimeOrDefault() ?: "*/*"
+            // Share is the first thing most people do with a converted file (send it on), and it
+            // used to exist only in the queue screen, which a single conversion never shows.
             IconButton(
                 onClick = {
-                    val mime = AppGraph.formats.get(row.toId)?.mimeOrDefault() ?: "*/*"
-                    openFileWith(context, output, mime)
+                    if (!shareFile(context, output, mime)) {
+                        Toast.makeText(context, R.string.queue_share_failed, Toast.LENGTH_SHORT).show()
+                    }
                 }
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Share,
+                    contentDescription = stringResource(R.string.action_share)
+                )
+            }
+            IconButton(
+                onClick = { openFileWith(context, output, mime) }
             ) {
                 Icon(
                     imageVector = Icons.Outlined.OpenInNew,

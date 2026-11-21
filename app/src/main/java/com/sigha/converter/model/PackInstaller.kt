@@ -62,7 +62,21 @@ internal class PackInstaller(private val context: Context) {
     ) {
         var lastError: IOException? = null
         for (attempt in 1..MAX_ATTEMPTS) {
-            val resumeAt = resumeOffset(file, part)
+            var resumeAt = resumeOffset(file, part)
+            if (resumeAt == file.sizeBytes) {
+                // The partial file already holds every byte (killed right after the last write,
+                // or a crash during install). Installing it is cheaper and safer than asking the
+                // server for "bytes=N-", which answers 416 and used to surface as a generic
+                // download failure. A failed hash check restarts from zero.
+                val complete = runCatching {
+                    verify(part, file)
+                    installFile(pack, file, part)
+                    true
+                }.getOrDefault(false)
+                if (complete) return
+                deleteQuietly(part)
+                resumeAt = 0L
+            }
             val connection = try {
                 open(file.url, resumeAt)
             } catch (error: IOException) {
@@ -134,7 +148,14 @@ internal class PackInstaller(private val context: Context) {
                 current = URL(URL(current), location).toString()
             } else {
                 connection.disconnect()
-                throw IOException("The download server answered with HTTP " + code + ".")
+                // 4xx means this URL will never serve the file: retrying it only delays the
+                // honest error. 408 and 429 are explicitly transient and stay retryable.
+                val transient = code == 408 || code == 429 || code == 416
+                val message = "The download server answered with HTTP " + code + "."
+                if (!transient && code in 400..499) {
+                    throw PackException(message)
+                }
+                throw IOException(message)
             }
         }
         throw IOException("Too many redirects.")

@@ -94,6 +94,17 @@ fun SettingsScreen(
         scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.ui_no_file_picker)) }
     }
 
+    // Every preference write can fail (DataStore I/O, a corrupted file). Failing inside a
+    // composition/viewModelScope launch would take the process down, so the write is confined
+    // here and reported in the snackbar instead.
+    val saveSettings: (suspend () -> Unit) -> Unit = { write ->
+        scope.launch {
+            runCatching { write() }.onFailure {
+                snackbarHostState.showSnackbar(context.getString(R.string.ui_settings_save_failed))
+            }
+        }
+    }
+
     val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
         if (uri != null) {
             // A tree the provider lets us read but not write would fail at save time; refuse it
@@ -115,7 +126,7 @@ fun SettingsScreen(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 )
             }
-            scope.launch {
+            saveSettings {
                 Repo.settings.setOutputFolder(uri.toString())
                 Repo.settings.setOutputMode(OutputMode.FOLDER)
             }
@@ -140,7 +151,7 @@ fun SettingsScreen(
             SighaCard {
                 ThemeSelector(
                     selected = settings.themeMode,
-                    onSelect = { mode -> scope.launch { Repo.settings.setThemeMode(mode) } }
+                    onSelect = { mode -> saveSettings { Repo.settings.setThemeMode(mode) } }
                 )
             }
 
@@ -157,7 +168,7 @@ fun SettingsScreen(
                             title = stringResource(R.string.output_mode_downloads),
                             description = stringResource(R.string.output_mode_downloads_desc),
                             selected = settings.outputMode == OutputMode.DOWNLOADS,
-                            onClick = { scope.launch { Repo.settings.setOutputMode(OutputMode.DOWNLOADS) } }
+                            onClick = { saveSettings { Repo.settings.setOutputMode(OutputMode.DOWNLOADS) } }
                         )
                         OutputModeRow(
                             title = stringResource(R.string.output_mode_folder),
@@ -167,7 +178,7 @@ fun SettingsScreen(
                                 if (settings.outputFolderUri.isNullOrBlank()) {
                                     folderPicker.launchSaf(null, showPickerMissing)
                                 } else {
-                                    scope.launch { Repo.settings.setOutputMode(OutputMode.FOLDER) }
+                                    saveSettings { Repo.settings.setOutputMode(OutputMode.FOLDER) }
                                 }
                             }
                         )
@@ -286,7 +297,7 @@ fun SettingsScreen(
                                     role = Role.RadioButton,
                                     onClick = {
                                         showOcrDialog = false
-                                        scope.launch { Repo.settings.setOcrLanguage(option.first) }
+                                        saveSettings { Repo.settings.setOcrLanguage(option.first) }
                                     }
                                 )
                                 .heightIn(min = 48.dp)

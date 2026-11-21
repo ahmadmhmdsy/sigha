@@ -2,6 +2,7 @@ package com.sigha.converter.engine.media
 
 import android.app.Application
 import com.sigha.converter.core.ConversionException
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
 import com.sigha.converter.core.Converter
@@ -32,7 +33,10 @@ internal class VideoConverter(app: Application) : Converter {
         val baseParams = request.options.toMediaParams()
         return runner.withMedia(request) { media ->
             if (media.probe.hasVideo == false) {
-                throw ConversionException("This file has no video track that can be converted.")
+                throw ConversionException(
+                    "This file has no video track that can be converted.",
+                    kind = ConversionFailureKind.NO_VIDEO_TRACK
+                )
             }
             if (request.isCancelled()) throw CancellationException("Conversion cancelled.")
             val needsEvenDimensions = media.probe.width?.let { width -> width % 2 != 0 } == true ||

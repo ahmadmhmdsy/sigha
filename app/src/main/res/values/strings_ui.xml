@@ -6,6 +6,8 @@
 <resources>
     <!-- Failure headlines -->
     <string name="ui_error_unknown">Conversion failed.</string>
+    <string name="ui_error_no_audio">This video has no audio track, so there is nothing to extract. Choose another target or file.</string>
+    <string name="ui_error_no_video">This file has no video track that can be converted.</string>
     <string name="ui_error_password">This PDF is password-protected. Remove the password and try again.</string>
     <string name="ui_error_no_text_layer">This PDF has no text layer (it looks like a scan). Install the OCR pack to read scanned PDFs.</string>
     <string name="ui_error_model_pack_missing">This conversion needs a model pack. Install it from Settings, then Model packs.</string>
@@ -34,6 +36,10 @@
     <string name="note_dates_as_serial">Dates stay as Excel serial numbers.</string>
     <string name="note_markdown_simplified">Markdown is simplified in the PDF; images and raw HTML were omitted.</string>
     <string name="note_ocr_fallback">No text layer was found, so OCR was used.</string>
+    <plurals name="note_partial_publish">
+        <item quantity="one">%1$d file could not be saved; the rest are in your output folder.</item>
+        <item quantity="other">%1$d files could not be saved; the rest are in your output folder.</item>
+    </plurals>
     <plurals name="note_pages_limited">
         <item quantity="one">Only the first %1$d of %2$d page was read.</item>
         <item quantity="other">Only the first %1$d of %2$d pages were read.</item>
@@ -103,6 +109,7 @@
     <string name="ui_no_file_picker">No file picker is available on this device.</string>
 
     <!-- Settings links -->
+    <string name="ui_settings_save_failed">Couldn\'t save that setting. Try again.</string>
     <string name="ui_settings_privacy">Privacy policy</string>
     <string name="ui_settings_privacy_desc">What Sigha does with your files and data.</string>
 </resources>

@@ -2,6 +2,7 @@ package com.sigha.converter.engine.media
 
 import android.app.Application
 import com.sigha.converter.core.ConversionException
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.ConversionResult
 import com.sigha.converter.core.Converter
@@ -30,7 +31,10 @@ internal class AudioConverter(app: Application) : Converter {
         val params = request.options.toMediaParams()
         return runner.withMedia(request) { media ->
             if (media.probe.hasAudio == false) {
-                throw ConversionException("This file has no audio track that can be converted.")
+                throw ConversionException(
+                    "This file has no audio track that can be converted.",
+                    kind = ConversionFailureKind.NO_AUDIO_TRACK
+                )
             }
             if (request.isCancelled()) throw CancellationException("Conversion cancelled.")
             val plannedDuration = FfmpegArgs.plannedDurationMs(media.probe.durationMs, params)
