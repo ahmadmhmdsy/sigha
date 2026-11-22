@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.sigha.converter.core.FormatCategory
 import com.sigha.converter.model.OcrLanguages
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +34,14 @@ data class AppSettings(
     val outputMode: OutputMode = OutputMode.DOWNLOADS,
     val outputFolderUri: String? = null,
     /** Tesseract language tag, e.g. "eng", "ara", "eng+ara". */
-    val ocrLanguage: String = DEFAULT_OCR_LANGUAGE
+    val ocrLanguage: String = DEFAULT_OCR_LANGUAGE,
+    /**
+     * Last target the user picked for each source category, e.g. IMAGE -> "jpg". The second
+     * conversion of the same kind then starts with the same target preselected, one tap.
+     */
+    val lastTargets: Map<FormatCategory, String> = emptyMap(),
+    /** True once the notification rationale was shown, so the app never asks twice. */
+    val notificationsAsked: Boolean = false
 ) {
     companion object {
         /**
@@ -111,6 +119,15 @@ class SettingsStore(context: Context) {
         store.edit { it[KEY_OCR_LANGUAGE] = language.trim().lowercase().ifBlank { AppSettings.DEFAULT_OCR_LANGUAGE } }
     }
 
+    /** Remembers the target chosen for [category]; a stored target is only a preselection. */
+    suspend fun setLastTarget(category: FormatCategory, targetId: String) {
+        store.edit { preferences -> preferences[lastTargetKey(category)] = targetId }
+    }
+
+    suspend fun markNotificationsAsked() {
+        store.edit { preferences -> preferences[KEY_NOTIFICATIONS_ASKED] = true }
+    }
+
     private fun read(preferences: Preferences): AppSettings {
         val theme = ThemeMode.entries.firstOrNull { it.name == preferences[KEY_THEME] }
         val mode = OutputMode.entries.firstOrNull { it.name == preferences[KEY_OUTPUT_MODE] }
@@ -120,7 +137,13 @@ class SettingsStore(context: Context) {
             outputFolderUri = preferences[KEY_OUTPUT_FOLDER]?.takeIf { it.isNotBlank() },
             ocrLanguage = preferences[KEY_OCR_LANGUAGE]
                 ?.takeIf { it.isNotBlank() }
-                ?: defaultOcrLanguage
+                ?: defaultOcrLanguage,
+            lastTargets = FormatCategory.entries.mapNotNull { category ->
+                preferences[lastTargetKey(category)]
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { targetId -> category to targetId }
+            }.toMap(),
+            notificationsAsked = preferences[KEY_NOTIFICATIONS_ASKED] == true
         )
     }
 
@@ -130,5 +153,9 @@ class SettingsStore(context: Context) {
         val KEY_OUTPUT_FOLDER = stringPreferencesKey("output_folder_uri")
         val KEY_OCR_LANGUAGE = stringPreferencesKey("ocr_language")
         val KEY_BATCH_ACTIVE = booleanPreferencesKey("batch_active")
+        val KEY_NOTIFICATIONS_ASKED = booleanPreferencesKey("notifications_asked")
+
+        /** One stable key per category keeps a corrupt/renamed target id from leaking across. */
+        fun lastTargetKey(category: FormatCategory) = stringPreferencesKey("last_target_" + category.name.lowercase())
     }
 }

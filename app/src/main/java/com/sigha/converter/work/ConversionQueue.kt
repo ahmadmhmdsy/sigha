@@ -32,6 +32,12 @@ import kotlinx.coroutines.withContext
 
 enum class QueueStatus { QUEUED, RUNNING, DONE, FAILED, CANCELLED }
 
+/**
+ * Outcome of [ConversionQueue.retryFailed]: the ids that started converting again, plus how many
+ * failed rows were left in place because their source can no longer be opened.
+ */
+data class RetryOutcome(val startedIds: List<String>, val lostCount: Int)
+
 /** One row of the conversion queue. */
 data class QueueEntry(
     val id: String,
@@ -50,7 +56,15 @@ data class QueueEntry(
     /** Typed engine note (page cap, OCR fallback, truncation, ...); the UI localizes it. */
     val note: Note? = null,
     val createdAt: Long = System.currentTimeMillis(),
-    val finishedAt: Long? = null
+    val finishedAt: Long? = null,
+    /**
+     * Input kept only so a failed row can be retried without re-picking: the URI plus the
+     * facts detection already worked out. The persisted read grant is held until the row is
+     * cleared, so an immediate retry does not hit a revoked grant.
+     */
+    val sourceUri: Uri? = null,
+    val sourceSize: Long? = null,
+    val sourceHasAudio: Boolean? = null
 )
 
 /**
@@ -78,6 +92,10 @@ class ConversionQueue(
 
     private var activeJob: Job? = null
 
+    /** Kept so "Retry failed" can re-enqueue the same target without another decision. */
+    private var lastTarget: FileFormat? = null
+    private var lastOptions: ConversionOptions? = null
+
     val isRunning: Boolean get() = activeJob?.isActive == true
 
     /**
@@ -91,9 +109,14 @@ class ConversionQueue(
                 id = UUID.randomUUID().toString(),
                 displayName = input.displayName,
                 fromId = input.format.id,
-                toId = target.id
+                toId = target.id,
+                sourceUri = input.uri,
+                sourceSize = input.sizeBytes,
+                sourceHasAudio = input.hasAudio
             )
         }
+        lastTarget = target
+        lastOptions = options
         // Every row of the batch stays visible: the queue used to show 60 rows while the
         // runner converted all inputs, so files beyond the cap had progress nowhere.
         _entries.update { current -> batch + current }
@@ -136,9 +159,8 @@ class ConversionQueue(
                 // A failing DataStore write must never crash the process from a finally block;
                 // the durable flag stays set so the next launch can still report the interruption.
                 withContext(NonCancellable) { runCatching { settingsStore.markBatchActive(false) } }
-                inputs.forEach { input ->
-                    runCatching { releasePersistableReadPermission(context, input.uri) }
-                }
+                // Read grants are NOT released here: a failed row must stay retryable with one
+                // tap. They are released when the row is cleared (clearFinished) or removed.
                 val job = coroutineContext[Job]
                 if (job?.isActive == false) {
                     markUnfinished(status = QueueStatus.CANCELLED, message = null)
@@ -165,10 +187,88 @@ class ConversionQueue(
         markUnfinished(status = QueueStatus.CANCELLED, message = null)
     }
 
-    /** Removes finished rows from the queue list. Active rows stay. */
+    /** Removes finished rows from the queue list and releases their input grants. */
     fun clearFinished() {
+        val removed = _entries.value.filter {
+            it.status == QueueStatus.DONE ||
+                it.status == QueueStatus.FAILED ||
+                it.status == QueueStatus.CANCELLED
+        }
         _entries.update { current ->
             current.filter { it.status == QueueStatus.QUEUED || it.status == QueueStatus.RUNNING }
+        }
+        removed.forEach { entry ->
+            entry.sourceUri?.let { uri ->
+                runCatching { releasePersistableReadPermission(context, uri) }
+            }
+        }
+    }
+
+    /**
+     * Re-enqueues every FAILED row from the last batch with the same target and options.
+     *
+     * A row whose source can no longer be opened is left in place with
+     * [ConversionFailureKind.FILE_ACCESS_LOST] instead of being retried into the same failure;
+     * the returned [RetryOutcome.lostCount] lets the screen stay quiet instead of contradicting
+     * the row with a second "nothing to retry" message.
+     */
+    fun retryFailed(): RetryOutcome {
+        if (isRunning) return RetryOutcome(emptyList(), 0)
+        val allFailed = _entries.value.filter { it.status == QueueStatus.FAILED }
+        // A source that can no longer be opened is not a retry candidate: the row already tells
+        // the user to add it again, and trying would only repeat the same failure.
+        val failed = allFailed.filter { it.errorKind != ConversionFailureKind.FILE_ACCESS_LOST }
+        if (failed.isEmpty()) {
+            return RetryOutcome(emptyList(), allFailed.count {
+                it.errorKind == ConversionFailureKind.FILE_ACCESS_LOST
+            })
+        }
+        val formats = com.sigha.converter.AppGraph.formats
+        val target = lastTarget
+            ?: failed.firstOrNull()?.toId?.let { id -> formats.get(id) }
+            ?: return RetryOutcome(emptyList(), 0)
+        val retryEntries = ArrayList<QueueEntry>(failed.size)
+        val retryInputs = ArrayList<ConversionInput>(failed.size)
+        var lostCount = 0
+        failed.forEach { entry ->
+            val uri = entry.sourceUri
+            val format = formats.get(entry.fromId)
+            if (uri == null || format == null) {
+                markUnreadable(entry.id)
+                lostCount++
+                return@forEach
+            }
+            val readable = runCatching {
+                context.contentResolver.openInputStream(uri)?.use { true } ?: false
+            }.getOrDefault(false)
+            if (!readable) {
+                markUnreadable(entry.id)
+                lostCount++
+                return@forEach
+            }
+            retryEntries += entry
+            retryInputs += ConversionInput(
+                uri = uri,
+                displayName = entry.displayName,
+                sizeBytes = entry.sourceSize,
+                format = format,
+                hasAudio = entry.sourceHasAudio
+            )
+        }
+        if (retryInputs.isEmpty()) return RetryOutcome(emptyList(), lostCount)
+        // Replace the failed rows instead of stacking duplicates next to them.
+        val retriedIds = retryEntries.mapTo(HashSet()) { it.id }
+        _entries.update { current -> current.filterNot { it.id in retriedIds } }
+        return RetryOutcome(start(retryInputs, target, lastOptions ?: ConversionOptions()), lostCount)
+    }
+
+    private fun markUnreadable(id: String) {
+        update(id) { current ->
+            current.copy(
+                status = QueueStatus.FAILED,
+                errorKind = ConversionFailureKind.FILE_ACCESS_LOST,
+                errorMessage = context.getString(R.string.err_file_access_lost)
+            )
         }
     }
 

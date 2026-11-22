@@ -1,0 +1,212 @@
+{
+  "generatedAt": "2026-11-22T21:48:49.8530535+03:00",
+  "apk": "E:\\android_apps\\digital_converter\\app\\build\\outputs\\apk\\debug\\app-x86_64-debug.apk",
+  "serial": "emulator-5700",
+  "facts": {
+    "sdk": "36",
+    "abi": "x86_64",
+    "model": "Android SDK built for x86_64"
+  },
+  "steps": [
+    {
+      "step": "debug APK exists",
+      "ok": true,
+      "detail": "E:\\android_apps\\digital_converter\\app\\build\\outputs\\apk\\debug\\app-x86_64-debug.apk"
+    },
+    {
+      "step": "device attached",
+      "ok": true,
+      "detail": "127.0.0.1:5701, emulator-5564, emulator-5700"
+    },
+    {
+      "step": "requested serial attached",
+      "ok": true,
+      "detail": "emulator-5700"
+    },
+    {
+      "step": "APK installed",
+      "ok": true,
+      "detail": "Performing Streamed Install\r\nSuccess"
+    },
+    {
+      "step": "fixtures on device",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "workbench ready",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "two images selected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "JPG target selected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "convert action offered",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "contextual notification rationale shown before converting",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "system notification prompt shown",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "image batch reports Pictures/Sigha",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "both JPGs on disk in Pictures/Sigha",
+      "ok": true,
+      "detail": "count=2"
+    },
+    {
+      "step": "MediaStore images expose Pictures/Sigha",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "selection cleared before memory check",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "single image re-picked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "last JPG target remembered for images",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "corrupt image picked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "retry-failed button after a conversion failure",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "retry re-ran the same file without re-picking",
+      "ok": true,
+      "detail": "attempts=2"
+    },
+    {
+      "step": "deleted source reported as FILE_ACCESS_LOST",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "lost source offers no dead retry action",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "text file picked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "PDF target selected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "text conversion reports Download/Sigha",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "note.pdf on disk in Download/Sigha",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "WAV picked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "MP3 target selected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "audio conversion reports Music/Sigha",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "tone.mp3 on disk in Music/Sigha",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "MediaStore audio exposes Music/Sigha",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "notification permission granted through priming",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "settings shows Completion alerts row",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "row opens system notification settings",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "second batch picked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "completion notification while backgrounded",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "no app crash during the run",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "shots": [
+    "00-two-images.png",
+    "01-notification-priming.png",
+    "02-permission-prompt.png",
+    "03-pictures-saved.png",
+    "04-remembered-target.png",
+    "04b-broken-selected.png",
+    "05-retry-button.png",
+    "05c-retry-again.png",
+    "06-file-access-lost.png",
+    "05b-audio-targets.png",
+    "07-settings-notifications.png",
+    "08-final.png"
+  ],
+  "failures": []
+}

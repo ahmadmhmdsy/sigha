@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sigha.converter.AppGraph
 import com.sigha.converter.R
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.work.QueueEntry
 import com.sigha.converter.data.Repo
 import com.sigha.converter.ui.components.EmptyState
@@ -86,6 +87,12 @@ fun QueueScreen(
     val active = entries.filter { it.status == QueueStatus.QUEUED || it.status == QueueStatus.RUNNING }
     val finished = entries.filter {
         it.status == QueueStatus.DONE || it.status == QueueStatus.FAILED || it.status == QueueStatus.CANCELLED
+    }
+    val failedEntries = finished.filter { it.status == QueueStatus.FAILED }
+    // Sources lost since the batch started are shown as failed but cannot be retried; the rows
+    // explain that the file has to be added again.
+    val retryableFailures = failedEntries.filter {
+        it.errorKind != ConversionFailureKind.FILE_ACCESS_LOST
     }
 
     Scaffold(
@@ -171,6 +178,34 @@ fun QueueScreen(
                     }
                 }
                 if (finished.isNotEmpty()) {
+                    if (retryableFailures.isNotEmpty() && active.isEmpty()) {
+                        item {
+                            // One tap retries every failed row with the same target and options,
+                            // so a batch that hit a transient engine problem never has to be
+                            // rebuilt by hand.
+                            Button(
+                                onClick = {
+                                    val outcome = Repo.queue.retryFailed()
+                                    if (outcome.startedIds.isEmpty() && outcome.lostCount == 0) {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                context.getString(R.string.queue_retry_unavailable)
+                                            )
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    pluralStringResource(
+                                        R.plurals.queue_retry_failed,
+                                        retryableFailures.size,
+                                        retryableFailures.size
+                                    )
+                                )
+                            }
+                        }
+                    }
                     item {
                         val doneEntries = finished.filter {
                             it.status == QueueStatus.DONE && it.outputUri != null

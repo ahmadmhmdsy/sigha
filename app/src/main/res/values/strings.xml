@@ -147,8 +147,8 @@
     <string name="theme_dark">Dark</string>
     <string name="settings_output">Output</string>
     <string name="settings_output_mode">Save converted files</string>
-    <string name="output_mode_downloads">Download/Sigha</string>
-    <string name="output_mode_downloads_desc">Every file lands in the public Downloads folder.</string>
+    <string name="output_mode_downloads">Automatic folders</string>
+    <string name="output_mode_downloads_desc">Photos and videos go to Pictures/Movies, audio to Music, documents to Download/Sigha.</string>
     <string name="output_mode_folder">Choose a folder</string>
     <string name="output_mode_folder_desc">Pick one folder once and reuse it.</string>
     <string name="settings_folder_none">No folder chosen</string>
@@ -231,6 +231,19 @@
     <string name="err_save_failed">Couldn’t save the converted file.</string>
     <string name="err_storage_permission">Storage permission is needed to save files to Downloads.</string>
     <string name="err_output_folder">Couldn’t write to the chosen folder. Pick it again in Settings.</string>
+    <string name="err_file_access_lost">This file can’t be opened any more. Add it again to retry.</string>
+    <string name="queue_retry_unavailable">Nothing to retry.</string>
+    <plurals name="queue_retry_failed">
+        <item quantity="one">Retry failed (%1$d)</item>
+        <item quantity="other">Retry failed (%1$d)</item>
+    </plurals>
+    <string name="notif_prime_title">Turn on notifications?</string>
+    <string name="notif_prime_body">Sigha can tell you when a longer conversion finishes, even if you leave the app. That is the only notification it sends.</string>
+    <string name="notif_prime_turn_on">Turn on</string>
+    <string name="notif_prime_not_now">Not now</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_title">Completion alerts</string>
+    <string name="settings_notifications_desc">Finished-conversion alerts; opens the system settings.</string>
     <string name="err_read_file">Couldn’t read this file.</string>
 
 </resources>

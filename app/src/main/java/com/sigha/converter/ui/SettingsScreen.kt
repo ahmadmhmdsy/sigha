@@ -31,6 +31,7 @@ import androidx.compose.material.icons.outlined.Extension
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -226,6 +227,18 @@ fun SettingsScreen(
                         }
                     }
                 }
+            }
+
+            // The permission itself is asked contextually at convert time; this row is the
+            // escape hatch when the user dismissed the prompt or revoked it later in Settings.
+            SectionHeader(title = stringResource(R.string.settings_notifications))
+            SighaCard {
+                SettingsNavRow(
+                    icon = Icons.Outlined.Notifications,
+                    title = stringResource(R.string.settings_notifications_title),
+                    description = stringResource(R.string.settings_notifications_desc),
+                    onClick = { openNotificationSettings(context) }
+                )
             }
 
             SectionHeader(title = stringResource(R.string.settings_ocr))

@@ -18,6 +18,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.sigha.converter.R
 import com.sigha.converter.core.ConversionException
 import com.sigha.converter.core.ConversionFailureKind
+import com.sigha.converter.core.OutputDestination
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -71,7 +72,8 @@ class OutputPublisher(private val context: Context) {
         source: File,
         fileName: String,
         mime: String,
-        target: PublishTarget
+        target: PublishTarget,
+        destination: OutputDestination = OutputDestination.DOWNLOADS
     ): PublishedOutput = withContext(Dispatchers.IO) {
         if (!source.isFile || source.length() <= 0L) {
             throw ConversionException(
@@ -83,30 +85,58 @@ class OutputPublisher(private val context: Context) {
         when (target) {
             PublishTarget.Downloads ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    publishToMediaStore(source, fileName, safeMime)
+                    publishToMediaStore(source, fileName, safeMime, destination)
                 } else {
-                    publishToLegacyDownloads(source, fileName, safeMime)
+                    publishToLegacyDownloads(source, fileName, safeMime, destination)
                 }
             is PublishTarget.Folder -> publishToFolder(source, fileName, safeMime, target.treeUri)
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private suspend fun publishToMediaStore(source: File, fileName: String, mime: String): PublishedOutput {
+    private suspend fun publishToMediaStore(
+        source: File,
+        fileName: String,
+        mime: String,
+        destination: OutputDestination
+    ): PublishedOutput {
+        // Gallery and video apps read MediaStore.Images/Video/Audio, not the Downloads
+        // collection, so a converted picture kept in Downloads is invisible where the user
+        // looks first. Routing by media type is the real "where did my file go?" fix. If an OEM
+        // provider rejects the specific collection, fall back to Downloads instead of failing
+        // a conversion the user already waited for.
+        try {
+            return insertIntoCollection(source, fileName, mime, destination)
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            if (destination == OutputDestination.DOWNLOADS) throw error
+            return insertIntoCollection(source, fileName, mime, OutputDestination.DOWNLOADS)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private suspend fun insertIntoCollection(
+        source: File,
+        fileName: String,
+        mime: String,
+        destination: OutputDestination
+    ): PublishedOutput {
         val resolver = context.contentResolver
-        val relativePath = Environment.DIRECTORY_DOWNLOADS + "/" + SUBFOLDER
+        val collection = collectionFor(destination)
+        val relativePath = destination.folderName
         val displayName = UniqueNames.unique(fileName) { candidate ->
-            mediaStoreNameExists(resolver, candidate, relativePath)
+            mediaStoreNameExists(resolver, collection, candidate, relativePath)
         }
         val values = ContentValues().apply {
-            put(MediaStore.Downloads.DISPLAY_NAME, displayName)
-            put(MediaStore.Downloads.MIME_TYPE, mime)
-            put(MediaStore.Downloads.RELATIVE_PATH, relativePath)
-            put(MediaStore.Downloads.IS_PENDING, 1)
+            put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+            put(MediaStore.MediaColumns.MIME_TYPE, mime)
+            put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
         var uri: Uri? = null
         try {
-            uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+            uri = resolver.insert(collection, values)
                 ?: throw ConversionException(
                     context.getString(R.string.err_save_failed),
                     kind = ConversionFailureKind.SAVE_FAILED
@@ -117,7 +147,7 @@ class OutputPublisher(private val context: Context) {
                 context.getString(R.string.err_save_failed),
                 kind = ConversionFailureKind.SAVE_FAILED
             )
-            val finished = ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) }
+            val finished = ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }
             resolver.update(uri, finished, null, null)
         } catch (error: Exception) {
             uri?.let { pending -> runCatching { resolver.delete(pending, null, null) } }
@@ -141,26 +171,39 @@ class OutputPublisher(private val context: Context) {
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun mediaStoreNameExists(resolver: ContentResolver, name: String, relativePath: String): Boolean {
-        val selection = MediaStore.Downloads.DISPLAY_NAME + " = ? AND (" +
-            MediaStore.Downloads.RELATIVE_PATH + " = ? OR " +
-            MediaStore.Downloads.RELATIVE_PATH + " = ?)"
+    private fun collectionFor(destination: OutputDestination): Uri = when (destination) {
+        OutputDestination.IMAGES -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        OutputDestination.VIDEO -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        OutputDestination.AUDIO -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        OutputDestination.DOWNLOADS -> MediaStore.Downloads.EXTERNAL_CONTENT_URI
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun mediaStoreNameExists(
+        resolver: ContentResolver,
+        collection: Uri,
+        name: String,
+        relativePath: String
+    ): Boolean {
+        val selection = MediaStore.MediaColumns.DISPLAY_NAME + " = ? AND (" +
+            MediaStore.MediaColumns.RELATIVE_PATH + " = ? OR " +
+            MediaStore.MediaColumns.RELATIVE_PATH + " = ?)"
         val args = arrayOf(name, relativePath, relativePath + "/")
         return try {
-            resolver.query(
-                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-                arrayOf(BaseColumns._ID),
-                selection,
-                args,
-                null
-            )?.use { cursor -> cursor.moveToFirst() } == true
+            resolver.query(collection, arrayOf(BaseColumns._ID), selection, args, null)
+                ?.use { cursor -> cursor.moveToFirst() } == true
         } catch (_: Exception) {
             false
         }
     }
 
     @Suppress("DEPRECATION")
-    private suspend fun publishToLegacyDownloads(source: File, fileName: String, mime: String): PublishedOutput {
+    private suspend fun publishToLegacyDownloads(
+        source: File,
+        fileName: String,
+        mime: String,
+        destination: OutputDestination
+    ): PublishedOutput {
         if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -171,7 +214,7 @@ class OutputPublisher(private val context: Context) {
                 kind = ConversionFailureKind.STORAGE_PERMISSION
             )
         }
-        val root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val root = Environment.getExternalStoragePublicDirectory(destination.legacyDirectory)
         val directory = File(root, SUBFOLDER)
         if (!directory.isDirectory && !directory.mkdirs()) {
             throw ConversionException(
@@ -180,11 +223,11 @@ class OutputPublisher(private val context: Context) {
             )
         }
         val displayName = UniqueNames.unique(fileName) { candidate -> File(directory, candidate).exists() }
-        val destination = File(directory, displayName)
+        val destinationFile = File(directory, displayName)
         try {
-            destination.outputStream().use { output -> copyCancellable(source, output) }
+            destinationFile.outputStream().use { output -> copyCancellable(source, output) }
         } catch (error: Exception) {
-            runCatching { destination.delete() }
+            runCatching { destinationFile.delete() }
             throw ConversionException(
                 context.getString(R.string.err_save_failed),
                 error,
@@ -194,15 +237,15 @@ class OutputPublisher(private val context: Context) {
         // The file is already on disk and visible to file managers even when the media scanner
         // is slow or never calls back on this ROM (some API 26-28 builds). Reporting SAVE_FAILED
         // there would make the user convert the same file again and collect duplicates.
-        val uri = scanIntoMediaStore(destination, mime)
-            ?: resolveMediaStoreUriByPath(destination)
-            ?: Uri.fromFile(destination)
+        val uri = scanIntoMediaStore(destinationFile, mime)
+            ?: resolveMediaStoreUriByPath(destinationFile)
+            ?: Uri.fromFile(destinationFile)
         return PublishedOutput(
             fileName = displayName,
             mime = mime,
             uri = uri,
-            displayPath = Environment.DIRECTORY_DOWNLOADS + "/" + SUBFOLDER + "/" + displayName,
-            sizeBytes = destination.length()
+            displayPath = destination.folderName + "/" + displayName,
+            sizeBytes = destinationFile.length()
         )
     }
 
@@ -308,7 +351,7 @@ class OutputPublisher(private val context: Context) {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun readBackDisplayName(resolver: ContentResolver, uri: Uri): String? = runCatching {
-        resolver.query(uri, arrayOf(MediaStore.Downloads.DISPLAY_NAME), null, null, null)
+        resolver.query(uri, arrayOf(MediaStore.MediaColumns.DISPLAY_NAME), null, null, null)
             ?.use { cursor -> if (cursor.moveToFirst()) cursor.getString(0) else null }
     }.getOrNull()
 

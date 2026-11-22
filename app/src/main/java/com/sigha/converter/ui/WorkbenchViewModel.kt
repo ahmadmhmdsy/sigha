@@ -209,6 +209,19 @@ class WorkbenchViewModel : ViewModel() {
                 withDerived(current.copy(target = format))
             }
         }
+        persistLastTarget(format)
+    }
+
+    /** Remembers the target so the next file of the same kind starts one tap from Convert. */
+    private fun persistLastTarget(format: FileFormat) {
+        viewModelScope.launch {
+            runCatching {
+                val files = _state.value.files
+                val category = files.map { it.format.category }.distinct().singleOrNull()
+                    ?: files.firstOrNull()?.format?.category
+                if (category != null) settings.setLastTarget(category, format.id)
+            }
+        }
     }
 
     fun setQuality(value: Int) {
@@ -247,6 +260,7 @@ class WorkbenchViewModel : ViewModel() {
             return
         }
         val options = current.options.copy(ocrLanguage = settings.settings.value.ocrLanguage)
+        persistLastTarget(target)
         val ids = queue.start(current.files, target, options)
         if (ids.isEmpty()) {
             _messages.tryEmit(context.getString(R.string.ui_queue_busy))
@@ -275,6 +289,23 @@ class WorkbenchViewModel : ViewModel() {
         if (_state.value.isConverting) return
         batchIds = emptyList()
         _state.update { it.copy(progressRows = emptyList()) }
+    }
+
+    /** Retries the failed rows of the last batch; no re-picking, same target and options. */
+    fun retryFailed() {
+        if (_state.value.isConverting) return
+        val outcome = queue.retryFailed()
+        if (outcome.startedIds.isEmpty()) {
+            // A row whose source vanished already says to add the file again; a second
+            // "nothing to retry" message here would contradict it.
+            if (outcome.lostCount == 0) {
+                _messages.tryEmit(context.getString(R.string.queue_retry_unavailable))
+            }
+            return
+        }
+        batchIds = outcome.startedIds
+        batchSummarised = false
+        _state.update { it.copy(isConverting = true) }
     }
 
     private fun syncProgress(entries: List<QueueEntry>) {
@@ -369,7 +400,15 @@ class WorkbenchViewModel : ViewModel() {
      */
     private fun withDerived(state: WorkbenchUiState): WorkbenchUiState {
         val targets = computeTargets(state.files)
+        // Second run of the same kind: preselect the target used last time while it is still
+        // reachable for this selection. A mixed selection has no single category, so it keeps
+        // whatever the user chose.
+        val primaryCategory = state.files.map { it.format.category }.distinct().singleOrNull()
+        val rememberedId = primaryCategory?.let { category ->
+            settings.settings.value.lastTargets[category]
+        }
         val target = state.target?.takeIf { selected -> targets.any { it.id == selected.id } }
+            ?: rememberedId?.let { id -> targets.firstOrNull { it.id == id } }
         val categories = (state.files.map { it.format.category } + listOfNotNull(target?.category)).toSet()
         val showQuality = FormatCategory.IMAGE in categories
         val showBitrate = FormatCategory.AUDIO in categories || FormatCategory.VIDEO in categories

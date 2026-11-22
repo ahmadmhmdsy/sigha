@@ -366,6 +366,68 @@ the API 36 x86_64 AVD `sighaqa42` (`emulator-5564`), evidence
 items in the research notes (persistent result card, batch retry-failed, re-run/delete from History,
 collection routing, launcher shortcuts, contextual notification priming).
 
+### Output routing, retry, and notification priming (2026-11-22)
+
+Same unreleased 0.2.1 build (versionCode 3), still no new formats or targets. The pass lands the four
+items the completion-moment pass had left queued — collection routing, batch retry-failed, contextual
+notification priming and remembered targets — plus the foreground-service defect the retry path
+exposed on a real runtime.
+
+**Finished files land where galleries look.** Every output used to go to `Download/Sigha`, which the
+API 29+ media collections do not surface in a gallery. `OutputDestination` maps the target category
+to the public tree — images to `Pictures/Sigha`, video to `Movies/Sigha`, audio to
+`Music/Sigha`, documents and everything else to `Download/Sigha`. `OutputPublisher` inserts into the
+matching MediaStore collection (with the legacy public-directory fallback for the API 26 path) and,
+if that insert is refused, retries the Downloads collection instead of failing the conversion; the
+"saved to …" line and the Settings description name the real folder. Six new JVM tests pin the
+routing in `OutputDestinationTest`.
+
+**Failed rows retry without re-picking.** The workbench progress card and the queue offer a
+full-width "Retry failed (N)" action (six Arabic plural categories). `ConversionQueue.retryFailed`
+re-opens each failed source, re-enqueues only the readable rows with the same target and options, and
+marks a source that can no longer be opened as `FILE_ACCESS_LOST` ("This file can't be opened any
+more. Add it again to retry.") instead of looping into the same failure. Rows whose source is gone
+are excluded from the action's count — a dead retry button is not offered — and the
+`RetryOutcome.lostCount` keeps the "nothing to retry" snackbar from contradicting the row's own
+message.
+
+**Android 13 notifications are asked in context.** The cold-start permission request is gone
+(`MainActivity` no longer touches POST_NOTIFICATIONS). The workbench shows a rationale dialog only
+when completion alerts would be used — two or more files, or an audio/video conversion — once per
+install (`notificationsAsked`), with "Turn on" opening the system prompt; Settings gains a
+"Completion alerts" row that opens the app's notification page on every supported API level, so a
+refusal or a system-level block stays fixable.
+
+**A fast-failing retry no longer kills the app.** `retryFailed` reuses the queue's normal start, and a
+corrupt file can fail in milliseconds — often before Android has run `onCreate`/`onStartCommand` on
+the freshly started foreground service. The batch's `finally` block then stopped the service while
+`startForeground()` had never run; Android cancels that start and kills the process about five
+seconds later with `ForegroundServiceDidNotStartInTimeException`. The service now records a pending
+start (`startPending`), refuses to stop while it is pending, and finishes the stop from
+`onStartCommand` right after `startForeground()`; a second check closes the start/stop race. The
+defect reproduced on every run before the fix, and `scripts/feature-smoke.ps1` now clears logcat
+after install and fails the run on an app `FATAL EXCEPTION`, so it cannot pass silently again.
+
+**Runtime evidence is a committed script.** `scripts/feature-smoke.ps1` (new, destructive,
+QA-emulator only) drives the whole path on a 1080×2400 API 36 emulator: a two-image JPG batch with
+the priming dialog and the system prompt, JPGs in `Pictures/Sigha` and MediaStore, the remembered
+JPG target, a corrupt image failing and retrying, a deleted source reported as
+`FILE_ACCESS_LOST` with no dead retry action, `note.txt` → `Download/Sigha/note.pdf`, `tone.wav`
+→ `Music/Sigha/tone.mp3` and the audio MediaStore row, Settings → Completion alerts → the system
+notification page, and a backgrounded second batch posting its completion notification; it finishes
+with the crash check and writes `docs/qa/evidence/features-<stamp>/features.json` plus twelve
+screenshots.
+
+Verified: full `scripts/verify.ps1` green on the final tree (155 unit tests in 19 classes, 0
+failures; lint 0 errors, 66 warnings — the one new warning is the API 33 POST_NOTIFICATIONS constant
+used by the priming check; EN/AR parity and claim drift clean; the 21 legal placeholders are still
+reported, so `-ReleaseCandidate` still fails by design; evidence
+`docs/qa/evidence/verify-20261122-215316.json`). `feature-smoke.ps1` passed all 37 steps on the
+API 36 x86_64 AVD `sighaqa36` (`emulator-5700`), including the retry, lost-source and no-crash
+steps (`docs/qa/evidence/features-20261122-214849/`). Not covered: arm64/physical device; still
+queued: persistent result card, recent conversions on home, launcher shortcuts, History
+re-run/delete, open-folder/copy-path, PDF workshop, HEIC on API 26–27 and searchable Arabic PDF.
+
 ## 0.2.0 — 2026-11-17 — production-readiness (closed-test build)
 
 First build intended for the Play **closed test**. Not published to any store. Nothing here is a

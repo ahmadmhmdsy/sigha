@@ -11,6 +11,7 @@ import com.sigha.converter.core.ConversionOptions
 import com.sigha.converter.core.ConversionRequest
 import com.sigha.converter.core.FileFormat
 import com.sigha.converter.core.Note
+import com.sigha.converter.core.destinationFor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -158,7 +159,8 @@ class ConversionRunner(
                         source = file,
                         fileName = name,
                         mime = target.mime.ifBlank { DEFAULT_MIME },
-                        target = effectiveTarget
+                        target = effectiveTarget,
+                        destination = destinationFor(target.category, target.mime)
                     )
                 }.onSuccess { output -> published += output }.onFailure { error ->
                     publishFailures++

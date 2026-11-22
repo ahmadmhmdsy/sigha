@@ -26,5 +26,6 @@ fun ConversionFailureKind.headlineRes(): Int = when (this) {
     ConversionFailureKind.DRM_PROTECTED -> R.string.ui_error_drm
     ConversionFailureKind.NO_AUDIO_TRACK -> R.string.ui_error_no_audio
     ConversionFailureKind.NO_VIDEO_TRACK -> R.string.ui_error_no_video
+    ConversionFailureKind.FILE_ACCESS_LOST -> R.string.err_file_access_lost
     ConversionFailureKind.UNKNOWN -> R.string.ui_error_unknown
 }

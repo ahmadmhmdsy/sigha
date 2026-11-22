@@ -63,6 +63,14 @@ fun openAppSettings(context: Context): Boolean {
     return launchSafely(context, intent)
 }
 
+/** Opens this app's notification settings page (Android 8+), with a details-screen fallback. */
+fun openNotificationSettings(context: Context): Boolean {
+    val intent = Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+        .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    return launchSafely(context, intent) || openAppSettings(context)
+}
+
 /** Opens a web page (used only for model pack license links). */
 fun openUrl(context: Context, url: String): Boolean {
     if (url.isBlank()) return false

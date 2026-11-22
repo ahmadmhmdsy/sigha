@@ -34,9 +34,14 @@ class ConversionService : Service() {
     @Volatile
     private var stopped = false
 
+    /** True once onStartCommand reached startForeground(). */
+    @Volatile
+    private var foregroundReady = false
+
     override fun onCreate() {
         super.onCreate()
         stopped = false
+        foregroundReady = false
         instance = this
         ensureChannel(this)
     }
@@ -53,9 +58,19 @@ class ConversionService : Service() {
             // A foreground service can be refused (missing permission or OS restriction).
             // Conversion still runs in the process; only the notification is lost -- and any
             // notification left from an earlier run must not survive as a ghost.
+            startPending = false
+            pendingStop = false
             cancelNotification()
             stopSelf()
             return START_NOT_STICKY
+        }
+        foregroundReady = true
+        startPending = false
+        if (pendingStop) {
+            // The batch finished while this start was still on its way (a corrupt file can fail
+            // in milliseconds). startForeground() has now been called, so stopping is safe.
+            pendingStop = false
+            stopSelf()
         }
         return START_NOT_STICKY
     }
@@ -76,6 +91,8 @@ class ConversionService : Service() {
 
     override fun onDestroy() {
         stopped = true
+        foregroundReady = false
+        startPending = false
         if (instance === this) instance = null
         cancelNotification()
         super.onDestroy()
@@ -118,11 +135,32 @@ class ConversionService : Service() {
         @Volatile
         private var instance: ConversionService? = null
 
+        /**
+         * True between startForegroundService() and the service reaching startForeground().
+         * A batch that fails fast (a corrupt file retried right after it was picked) can end
+         * before onCreate/onStartCommand run; stopping the service at that moment cancels the
+         * pending start, leaves Android's "startForegroundService() did not then call
+         * startForeground()" requirement unmet and kills the app about five seconds later.
+         */
+        @Volatile
+        private var startPending = false
+
+        /** Set when a batch ends while [startPending]: onStartCommand stops the service itself. */
+        @Volatile
+        private var pendingStop = false
+
         /** Starts the foreground service; a refusal never fails the conversion itself. */
         fun start(context: Context) {
-            runCatching {
+            try {
+                startPending = true
+                pendingStop = false
                 val intent = Intent(context, ConversionService::class.java).setAction(ACTION_START)
                 ContextCompat.startForegroundService(context, intent)
+            } catch (_: Exception) {
+                // Refused (background-start restriction, missing permission): the conversion still
+                // runs in the process and no startForeground() requirement was ever created.
+                startPending = false
+                pendingStop = false
             }
         }
 
@@ -247,6 +285,16 @@ class ConversionService : Service() {
 
         /** Stops the foreground service and removes its notification. */
         fun stop(context: Context) {
+            if (startPending) {
+                // The start request has not reached startForeground() yet: stopping now would
+                // cancel it and the OS would kill the app five seconds later. onStartCommand
+                // honours this request right after startForeground().
+                pendingStop = true
+                // onStartCommand may have completed between the check and the flag write; then
+                // nobody is left to read the request and the stop has to be finished here.
+                if (startPending) return
+                pendingStop = false
+            }
             val service = instance
             if (service != null) {
                 service.stopped = true

@@ -561,3 +561,118 @@ and a destructive app-data reset.
 - **Human lane unchanged:** the 21 legal placeholders, QA-key signature, Play account, owned
   domain/mailboxes, FGS declaration/demo video and the closed-test clock (see §10 and
   `docs/legal/release-blockers.md`).
+
+---
+
+## 13. Output-routing, retry and notification-priming pass (2026-11-22, emulator-5700 / AVD `sighaqa36`)
+
+Scope: the queued items from §12.5 that were finished — collection routing (Pictures/Movies/Music/
+Download), batch retry-failed with a lost-source state, remembered target per category, contextual
+notification priming with a Settings row — plus the foreground-service defect the retry path exposed
+on a real runtime. No new formats or targets; the build is still versionCode 3 / 0.2.1.
+
+### 13.1 Gate
+
+Full `scripts/verify.ps1` on the final tree: **ALL CHECKS PASSED**, evidence
+`docs/qa/evidence/verify-20261122-215316.json`.
+
+| Check | Result |
+|---|---|
+| `gradle clean+test+assembleDebug` | exit 0 |
+| Unit tests | 155 tests / 19 classes, 0 failures, 0 errors, 0 skipped |
+| Debug APK facts | universal 115,181,014 B, SHA-256 `FAED0769EE8D2B7F80083808EF860E6BE5A0F60F150FE43205AD891F2A691B4F`; splits arm64 68,858,338 / x86_64 75,972,882 |
+| Native libs / 16 KB | 32 `.so` entries, all stored (0 deflated); 16 arm64 libraries at `minPAlign=16384`; `zipalign -c -P 16` exit 0 |
+| Release build | release APKs (arm64 49,848,039 / universal 96,170,715 / x86_64 56,962,583 B) and `app-release.aab` rebuilt; all signed by the local QA key `CN=Sigha Local Verification` |
+| Lint | 0 errors / 66 warnings (the one new warning is `InlinedApi` for the API 33 `POST_NOTIFICATIONS` constant used by the priming check) |
+| EN/AR parity | 0 problems |
+| Legal placeholders | 21 still reported, so `-ReleaseCandidate` still fails by design |
+| Claim drift | clean |
+
+After the documentation edits the same checks re-passed on the tree with `-SkipBuild`
+(`docs/qa/evidence/verify-20261122-220656.json`).
+
+### 13.2 Installed build
+
+The script installed the debug build from the working tree at that moment,
+`app-x86_64-debug.apk` 76,273,386 bytes, SHA-256
+`AE47F9450F29B689B994E0B13163B8E899B15A276DCE0E5564108A392137D821`, signed with the debug key, on
+`emulator-5700` (AVD `sighaqa36`, API 36, x86_64, 1080×2400). The final clean gate rebuild of the
+identical sources is 75,972,882 bytes (`259878DB…1802BA`); the constant size difference is packaging
+between the incremental build that was installed and the clean one, not a code difference, so the
+runtime conclusions below are tied to the hashes of the installed build.
+
+### 13.3 Runtime evidence through the real UI
+
+`scripts/feature-smoke.ps1` (new this pass) runs 37 assertions and writes
+`docs/qa/evidence/features-20261122-214849/features.json` plus twelve screenshots. Every assertion
+below is **PASS**, 0 failures:
+
+| Check | Evidence |
+|---|---|
+| APK installed, fixtures written, workbench ready | run JSON steps 1–6 |
+| Two images selected, JPG target chosen, convert offered | run JSON steps 7–9 |
+| Contextual notification rationale shown before converting, then the system notification prompt | `01-notification-priming.png`, `02-permission-prompt.png` |
+| Image batch reports `Pictures/Sigha`; both JPGs on disk there; MediaStore exposes the collection | `03-pictures-saved.png`, run JSON steps 12–14 |
+| Single image re-picked, last JPG target remembered for images | `04-remembered-target.png` |
+| Corrupt image fails, "Retry failed (1)" offered, retry re-runs the same file without re-picking (`attempts=2`) | `05-retry-button.png`, `05c-retry-again.png` |
+| Deleted source reported as `FILE_ACCESS_LOST` ("This file can't be opened any more. Add it again to retry.") and no dead retry action is offered | `06-file-access-lost.png` |
+| `note.txt` → PDF, saved to `Download/Sigha/note.pdf` | run JSON steps 25–28 |
+| `tone.wav` → `Music/Sigha/tone.mp3` and the audio MediaStore row | `05b-audio-targets.png`, run JSON steps 29–32 |
+| Priming dialog grants POST_NOTIFICATIONS; Settings shows "Completion alerts" and opens the system notification page | `07-settings-notifications.png` |
+| Backgrounded second batch posts the completion notification | `08-final.png`, run JSON step |
+| No app `FATAL EXCEPTION` in logcat during the whole run | run JSON last step |
+
+### 13.4 Reproduce
+
+```
+pwsh -NoProfile -File scripts\verify.ps1
+pwsh -NoProfile -File scripts\feature-smoke.ps1 -Serial emulator-5700
+```
+
+The smoke script is **destructive** (clears Sigha data, deletes `Pictures/Sigha`,
+`Download/Sigha`, `Music/Sigha` on the device first, writes its own fixtures, grants
+POST_NOTIFICATIONS through the app's own priming dialog) and is meant for the dedicated QA AVD only.
+
+### 13.5 Run notes, recorded rather than hidden
+
+- **The harness reproduced a real crash before it could pass.** The first retry runs killed the app
+  with `ForegroundServiceDidNotStartInTimeException` on `com.sigha.converter/.work.ConversionService`:
+  a corrupt file failed the batch before Android had run `onCreate`/`onStartCommand`, and the
+  batch's `finally` stopped the not-yet-started service, so Android cancelled the start and killed
+  the process. The service now records the pending start and finishes a pending stop from
+  `onStartCommand` after `startForeground()`; the smoke run clears logcat after install and fails
+  on an app `FATAL EXCEPTION`, so a regression cannot pass silently. The check was red twice before
+  the fix and green afterwards.
+- **The script itself caused two false failures first.** `Wait-ScrolledNode` left the workbench
+  scrolled down, so "Choose files" was outside the accessibility tree and the next pick failed. The
+  script now calls `Reset-WorkbenchScroll` before clearing a selection or opening the picker, and
+  the next run on the same app build passed. Failing-run evidence directories were deleted; only
+  the green record is kept.
+- **API 36 `uiautomator dump` occasionally wedges.** Dumps are bounded (3 × 20 s) and followed by a
+  device-side `pkill -f com.android.commands.uiautomator`; a 300 ms XML cache avoids duplicate dumps
+  within a step. This is a harness limitation, not an app defect.
+- **Stale outputs cannot fake a pass.** Before each run the script deletes the three Sigha output
+  folders on the device and asserts exact filenames, so a leftover from a previous run cannot satisfy
+  the "saved" steps.
+- **The lost-source snackbar contradiction is fixed in code, not hidden in a screenshot.** Rows whose
+  source vanished are excluded from the retry count and the action, and `RetryOutcome.lostCount`
+  suppresses the "nothing to retry" snackbar they used to trigger; the final run asserts the dead
+  retry action is absent.
+- **Not every claim in this table is photographed.** For steps without a dedicated shot the run JSON
+  records the assertion and its detail string; the shots are a sample of the journey, not the proof.
+
+### 13.6 Not covered by this pass
+
+- **No arm64 and no physical device.** Every result is x86_64 emulator, exactly like §7 and §12.
+- **Release matrix not reinstalled.** The release APK/AAB were rebuilt and re-signed (§13.1), but the
+  §7.4 release-run matrix still predates these edits.
+- **`device-smoke.ps1` was not rerun.** Its last record is §11.3; rerun it against the release APK
+  before the upload build.
+- **Notification edge cases** (Do Not Disturb, OEM battery managers, a system-level block, a denied
+  permission afterwards) are not exercised; the Settings row is the fix path for them, not proof.
+- **Still queued, not done:** persistent result card, recent conversions on home, launcher shortcuts,
+  History re-run/delete, open-folder/copy-path, PDF workshop, HEIC on API 26–27, searchable Arabic PDF.
+  None is a crash path.
+- **Human lane unchanged:** the 21 legal placeholders, the QA-key signature, the Play account, the
+  owned domain/mailboxes, the FGS declaration/demo video and the closed-test clock (see §10 and
+  `docs/legal/release-blockers.md`).

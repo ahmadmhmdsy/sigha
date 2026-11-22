@@ -86,6 +86,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sigha.converter.AppGraph
 import com.sigha.converter.R
+import com.sigha.converter.core.ConversionFailureKind
 import com.sigha.converter.core.FileFormat
 import com.sigha.converter.core.FormatCategory
 import com.sigha.converter.data.ConversionInput
@@ -169,16 +170,75 @@ fun WorkbenchScreen(
     val needsStoragePermission = Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
         (appSettings.outputMode == OutputMode.DOWNLOADS || folderUnavailable)
 
+    // Notification permission is asked at the moment it matters (a batch or a long media
+    // conversion), with a one-line rationale first -- not as a cold prompt on first launch.
+    var showNotificationPriming by remember { mutableStateOf(false) }
+    val notificationMissing = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) != PackageManager.PERMISSION_GRANTED
+    val markNotificationsAsked: () -> Unit = {
+        showNotificationPriming = false
+        scope.launch { runCatching { Repo.settings.markNotificationsAsked() } }
+    }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        markNotificationsAsked()
+        viewModel.convert()
+    }
+    val shouldPrimeNotification: () -> Boolean = {
+        notificationMissing && !appSettings.notificationsAsked && (
+            state.files.size >= 2 ||
+                state.target?.category == FormatCategory.AUDIO ||
+                state.target?.category == FormatCategory.VIDEO
+            )
+    }
+
     val requestConvert: () -> Unit = {
         val granted = !needsStoragePermission || ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
         ) == PackageManager.PERMISSION_GRANTED
-        if (granted) {
-            viewModel.convert()
-        } else {
+        if (!granted) {
             storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        } else if (shouldPrimeNotification()) {
+            showNotificationPriming = true
+        } else {
+            viewModel.convert()
         }
+    }
+
+    if (showNotificationPriming) {
+        AlertDialog(
+            onDismissRequest = {
+                markNotificationsAsked()
+                viewModel.convert()
+            },
+            title = { Text(stringResource(R.string.notif_prime_title)) },
+            text = { Text(stringResource(R.string.notif_prime_body)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showNotificationPriming = false
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                ) {
+                    Text(stringResource(R.string.notif_prime_turn_on))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        markNotificationsAsked()
+                        viewModel.convert()
+                    }
+                ) {
+                    Text(stringResource(R.string.notif_prime_not_now))
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -340,7 +400,8 @@ fun WorkbenchScreen(
                             rows = state.progressRows,
                             isConverting = state.isConverting,
                             onOpenQueue = onOpenQueue,
-                            onDismiss = viewModel::clearProgress
+                            onDismiss = viewModel::clearProgress,
+                            onRetryFailed = viewModel::retryFailed
                         )
                     }
                 }
@@ -598,7 +659,8 @@ private fun ProgressSection(
     rows: List<ProgressRow>,
     isConverting: Boolean,
     onOpenQueue: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onRetryFailed: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         val context = LocalContext.current
@@ -649,6 +711,18 @@ private fun ProgressSection(
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                 }
+            }
+        }
+        // Only failures that can actually be retried get the action; a source that can no longer
+        // be opened says to add the file again, and a retry button for it would do nothing.
+        val failedCount = rows.count {
+            it.status == QueueStatus.FAILED && it.errorKind != ConversionFailureKind.FILE_ACCESS_LOST
+        }
+        if (!isConverting && failedCount > 0) {
+            // Retry without re-picking: the queue still holds the inputs and the persisted
+            // read grant, so a transient engine failure costs one tap, not a whole redo.
+            Button(onClick = onRetryFailed, modifier = Modifier.fillMaxWidth()) {
+                Text(pluralStringResource(R.plurals.queue_retry_failed, failedCount, failedCount))
             }
         }
         if (!isConverting) {

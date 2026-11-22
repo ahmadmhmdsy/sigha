@@ -61,7 +61,9 @@ enum class ConversionFailureKind {
     FILE_TOO_LARGE,
     DRM_PROTECTED,
     NO_AUDIO_TRACK,
-    NO_VIDEO_TRACK
+    NO_VIDEO_TRACK,
+    /** The source URI can no longer be opened (revoked grant, deleted file); retry needs a re-pick. */
+    FILE_ACCESS_LOST
 }
 
 /**
