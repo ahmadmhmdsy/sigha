@@ -26,11 +26,35 @@ values to supply, and the evidence that closes it. Work top to bottom: the order
 | 9 | Build the AAB from the tagged commit, upload, 15 testers, 14 days | production | 15 days |
 | 10 | Production access application | public release | days |
 
-**Current state (2026-11-19):** no device, no Play account, no key, no policy URL, no source bundle,
-no counsel — all of that is yours. The code lane is **done and locally verified** (full gate green,
-EN/AR legibility pass on the emulator, 21 legal placeholders still blocking the release gate), so
-nothing in the build lane needs you until Step 4's final text and Step 5's mailbox exist. Your
-critical path is Step 0 → Step 1 → Step 2, in that order.
+## Status board (updated 2026-11-22)
+
+The build lane is done and verified; everything below is either the publisher's or blocked on the
+publisher. Step numbers match the table above.
+
+| Step | State | What is actually done | What remains |
+|---|---|---|---|
+| 0 — arm64 phone | **OPEN (publisher)** | Builder prepared the Step Zero script and the device checklist; a reminder is armed | Get the phone / remote device, run §Step 0, record model + Android version + ABI |
+| 1 — Play account (personal) | **OPEN (publisher)** | — | Sign-up, $25, identity verification, 2-step |
+| 2 — name screen | **BUILDER PART DONE** | Public-source screen recorded 2026-11-19 in `docs/legal/name-screen-2026-11-19.md` (no exact Play/App Store app named Sigha; three software businesses use the name) | Registry searches + the keep/change decision (yours or counsel's) in release-blockers B5 |
+| 3 — upload key + Play App Signing | **OPEN (publisher)** | Key commands, backup rules and build wiring are in §Step 3 | Generate/back up the key, enrol Play App Signing, build the upload-key AAB |
+| 4 — privacy policy URL (B2) | **OPEN (publisher)** | Policy text exists in EN + AR with placeholders for name/contact/date; hosting requirements are in §Step 4 | Supply the legal values, host the page, paste the URL |
+| 5 — LGPL source + mailbox (B6) | **OPEN (publisher)** | `license-compliance.md` and `NOTICE.md` describe exactly what to publish and how to rebuild | Own a domain, create `opensource@`, publish the source tarball + SHA-256 |
+| 6 — counsel (B7) | **OPEN (publisher)** | Six questions written in `docs/legal/release-blockers.md` §B7; packet list in §Step 6 | Send to counsel, or sign a written risk acceptance |
+| 7 — Play declarations | **BUILDER DRAFT DONE** | Paste-ready data-safety, content-rating, audience/ads and FGS answers + demo-video script in `docs/product/play-declarations-2026-11-22.md` | Fill the live form after Step 4's URL exists; record the demo video on the tagged build |
+| 8 — listing assets | **TEXTS DONE, ASSETS OPEN** | Titles/short/full descriptions, shot list in `docs/product/store-listing.md` and `aso-plan-2026-11-19.md` | Icon, feature graphic, 8 EN + 8 AR screenshots from the upload build |
+| 9 — upload + 14 days | **OPEN (publisher)** | Tester script and 15-tester mix are written | AAB upload, 15 testers, 14 unchanged days |
+| 10 — production access | **OPEN (publisher)** | — | Apply after 14 days |
+
+**Critical path:** Step 0 → Step 1 → Step 2. Nothing in the build lane needs attention until Step 4's
+final values and Step 5's mailbox exist; then the builder replaces the 21 placeholders, re-runs
+`-ReleaseCandidate` and hands over the tagged AAB.
+
+**Build-lane state (why the table says "done"):** full gate green on the final 0.2.1-hardening tree
+(`docs/qa/evidence/verify-20261121-234013.json`, 149 tests), silent-video fix and batch/share flows
+verified on the API 36 x86_64 emulator (`docs/qa/verification.md` §11), and the UX/competitive
+research recorded in `docs/research/2026-11-21-ux-retention.md` and
+`docs/research/2026-11-21-competitive-gap.md`. The 21 placeholders, arm64 device, upload key and Play
+account are unchanged — they are the publisher's lane, not build defects.
 
 ---
 
@@ -201,6 +225,11 @@ Use these answers; they match the build and the policy.
 The demo video can be an unlisted YouTube link. Keep every answer consistent with the policy — a
 mismatch is a review finding, not a warning.
 
+**Paste-ready packet:** `docs/product/play-declarations-2026-11-22.md` contains the exact
+data-safety answers, the content-rating draft, the FGS declaration text, the demo-video script and a
+pre-submission consistency checklist. Use it with the live form; if a field label differs, map the
+answer onto the live form.
+
 ---
 
 ## Step 8 — listing assets
@@ -285,6 +314,16 @@ Done on 2026-11-19 (full gate `verify-20261119-004710.json`, legibility captures
 - five Arabic copy corrections, and the unavailable upscaling card removed;
 - gate hardening: `-ReleaseCandidate` placeholder gate, EN↔AR key/placeholder/plural parity, and the
   release signer recorded in the evidence JSON.
+
+Added 2026-11-21/22 (full gate `verify-20261121-234013.json`, emulator evidence
+`docs/qa/verification.md` §11):
+
+- silent-video fix: media probe hides audio targets, typed `NO_AUDIO_TRACK`/`NO_VIDEO_TRACK`;
+- per-output publishing (a failed page no longer discards the successful ones), bounded JSON/page
+  limits, pack-resume verification, foreground-service stop races, storage-denial Settings action;
+- Share action on the workbench result row and a tap target on the progress notification;
+- +12 JVM tests (149 total) and the 2026-11-21 UX/retention + competitive-gap research notes;
+- Play declarations packet drafted: `docs/product/play-declarations-2026-11-22.md`.
 
 Still blocked, and not the builder's to unblock: the 21 placeholder markers in the shipped legal
 assets (your Step 4 values, Step 5 mailbox), the arm64 device (Step 0), and everything Play Console.
