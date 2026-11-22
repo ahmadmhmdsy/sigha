@@ -97,6 +97,16 @@
     <string name="ui_service_title">Sigha is converting</string>
     <string name="ui_service_preparing">Preparing conversion…</string>
     <string name="ui_service_converting">Converting %1$s</string>
+    <string name="ui_service_result_title">Conversion finished</string>
+    <string name="ui_service_result_failed_title">Conversion failed</string>
+    <plurals name="ui_service_result_done">
+        <item quantity="one">%1$d file converted</item>
+        <item quantity="other">%1$d files converted</item>
+    </plurals>
+    <plurals name="ui_service_result_failed">
+        <item quantity="one">%1$d file failed</item>
+        <item quantity="other">%1$d files failed</item>
+    </plurals>
 
     <!-- Model pack download -->
     <string name="ui_pack_download_title">Download model pack?</string>

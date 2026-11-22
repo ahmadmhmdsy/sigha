@@ -1,5 +1,6 @@
 package com.sigha.converter.work
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -37,7 +38,7 @@ class ConversionService : Service() {
         super.onCreate()
         stopped = false
         instance = this
-        createChannel()
+        ensureChannel(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -86,33 +87,6 @@ class ConversionService : Service() {
         }
     }
 
-    private fun createChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        val manager = getSystemService(NotificationManager::class.java) ?: return
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            getString(R.string.ui_service_channel_name),
-            NotificationManager.IMPORTANCE_LOW
-        ).apply {
-            description = getString(R.string.ui_service_channel_description)
-            setShowBadge(false)
-            setSound(null, null)
-            enableVibration(false)
-        }
-        manager.createNotificationChannel(channel)
-    }
-
-    /**
-     * Tapping the progress notification must bring the app back: a user who starts a batch and
-     * leaves the screen otherwise has no way to see results or cancel, and taps do nothing.
-     */
-    private fun contentIntent(): PendingIntent? = runCatching {
-        val launch = Intent(this, MainActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        }
-        PendingIntent.getActivity(this, 0, launch, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-    }.getOrNull()
-
     private fun buildNotification(text: String, progress: Float?): Notification {
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_download)
@@ -123,7 +97,7 @@ class ConversionService : Service() {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setSilent(true)
-        contentIntent()?.let(builder::setContentIntent)
+        launchIntent(this)?.let(builder::setContentIntent)
         if (progress != null) {
             val percent = (progress.coerceIn(0f, 1f) * 100).toInt()
             builder.setProgress(100, percent, false)
@@ -136,6 +110,7 @@ class ConversionService : Service() {
     companion object {
         private const val CHANNEL_ID = "conversion_progress"
         private const val NOTIFICATION_ID = 1001
+        private const val NOTIFICATION_RESULT_ID = 1002
         private const val ACTION_START = "com.sigha.converter.action.CONVERSION_START"
         private const val ACTION_STOP = "com.sigha.converter.action.CONVERSION_STOP"
         private const val EXTRA_TEXT = "text"
@@ -172,6 +147,103 @@ class ConversionService : Service() {
                 manager.notify(NOTIFICATION_ID, service.buildNotification(text, progress))
             }
         }
+
+        /**
+         * Posts the one-shot "finished" notification. It deliberately outlives the foreground
+         * service: the progress notification disappears with the service, and a user who left
+         * the app while a batch ran would otherwise never learn that it finished. Same channel
+         * (low importance, silent) so it never makes noise, but it stays in the shade until
+         * tapped or dismissed.
+         */
+        @SuppressLint("MissingPermission")
+        fun notifyBatchFinished(context: Context, doneCount: Int, failedCount: Int) {
+            if (doneCount <= 0 && failedCount <= 0) return
+            runCatching {
+                ensureChannel(context)
+                val manager = context.getSystemService(NotificationManager::class.java)
+                    ?: return@runCatching
+                val title = context.getString(
+                    if (doneCount > 0) R.string.ui_service_result_title
+                    else R.string.ui_service_result_failed_title
+                )
+                val doneText = if (doneCount > 0) {
+                    context.resources.getQuantityString(
+                        R.plurals.ui_service_result_done,
+                        doneCount,
+                        doneCount
+                    )
+                } else {
+                    ""
+                }
+                val failedText = if (failedCount > 0) {
+                    context.resources.getQuantityString(
+                        R.plurals.ui_service_result_failed,
+                        failedCount,
+                        failedCount
+                    )
+                } else {
+                    ""
+                }
+                val text = when {
+                    doneText.isNotEmpty() && failedText.isNotEmpty() -> doneText + " · " + failedText
+                    doneText.isNotEmpty() -> doneText
+                    else -> failedText
+                }
+                val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+                    .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                    .setContentTitle(title)
+                    .setContentText(text)
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+                    .setAutoCancel(true)
+                    .setOnlyAlertOnce(true)
+                    .setPriority(NotificationCompat.PRIORITY_LOW)
+                    .setCategory(NotificationCompat.CATEGORY_STATUS)
+                    .setSilent(true)
+                launchIntent(context)?.let(builder::setContentIntent)
+                manager.notify(NOTIFICATION_RESULT_ID, builder.build())
+            }
+        }
+
+        /** Removes the previous batch's finished notification when a new batch starts. */
+        fun clearResult(context: Context) {
+            runCatching {
+                context.getSystemService(NotificationManager::class.java)
+                    ?.cancel(NOTIFICATION_RESULT_ID)
+            }
+        }
+
+        private fun ensureChannel(context: Context) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+            val manager = context.getSystemService(NotificationManager::class.java) ?: return
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                context.getString(R.string.ui_service_channel_name),
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = context.getString(R.string.ui_service_channel_description)
+                setShowBadge(false)
+                setSound(null, null)
+                enableVibration(false)
+            }
+            manager.createNotificationChannel(channel)
+        }
+
+        /**
+         * Tapping the progress or result notification must bring the app back: a user who
+         * starts a batch and leaves the screen otherwise has no way to see results or cancel,
+         * and taps do nothing.
+         */
+        private fun launchIntent(context: Context): PendingIntent? = runCatching {
+            val launch = Intent(context, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
+            PendingIntent.getActivity(
+                context,
+                0,
+                launch,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+        }.getOrNull()
 
         /** Stops the foreground service and removes its notification. */
         fun stop(context: Context) {

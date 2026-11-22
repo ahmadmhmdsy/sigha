@@ -1,0 +1,202 @@
+{
+  "generatedAt": "2026-11-22T18:50:51.3558478+03:00",
+  "root": "E:\\android_apps\\digital_converter",
+  "steps": [
+    {
+      "step": "gradle clean+test+assembleDebug",
+      "ok": true,
+      "detail": "exit=0"
+    },
+    {
+      "step": "unit tests",
+      "ok": true,
+      "detail": "tests=149 failures=0 errors=0"
+    },
+    {
+      "step": "debug APK exists",
+      "ok": true,
+      "detail": "115159654 B 92E93DCA736A25DEC529163BA1277F42090DD4702F9E062C5AAD6F5F3B516E51 (app-universal-debug.apk)"
+    },
+    {
+      "step": "debug APK splits",
+      "ok": true,
+      "detail": "app-arm64-v8a-debug.apk=68836978, app-universal-debug.apk=115159654, app-x86_64-debug.apk=75951522"
+    },
+    {
+      "step": "native libs stored (uncompressed)",
+      "ok": true,
+      "detail": "so=32 stored=32 deflated=0"
+    },
+    {
+      "step": "ELF 16 KB page alignment (arm64)",
+      "ok": true,
+      "detail": "checked=16 minPAlign=16384"
+    },
+    {
+      "step": "zipalign -c -P 16",
+      "ok": true,
+      "detail": "exit=0"
+    },
+    {
+      "step": "gradle assembleRelease",
+      "ok": true,
+      "detail": "exit=0"
+    },
+    {
+      "step": "gradle bundleRelease",
+      "ok": true,
+      "detail": "exit=0"
+    },
+    {
+      "step": "gradle lintDebug",
+      "ok": true,
+      "detail": "exit=0"
+    },
+    {
+      "step": "release APKs",
+      "ok": true,
+      "detail": "app-arm64-v8a-release.apk, app-universal-release.apk, app-x86_64-release.apk"
+    },
+    {
+      "step": "release APK signatures",
+      "ok": true,
+      "detail": "unsigned: "
+    },
+    {
+      "step": "release signer recorded",
+      "ok": true,
+      "detail": "app-arm64-v8a-release.apk CN=Sigha Local Verification, OU=QA, O=Sigha, L=Baghdad, C=IQ; app-universal-release.apk CN=Sigha Local Verification, OU=QA, O=Sigha, L=Baghdad, C=IQ; app-x86_64-release.apk CN=Sigha Local Verification, OU=QA, O=Sigha, L=Baghdad, C=IQ"
+    },
+    {
+      "step": "release AAB",
+      "ok": true,
+      "detail": "app-release.aab"
+    },
+    {
+      "step": "lint error count",
+      "ok": true,
+      "detail": "errors=0 warnings=65"
+    },
+    {
+      "step": "EN/AR resource parity",
+      "ok": true,
+      "detail": "problems=0 "
+    },
+    {
+      "step": "claim drift (no stale numbers in public docs)",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "facts": {
+    "unitTests": {
+      "classes": 18,
+      "tests": 149,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "debugApk": {
+      "path": "E:\\android_apps\\digital_converter\\app\\build\\outputs\\apk\\debug\\app-universal-debug.apk",
+      "sizeBytes": 115159654,
+      "sha256": "92E93DCA736A25DEC529163BA1277F42090DD4702F9E062C5AAD6F5F3B516E51",
+      "soEntries": 32,
+      "soStored": 32,
+      "soDeflated": 0,
+      "elfArm64Checked": 16,
+      "elfMinPAlign": 16384.0
+    },
+    "debugApks": [
+      {
+        "name": "app-arm64-v8a-debug.apk",
+        "sizeBytes": 68836978,
+        "sha256": "15B6BE25713511B82317B4B22ECD45AB20682427F5121F88A89C3D334DC0A7B9"
+      },
+      {
+        "name": "app-universal-debug.apk",
+        "sizeBytes": 115159654,
+        "sha256": "92E93DCA736A25DEC529163BA1277F42090DD4702F9E062C5AAD6F5F3B516E51"
+      },
+      {
+        "name": "app-x86_64-debug.apk",
+        "sizeBytes": 75951522,
+        "sha256": "FBFBD82F17ABA8F1389D1421D1422DE0A43EEC968877B045FE6C523F286E588F"
+      }
+    ],
+    "releaseApks": [
+      {
+        "name": "app-arm64-v8a-release.apk",
+        "sizeBytes": 49826671,
+        "sha256": "34D6C3422FCBF4DDC3CD6857F5316436346E5EDA0FF6D2B6C41F86D29CF4897B"
+      },
+      {
+        "name": "app-universal-release.apk",
+        "sizeBytes": 96149347,
+        "sha256": "B6AB4911B3D0378296F3AD234436F6D6710D391A6700253630F97CD34ACF9E59"
+      },
+      {
+        "name": "app-x86_64-release.apk",
+        "sizeBytes": 56941215,
+        "sha256": "6A15C41842E5A4E6B7D85CEB101FE993A855C79FE359B76BA93BDAE9F8399CBC"
+      }
+    ],
+    "releaseSigners": [
+      {
+        "name": "app-arm64-v8a-release.apk",
+        "dn": "CN=Sigha Local Verification, OU=QA, O=Sigha, L=Baghdad, C=IQ",
+        "sha256": "895fc2b9ec092f8958cb832179259ebd0f6287125718698aac37f5c8806061d7"
+      },
+      {
+        "name": "app-universal-release.apk",
+        "dn": "CN=Sigha Local Verification, OU=QA, O=Sigha, L=Baghdad, C=IQ",
+        "sha256": "895fc2b9ec092f8958cb832179259ebd0f6287125718698aac37f5c8806061d7"
+      },
+      {
+        "name": "app-x86_64-release.apk",
+        "dn": "CN=Sigha Local Verification, OU=QA, O=Sigha, L=Baghdad, C=IQ",
+        "sha256": "895fc2b9ec092f8958cb832179259ebd0f6287125718698aac37f5c8806061d7"
+      }
+    ],
+    "releaseAab": [
+      {
+        "name": "app-release.aab",
+        "sizeBytes": 51189610,
+        "sha256": "3FFE9F8821EB58A179962A8575AB8D7B44FF8E821204DCE51F0F1A207B409370"
+      }
+    ],
+    "lint": {
+      "errors": 0,
+      "warnings": 65,
+      "report": "E:\\android_apps\\digital_converter\\app\\build\\reports\\lint-results-debug.txt"
+    },
+    "resourceParity": {
+      "pairs": 3,
+      "problems": []
+    },
+    "legalPlaceholders": [
+      "app/src/main/assets/legal/privacy-policy.md:4 (to be completed)",
+      "app/src/main/assets/legal/privacy-policy.md:5 (placeholder)",
+      "app/src/main/assets/legal/privacy-policy.md:65 (placeholder)",
+      "app/src/main/assets/legal/privacy-policy.ar.md:4 (سيُستكمل)",
+      "app/src/main/assets/legal/privacy-policy.ar.md:5 (عنوان مؤقت)",
+      "app/src/main/assets/legal/privacy-policy.ar.md:65 (عنوان مؤقت)",
+      "app/src/main/assets/legal/source-offer.txt:28 (PLACEHOLDER)",
+      "app/src/main/assets/legal/source-offer.txt:29 (TODO)",
+      "app/src/main/assets/legal/source-offer.txt:34 (TODO)",
+      "app/src/main/assets/legal/relink-instructions.txt:23 (TODO)",
+      "app/src/main/assets/licenses/THIRD-PARTY-NOTICES.txt:49 (TODO)",
+      "app/src/main/assets/licenses/THIRD-PARTY-NOTICES.txt:50 (placeholder)",
+      "app/src/main/assets/licenses/THIRD-PARTY-NOTICES.txt:62 (TODO)",
+      "app/src/main/assets/licenses/THIRD-PARTY-NOTICES.txt:244 (placeholder)",
+      "NOTICE.md:49 (TODO)",
+      "NOTICE.md:50 (placeholder)",
+      "NOTICE.md:62 (TODO)",
+      "NOTICE.md:244 (placeholder)",
+      "docs/legal/privacy-policy.md:8 (to be completed)",
+      "docs/legal/privacy-policy.md:9 (placeholder)",
+      "docs/legal/privacy-policy.md:69 (placeholder)"
+    ],
+    "claimDrift": []
+  },
+  "failures": []
+}

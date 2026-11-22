@@ -23,6 +23,11 @@
     <string name="action_remove">Remove</string>
     <string name="action_add_files">Add files</string>
     <string name="action_choose_files">Choose files</string>
+    <plurals name="action_share_all">
+        <item quantity="one">Share %1$d file</item>
+        <item quantity="other">Share all %1$d files</item>
+    </plurals>
+    <string name="share_all_failed">Couldn’t share these files.</string>
     <string name="action_convert">Convert</string>
     <string name="action_open_queue">View queue</string>
     <string name="action_choose_folder">Choose folder</string>

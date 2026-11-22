@@ -601,12 +601,39 @@ private fun ProgressSection(
     onDismiss: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        val context = LocalContext.current
+        val doneRows = rows.filter { it.status == QueueStatus.DONE && it.outputUri != null }
+        val doneUris = doneRows.mapNotNull { it.outputUri }
+        // Two or more results make the per-row Share icons a chore; one share sheet for the whole
+        // batch is what people expect after a batch conversion. Mixed targets share as wildcards.
+        val shareAll: (@Composable () -> Unit)? = if (!isConverting && doneUris.size >= 2) {
+            {
+                val mimes = doneRows
+                    .mapNotNull { row -> AppGraph.formats.get(row.toId)?.mimeOrDefault() }
+                    .distinct()
+                val mime = if (mimes.size == 1) mimes.first() else "*/*"
+                TextButton(
+                    onClick = {
+                        if (!shareFiles(context, doneUris, mime)) {
+                            Toast.makeText(context, R.string.share_all_failed, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                ) {
+                    Text(pluralStringResource(R.plurals.action_share_all, doneUris.size, doneUris.size))
+                }
+            }
+        } else {
+            null
+        }
         val trailing: (@Composable () -> Unit)? = if (isConverting) {
             null
         } else {
             {
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.action_clear))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    shareAll?.invoke()
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.action_clear))
+                    }
                 }
             }
         }

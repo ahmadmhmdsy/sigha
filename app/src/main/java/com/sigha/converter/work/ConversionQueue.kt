@@ -99,6 +99,9 @@ class ConversionQueue(
         _entries.update { current -> batch + current }
         activeJob = AppScope.launch {
             try {
+                // A finished notification from the previous batch is stale the moment this one
+                // starts; tap targets and the count would both be wrong.
+                ConversionService.clearResult(context)
                 ConversionService.start(context)
                 // The flag only feeds the "last batch was interrupted" banner; a preferences
                 // write failure must not stop a batch that can still convert everything.
@@ -139,6 +142,17 @@ class ConversionQueue(
                 val job = coroutineContext[Job]
                 if (job?.isActive == false) {
                     markUnfinished(status = QueueStatus.CANCELLED, message = null)
+                }
+                // The foreground notification disappears with the service; this one-shot result
+                // is what a user who left the app actually sees. Count only this batch's rows.
+                val batchIds = batch.mapTo(HashSet()) { it.id }
+                val finishedRows = _entries.value.filter { it.id in batchIds }
+                runCatching {
+                    ConversionService.notifyBatchFinished(
+                        context,
+                        doneCount = finishedRows.count { it.status == QueueStatus.DONE },
+                        failedCount = finishedRows.count { it.status == QueueStatus.FAILED }
+                    )
                 }
             }
         }

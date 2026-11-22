@@ -137,6 +137,24 @@
     <string name="ui_service_title">صيغة تحوّل الآن</string>
     <string name="ui_service_preparing">جارٍ التحضير للتحويل…</string>
     <string name="ui_service_converting">جارٍ تحويل %1$s</string>
+    <string name="ui_service_result_title">اكتمل التحويل</string>
+    <string name="ui_service_result_failed_title">تعذّر التحويل</string>
+    <plurals name="ui_service_result_done">
+        <item quantity="zero">لم يُحوَّل أي ملف</item>
+        <item quantity="one">حُوِّل ملف واحد</item>
+        <item quantity="two">حُوِّل ملفان</item>
+        <item quantity="few">حُوِّل %1$d ملفات</item>
+        <item quantity="many">حُوِّل %1$d ملفًا</item>
+        <item quantity="other">حُوِّل %1$d ملف</item>
+    </plurals>
+    <plurals name="ui_service_result_failed">
+        <item quantity="zero">لم يفشل أي ملف</item>
+        <item quantity="one">فشل ملف واحد</item>
+        <item quantity="two">فشل ملفان</item>
+        <item quantity="few">فشل %1$d ملفات</item>
+        <item quantity="many">فشل %1$d ملفًا</item>
+        <item quantity="other">فشل %1$d ملف</item>
+    </plurals>
 
     <!-- Model pack download -->
     <string name="ui_pack_download_title">تنزيل حزمة النماذج؟</string>

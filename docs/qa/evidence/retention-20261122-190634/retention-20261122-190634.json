@@ -1,0 +1,116 @@
+{
+  "generatedAt": "2026-11-22T19:06:35.0033309+03:00",
+  "apk": "E:\\android_apps\\digital_converter\\app\\build\\outputs\\apk\\debug\\app-x86_64-debug.apk",
+  "serial": "emulator-5564",
+  "facts": {
+    "sdk": "36",
+    "abi": "x86_64",
+    "model": "Android SDK built for x86_64",
+    "chooserLabels": "Sharing 2 images, No recommended people to share with, Bluetooth, Messaging"
+  },
+  "steps": [
+    {
+      "step": "debug APK exists",
+      "ok": true,
+      "detail": "E:\\android_apps\\digital_converter\\app\\build\\outputs\\apk\\debug\\app-x86_64-debug.apk"
+    },
+    {
+      "step": "device attached",
+      "ok": true,
+      "detail": "emulator-5554, emulator-5558, emulator-5564"
+    },
+    {
+      "step": "requested serial attached",
+      "ok": true,
+      "detail": "emulator-5564"
+    },
+    {
+      "step": "APK installed",
+      "ok": true,
+      "detail": "Performing Streamed Install\r\nSuccess"
+    },
+    {
+      "step": "PNG fixtures on device",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "history empty state shown",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "history empty CTA returns to Convert",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "DocumentsUI picker opened",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "two images selected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "convert action offered",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "completion notification while backgrounded",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "tapping the notification opens Sigha",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "Share all action present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "Share all opens the system chooser",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "Sigha excluded from its own share sheet",
+      "ok": true,
+      "detail": "Sharing 2 images, No recommended people to share with, Bluetooth, Messaging"
+    },
+    {
+      "step": "View results action present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "queue opened from the results card",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "queue empty state shown",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "queue empty CTA returns to Convert",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "shots": [
+    "E:\\android_apps\\digital_converter\\docs\\qa\\evidence\\retention-20261122-190634\\history-empty.png",
+    "E:\\android_apps\\digital_converter\\docs\\qa\\evidence\\retention-20261122-190634\\notification.png",
+    "E:\\android_apps\\digital_converter\\docs\\qa\\evidence\\retention-20261122-190634\\results.png",
+    "E:\\android_apps\\digital_converter\\docs\\qa\\evidence\\retention-20261122-190634\\share-chooser.png",
+    "E:\\android_apps\\digital_converter\\docs\\qa\\evidence\\retention-20261122-190634\\queue-empty.png"
+  ],
+  "failures": []
+}

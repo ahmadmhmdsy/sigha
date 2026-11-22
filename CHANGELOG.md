@@ -316,6 +316,56 @@ Share and Open, and `device-smoke.ps1` records a 3.3 s cold start, 120 monkey ev
 not device-tested on arm64, still blocked on the human lane: use `verify.ps1 -ReleaseCandidate`
 when the publisher supplies the legal values.
 
+### Completion moment and repeat-use pass (2026-11-22)
+
+Same unreleased 0.2.1 build (versionCode 3), still no new formats or targets. The pass closes the
+weakest points the UX/retention research found after a batch finishes: the app used to go quiet, the
+last screen offered no single action for the whole batch, and the empty states were dead ends.
+
+**The batch announces itself.** When the conversion queue is still running and the app is
+backgrounded, the foreground service now posts a silent, low-importance result notification on the
+normal channel when the batch ends — "Conversion finished" with the converted/failed counts, or the
+failure headline when nothing was saved. It auto-cancels, is replaced by the next run (`clearResult`
+before the queue starts), and its tap target brings the app back. The progress notification from the
+hardening pass keeps its own id, so the two never fight.
+
+**One share action for the batch.** The workbench result card and the queue's results section both
+offer "Share all N files" (a six-category Arabic plural, so 2 files read "Share the 2 files"), which
+opens the system sheet once with every finished output. A refused share shows the localised
+`share_all_failed` message instead of doing nothing. This sits next to the existing per-row
+Share/Open and the completion summary.
+
+**The empty states lead somewhere.** History and Queue were terminal screens on a fresh install; both
+now show the "Choose files" action that returns to Convert. Returning from Queue to the workbench
+also works now: it popped nothing before (the queue sits above the workbench in the back stack), so
+the button is a real `popBackStack` with a top-level navigation fallback.
+
+**Sigha no longer offers to re-import its own output.** The outbound share intent excludes the app's
+own `MainActivity` from the chooser with `Intent.EXTRA_EXCLUDE_COMPONENTS` as a `ComponentName[]`
+(the list form is silently ignored by the platform). Sharing a finished file therefore lists only
+real receivers; incoming SEND/VIEW shares from other apps are unchanged.
+
+**Arabic plural completeness.** The new share-all plural needed the Arabic `zero` category; lint
+caught the omission in the gate (`MissingQuantity`) and the resource was completed, so lint is back
+to 0 errors.
+
+**Runtime evidence is now a committed script.** `scripts/retention-smoke.ps1` drives the whole
+repeat-use path on an attached 1080×2400 emulator — clears app data, pushes two PNG fixtures, walks
+the history and queue empty states, runs a two-file JPG batch from the real DocumentsUI picker,
+backgrounds the app, waits for the completion notification, taps it, uses "Share all", asserts Sigha
+is absent from the chooser labels, and returns from Queue to Convert — then writes
+`docs/qa/evidence/retention-<stamp>/retention-<stamp>.json` plus five screenshots. It is
+destructive by design (it clears Sigha's data) and is documented as a QA-emulator script, not part
+of the gate.
+
+Verified: full `scripts/verify.ps1` green on the final tree (149 unit tests in 18 classes, 0
+failures; lint 0 errors, 65 warnings; EN/AR parity and claim drift clean; evidence
+`docs/qa/evidence/verify-20261122-185051.json`), and `retention-smoke.ps1` PASS with every step on
+the API 36 x86_64 AVD `sighaqa42` (`emulator-5564`), evidence
+`docs/qa/evidence/retention-20261122-190634/`. Not covered: arm64/physical device, and the queued
+items in the research notes (persistent result card, batch retry-failed, re-run/delete from History,
+collection routing, launcher shortcuts, contextual notification priming).
+
 ## 0.2.0 — 2026-11-17 — production-readiness (closed-test build)
 
 First build intended for the Play **closed test**. Not published to any store. Nothing here is a

@@ -27,7 +27,7 @@ check is recorded in §7.2.
 
 ## 2. How this tree is verified
 
-Two scripts are the only accepted evidence, and both write machine-readable JSON:
+Three scripts are the accepted evidence, and each writes machine-readable JSON:
 
 1. **`scripts/verify.ps1`** — stops stale build daemons, clean build + JVM tests + debug APK,
    then debug facts (size, SHA-256, ABI splits, stored native libs, ELF `PT_LOAD` alignment,
@@ -36,8 +36,14 @@ Two scripts are the only accepted evidence, and both write machine-readable JSON
 2. **`scripts/device-smoke.ps1`** — installs the universal debug APK on the first attached
    device, cold-starts it, checks the activity is resumed, runs a constrained monkey and scans the
    crash buffer. Evidence: `docs/qa/evidence/device-smoke-<stamp>.json`.
+3. **`scripts/retention-smoke.ps1`** — completion-moment and repeat-use flow through the real UI on
+   the dedicated 1080×2400 QA emulator: clears app data, pushes two PNG fixtures, walks the History
+   and Queue empty states, runs a two-file JPG batch from DocumentsUI, backgrounds the app, waits
+   for the completion notification and its tap target, uses "Share all" and asserts Sigha is not in
+   the chooser labels, then returns from Queue to Convert. Destructive by design (clears the app's
+   data); evidence: `docs/qa/evidence/retention-<stamp>/retention-<stamp>.json` plus screenshots.
 
-This run: `docs/qa/evidence/verify-20261119-004710.json` (full gate after the upload-tree commit:
+The upload-tree run: `docs/qa/evidence/verify-20261119-004710.json` (full gate after the upload-tree commit:
 clean build, 137 tests, release APKs, AAB, lint, claim drift, EN↔AR resource parity, placeholder
 scan, release signer). The 0.2.1 runs remain as `verify-20261118-193810.json` and the
 `-SkipBuild` re-check `verify-20261118-195341.json`; the 0.2.1 device-smoke evidence is recorded
@@ -406,7 +412,8 @@ Gradle/Kotlin daemons before `:app:clean` (Windows keeps the lint cache locked o
 KB-aligned native libraries, zipalign, signed release APKs, an AAB and zero lint errors all pass
 from the commands in §9, and the claim-drift check keeps the public docs tied to measured numbers.
 The 2026-11-21 hardening pass (§11) re-ran the full gate green on the final tree
-(`verify-20261121-234013.json`).
+(`verify-20261121-234013.json`), and the 2026-11-22 completion/repeat-use pass (§12) re-ran it
+green again, with the repeat-use flow now recorded through the real UI by a committed script.
 
 **Device verification: partial.** Install, cold start, resumed activity, a 120-event monkey run
 and an empty crash buffer are recorded. On the emulator, real conversions through the real
@@ -478,4 +485,79 @@ Run notes, recorded rather than hidden:
   §7.4 API 26 result should be repeated on the next release candidate.
 - The 21 legal placeholders, QA-key signature, Play account, owned domain/mailboxes, FGS
   declaration/demo video and the closed-test clock are unchanged (see §10 and
+  `docs/legal/release-blockers.md`).
+
+## 12. Completion-moment and repeat-use pass (2026-11-22, emulator-5564 / AVD `sighaqa42`)
+
+Scope: the fixes listed in `CHANGELOG.md` under "Completion moment and repeat-use pass
+(2026-11-22)"; same unreleased 0.2.1 (`versionCode 3`), no new formats or targets.
+
+### 12.1 Gate
+
+Full `scripts/verify.ps1` on the final tree: **ALL CHECKS PASSED**
+(`docs/qa/evidence/verify-20261122-185051.json`). The first attempt failed lint with
+`MissingQuantity` because the new Arabic `action_share_all` plural lacked the `zero` category; the
+resource was completed and the rerun is the green record cited above (the failing run's JSON was
+not kept, only this line). 149 unit tests in 18 classes, 0 failures; debug APK facts and 16 KB
+alignment as recorded in §5; release APKs/AAB regenerated and re-signed by the local QA key as
+recorded in §6; lint 0 errors / 65 warnings; EN↔AR parity clean; claim drift clean; the 21
+shipped-legal placeholders are still reported, so `-ReleaseCandidate` still fails by design. After
+the documentation edits the same checks re-passed on the committed tree with `-SkipBuild`
+(`docs/qa/evidence/verify-20261122-191023.json`).
+
+### 12.2 Installed build
+
+`app/build/outputs/apk/debug/app-x86_64-debug.apk`, 75,951,522 bytes, SHA-256
+`FBFBD82F17ABA8F1389D1421D1422DE0A43EEC968877B045FE6C523F286E588F`, signed with the debug key and
+installed by the script with `adb install -r` on `emulator-5564` (AVD `sighaqa42`, API 36,
+x86_64). The script clears `com.sigha.converter` data first, grants POST_NOTIFICATIONS and writes
+its own PNG fixtures, so every run starts from a first-install state.
+
+### 12.3 Runtime evidence through the real UI
+
+| Check | Result | Evidence |
+|---|---|---|
+| History empty state shows the "Choose files" action and it returns to Convert | **PASS** | `retention-20261122-190634/history-empty.png` |
+| Two PNGs selected in the real DocumentsUI picker; "Convert 2 files to JPG" offered and run | **PASS** | run JSON steps 7–10 |
+| Batch finishes while the app is backgrounded and posts the silent completion notification with the converted/failed counts | **PASS** | `notification.png` |
+| Tapping the notification resumes `com.sigha.converter` (`topResumedActivity`) | **PASS** | run JSON step |
+| "Share all 2 files" opens the system chooser once; labels were Bluetooth and Messaging, with Sigha absent | **PASS** | `results.png`, `share-chooser.png` |
+| "View results" → Queue → "Clear finished" → empty-state CTA returns to the workbench | **PASS** | `queue-empty.png` |
+| `retention-smoke.ps1` overall | 19/19 steps PASS, 0 failures | `retention-20261122-190634/retention-20261122-190634.json` |
+
+Run notes, recorded rather than hidden:
+
+- The script is destructive: it clears Sigha's app data, so it is meant for the dedicated QA AVD
+  (`sighaqa42` on `emulator-5564`), never for a phone in use or the shared `5554`/`5558` AVDs.
+- The chooser assertion is label-based over the bottom-sheet region of the UI dump. Bluetooth and
+  Messaging are the AOSP image's receivers; a device with different installed apps will show a
+  different list, but the Sigha label must stay absent.
+- The notification step runs with POST_NOTIFICATIONS granted by the script and on the AOSP status
+  bar; OEM notification behaviour and the user-facing permission priming are not exercised (the
+  contextual priming remains queued).
+
+### 12.4 Reproduce
+
+```
+pwsh -NoProfile -File scripts\retention-smoke.ps1 -Serial emulator-5564
+```
+
+The script header documents its assumptions: a 1080×2400 portrait emulator, a debug APK present,
+and a destructive app-data reset.
+
+### 12.5 Not covered by this pass
+
+- **No arm64 and no physical device.** Every result above is x86_64 emulator, exactly like §7.
+- **Release APK/AAB were not reinstalled.** They were rebuilt and signed (§6), but the release-run
+  matrix in §7.4 predates these edits.
+- **`device-smoke.ps1` was not rerun this pass.** The last record is
+  `device-smoke-20261122-000244.json` (§11.3); run it again against the release APK before the upload
+  build.
+- **Notification edge cases** (Do Not Disturb, battery managers, denied permission) are not
+  exercised; the result channel is low-importance and silent by design.
+- **Queued, not done:** persistent result card, batch retry-failed, History re-run/delete,
+  image/video/audio collection routing, launcher shortcuts, PDF workshop, contextual notification
+  priming. None is a crash path.
+- **Human lane unchanged:** the 21 legal placeholders, QA-key signature, Play account, owned
+  domain/mailboxes, FGS declaration/demo video and the closed-test clock (see §10 and
   `docs/legal/release-blockers.md`).

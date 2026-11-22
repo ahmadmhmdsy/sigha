@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -63,7 +64,10 @@ import kotlinx.coroutines.launch
 /** Last 50 conversions with reopen / share / clear. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HistoryScreen(modifier: Modifier = Modifier) {
+fun HistoryScreen(
+    onOpenWorkbench: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val entries by Repo.history.entries.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -105,7 +109,12 @@ fun HistoryScreen(modifier: Modifier = Modifier) {
                         R.plurals.history_empty_body,
                         HistoryCodec.MAX_ENTRIES,
                         HistoryCodec.MAX_ENTRIES
-                    )
+                    ),
+                    action = {
+                        Button(onClick = onOpenWorkbench) {
+                            Text(stringResource(R.string.action_choose_files))
+                        }
+                    }
                 )
             }
         } else {

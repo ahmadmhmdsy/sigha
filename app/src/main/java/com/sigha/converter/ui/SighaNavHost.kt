@@ -144,7 +144,9 @@ fun SighaNavHost(workbenchViewModel: WorkbenchViewModel, modifier: Modifier = Mo
                 )
             }
             composable(Routes.HISTORY) {
-                HistoryScreen()
+                HistoryScreen(
+                    onOpenWorkbench = { navigateTopLevel(navController, Routes.WORKBENCH) }
+                )
             }
             composable(Routes.SETTINGS) {
                 SettingsScreen(
@@ -155,7 +157,16 @@ fun SighaNavHost(workbenchViewModel: WorkbenchViewModel, modifier: Modifier = Mo
                 )
             }
             composable(Routes.QUEUE) {
-                QueueScreen(onBack = { navController.popBackStack() })
+                QueueScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenWorkbench = {
+                        // The queue is opened above the workbench, so popping back to that
+                        // entry is the shortest way home; fall back to a top-level jump.
+                        if (!navController.popBackStack(Routes.WORKBENCH, false)) {
+                            navigateTopLevel(navController, Routes.WORKBENCH)
+                        }
+                    }
+                )
             }
             composable(Routes.ABOUT) {
                 AboutScreen(

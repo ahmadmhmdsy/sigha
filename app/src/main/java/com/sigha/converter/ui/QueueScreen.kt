@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -71,10 +73,15 @@ import kotlinx.coroutines.launch
 /** Live queue plus finished results with Open / Share. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QueueScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
+fun QueueScreen(
+    onBack: () -> Unit,
+    onOpenWorkbench: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val entries by Repo.queue.entries.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val active = entries.filter { it.status == QueueStatus.QUEUED || it.status == QueueStatus.RUNNING }
     val finished = entries.filter {
@@ -136,7 +143,12 @@ fun QueueScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                     EmptyState(
                         icon = Icons.Outlined.FormatListBulleted,
                         title = stringResource(R.string.queue_empty_title),
-                        body = stringResource(R.string.queue_empty_body)
+                        body = stringResource(R.string.queue_empty_body),
+                        action = {
+                            Button(onClick = onOpenWorkbench) {
+                                Text(stringResource(R.string.action_choose_files))
+                            }
+                        }
                     )
                 }
             }
@@ -160,9 +172,44 @@ fun QueueScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                 }
                 if (finished.isNotEmpty()) {
                     item {
+                        val doneEntries = finished.filter {
+                            it.status == QueueStatus.DONE && it.outputUri != null
+                        }
                         SectionHeader(
                             title = stringResource(R.string.queue_results_section),
-                            modifier = Modifier.padding(top = 8.dp)
+                            modifier = Modifier.padding(top = 8.dp),
+                            trailing = if (doneEntries.size >= 2) {
+                                {
+                                    val mimes = doneEntries
+                                        .mapNotNull { entry ->
+                                            AppGraph.formats.get(entry.toId)?.mimeOrDefault()
+                                        }
+                                        .distinct()
+                                    val mime = if (mimes.size == 1) mimes.first() else "*/*"
+                                    TextButton(
+                                        onClick = {
+                                            val uris = doneEntries.mapNotNull { it.outputUri }
+                                            if (!shareFiles(context, uris, mime)) {
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar(
+                                                        context.getString(R.string.share_all_failed)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    ) {
+                                        Text(
+                                            pluralStringResource(
+                                                R.plurals.action_share_all,
+                                                doneEntries.size,
+                                                doneEntries.size
+                                            )
+                                        )
+                                    }
+                                }
+                            } else {
+                                null
+                            }
                         )
                     }
                     items(items = finished, key = { it.id }) { entry ->
