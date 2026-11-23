@@ -78,29 +78,29 @@ Six screens captured from the current 0.2.1 QA build on a 1080×2400 emulator, w
 
 <table>
   <tr>
-    <td align="center" valign="top" width="33%">
+    <td align="center" valign="top">
       <img src="docs/screenshots/home-arabic-rtl.png" width="240" alt="Sigha home screen in Arabic: right-to-left layout, the tagline «ملفاتك، تُحوَّل على هذا الهاتف» and the Choose files button"><br>
       <sub><b>Home — Arabic (RTL)</b></sub>
     </td>
-    <td align="center" valign="top" width="33%">
+    <td align="center" valign="top">
       <img src="docs/screenshots/workbench-arabic.png" width="240" alt="Arabic convert screen with sample.txt selected and only the reachable targets PNG, JPG and PDF offered"><br>
       <sub><b>Convert — Arabic</b></sub>
     </td>
-    <td align="center" valign="top" width="33%">
+    <td align="center" valign="top">
       <img src="docs/screenshots/workbench-english.png" width="240" alt="English convert screen with notes.docx selected, PDF as the target and the file saved to Download/Sigha"><br>
       <sub><b>Convert — English</b></sub>
     </td>
   </tr>
   <tr>
-    <td align="center" valign="top" width="33%">
+    <td align="center" valign="top">
       <img src="docs/screenshots/convert-result.png" width="240" alt="Two PNG images converted to JPG with the message «All files converted · saved to Pictures/Sigha»"><br>
       <sub><b>Batch result — Pictures/Sigha</b></sub>
     </td>
-    <td align="center" valign="top" width="33%">
+    <td align="center" valign="top">
       <img src="docs/screenshots/settings.png" width="240" alt="Settings screen with theme selection, automatic output folders, Completion alerts and OCR language"><br>
       <sub><b>Settings — theme, folders, alerts</b></sub>
     </td>
-    <td align="center" valign="top" width="33%">
+    <td align="center" valign="top">
       <img src="docs/screenshots/ocr-pack-arabic.png" width="240" alt="The OCR pack confirmation dialog in Arabic: English and Arabic, 28 MB, downloaded once and then works without a connection"><br>
       <sub><b>OCR pack — 28 MB, once</b></sub>
     </td>

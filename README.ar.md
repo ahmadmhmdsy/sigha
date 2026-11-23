@@ -78,29 +78,29 @@ adb install -r Sigha-0.2.1-universal-debug.apk
 
 <table>
   <tr>
-    <td align="center" valign="top" width="33%">
+    <td align="center" valign="top">
       <img src="docs/screenshots/home-arabic-rtl.png" width="240" alt="شاشة البداية في صيغة بالعربية: تخطيط من اليمين إلى اليسار وعبارة «ملفاتك، تُحوَّل على هذا الهاتف» وزر اختيار الملفات"><br>
       <sub><b>البداية — بالعربية (RTL)</b></sub>
     </td>
-    <td align="center" valign="top" width="33%">
+    <td align="center" valign="top">
       <img src="docs/screenshots/workbench-arabic.png" width="240" alt="شاشة التحويل بالعربية مع الملف sample.txt محددًا، ولا تُعرض إلا الصيغ المتاحة PNG وJPG وPDF"><br>
       <sub><b>التحويل — بالعربية</b></sub>
     </td>
-    <td align="center" valign="top" width="33%">
+    <td align="center" valign="top">
       <img src="docs/screenshots/workbench-english.png" width="240" alt="شاشة التحويل بالإنجليزية مع الملف notes.docx محددًا وPDF هدفًا، والحفظ في Download/Sigha"><br>
       <sub><b>التحويل — بالإنجليزية</b></sub>
     </td>
   </tr>
   <tr>
-    <td align="center" valign="top" width="33%">
+    <td align="center" valign="top">
       <img src="docs/screenshots/convert-result.png" width="240" alt="تحويل صورتين PNG إلى JPG مع رسالة «All files converted · saved to Pictures/Sigha»"><br>
       <sub><b>نتيجة دفعة — Pictures/Sigha</b></sub>
     </td>
-    <td align="center" valign="top" width="33%">
+    <td align="center" valign="top">
       <img src="docs/screenshots/settings.png" width="240" alt="شاشة الإعدادات مع اختيار السمة ومجلدات الإخراج التلقائي وتنبيهات الاكتمال ولغة OCR"><br>
       <sub><b>الإعدادات — السمة والمجلدات</b></sub>
     </td>
-    <td align="center" valign="top" width="33%">
+    <td align="center" valign="top">
       <img src="docs/screenshots/ocr-pack-arabic.png" width="240" alt="نافذة تأكيد حزمة النماذج بالعربية: الإنجليزية والعربية، 28 م.ب، تُنزَّل مرة واحدة ثم تعمل دون اتصال"><br>
       <sub><b>حزمة OCR — 28 م.ب مرة واحدة</b></sub>
     </td>
