@@ -729,6 +729,16 @@ table.formats .ext { font-family: var(--font-mono); font-size: 0.95em; color: va
   /* header: brand + language switch only — the hero CTA is the primary action here */
   .site-header__actions .btn { display: none; }
   .site-header__bar { gap: 0.6rem; }
+  /* the section nav scrolls sideways on small screens: fade its tail so the
+     overflow reads as "scroll for more" instead of a hard cut mid-word */
+  .site-nav {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.2rem), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 1.2rem), transparent);
+  }
+  [dir="rtl"] .site-nav {
+    -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 1.2rem), transparent);
+    mask-image: linear-gradient(to left, #000 calc(100% - 1.2rem), transparent);
+  }
   .hero { padding-block-start: 2rem; }
   .hero h1 { max-width: none; }
   .btn-row { width: 100%; }
