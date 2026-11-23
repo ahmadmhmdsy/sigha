@@ -74,27 +74,38 @@ The checksums above are the same ones recorded in `dist/SHA256SUMS.txt` and in t
 
 ## Screenshots
 
-Captured from the current 0.2.1 QA build on a 1080×2400 emulator with an Arabic system locale where the UI is Arabic. They are real screenshots from the app, not mock-ups.
+Six screens captured from the current 0.2.1 QA build on a 1080×2400 emulator, with an Arabic system locale on the screens shown in Arabic. They are real screenshots from the app, not mock-ups — open any one to see it at full resolution.
 
-![Sigha home screen in Arabic with right-to-left layout, the tagline "ملفاتك، تُحوَّل على هذا الهاتف" and the Choose files button](docs/screenshots/home-arabic-rtl.png)
-
-*The Arabic home screen: right-to-left layout, Arabic tagline and the single "Choose files" action.*
-
-![Sigha Arabic convert screen with a selected sample.txt file and the reachable target formats PNG, JPG and PDF](docs/screenshots/workbench-arabic.png)
-
-*The convert screen in Arabic: one file selected, only reachable targets are offered.*
-
-![Sigha English convert screen with notes.docx selected, PDF chosen as the target and a confirmation that the file was saved to Download/Sigha](docs/screenshots/workbench-english.png)
-
-*English convert screen: a DOCX converted to PDF and saved to `Download/Sigha`.*
-
-![Sigha English convert screen after converting two PNG images to JPG, with the message "All files converted · saved to Pictures/Sigha"](docs/screenshots/convert-result.png)
-
-*A finished image batch: the result message names the real output folder, `Pictures/Sigha`.*
-
-![Sigha settings screen with theme selection, automatic output folders, Completion alerts and OCR language](docs/screenshots/settings.png)
-
-*Settings: theme, output folders, completion alerts and the OCR language.*
+<table>
+  <tr>
+    <td align="center" valign="top" width="33%">
+      <img src="docs/screenshots/home-arabic-rtl.png" width="240" alt="Sigha home screen in Arabic: right-to-left layout, the tagline «ملفاتك، تُحوَّل على هذا الهاتف» and the Choose files button"><br>
+      <sub><b>Home — Arabic (RTL)</b></sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <img src="docs/screenshots/workbench-arabic.png" width="240" alt="Arabic convert screen with sample.txt selected and only the reachable targets PNG, JPG and PDF offered"><br>
+      <sub><b>Convert — Arabic</b></sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <img src="docs/screenshots/workbench-english.png" width="240" alt="English convert screen with notes.docx selected, PDF as the target and the file saved to Download/Sigha"><br>
+      <sub><b>Convert — English</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="33%">
+      <img src="docs/screenshots/convert-result.png" width="240" alt="Two PNG images converted to JPG with the message «All files converted · saved to Pictures/Sigha»"><br>
+      <sub><b>Batch result — Pictures/Sigha</b></sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <img src="docs/screenshots/settings.png" width="240" alt="Settings screen with theme selection, automatic output folders, Completion alerts and OCR language"><br>
+      <sub><b>Settings — theme, folders, alerts</b></sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <img src="docs/screenshots/ocr-pack-arabic.png" width="240" alt="The OCR pack confirmation dialog in Arabic: English and Arabic, 28 MB, downloaded once and then works without a connection"><br>
+      <sub><b>OCR pack — 28 MB, once</b></sub>
+    </td>
+  </tr>
+</table>
 
 ## Supported formats
 

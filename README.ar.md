@@ -74,27 +74,38 @@ adb install -r Sigha-0.2.1-universal-debug.apk
 
 ## لقطات الشاشة
 
-مأخوذة من بناء 0.2.1 التجريبي الحالي على محاكٍ بدقة 1080×2400، وبلغة نظام عربية في الشاشات التي تظهر بالعربية. وهي لقطات حقيقية من التطبيق لا صور تصميمية.
+ست لقطات من بناء 0.2.1 التجريبي الحالي على محاكٍ بدقة 1080×2400، وبلغة نظام عربية في الشاشات التي تظهر بالعربية. وهي لقطات حقيقية من التطبيق لا صور تصميمية — افتح أي لقطة لعرضها بالحجم الكامل.
 
-![شاشة البداية في صيغة بالعربية مع تخطيط من اليمين إلى اليسار وعبارة «ملفاتك، تُحوَّل على هذا الهاتف» وزر اختيار الملفات](docs/screenshots/home-arabic-rtl.png)
-
-*شاشة البداية بالعربية: تخطيط من اليمين إلى اليسار، وعبارة عربية، وزر واحد لاختيار الملفات.*
-
-![شاشة التحويل في صيغة بالعربية مع ملف sample.txt محدد والصيغ المتاحة PNG وJPG وPDF](docs/screenshots/workbench-arabic.png)
-
-*شاشة التحويل بالعربية: ملف واحد محدد، ولا تُعرض إلا الصيغ التي يمكن الوصول إليها فعلًا.*
-
-![شاشة التحويل في صيغة بالإنجليزية مع مختار notes.docx وPDF كهدف وتأكيد الحفظ في Download/Sigha](docs/screenshots/workbench-english.png)
-
-*شاشة التحويل بالإنجليزية: تحويل DOCX إلى PDF وحفظه في `Download/Sigha`.*
-
-![شاشة التحويل في صيغة بالإنجليزية بعد تحويل صورتين PNG إلى JPG مع رسالة «All files converted · saved to Pictures/Sigha»](docs/screenshots/convert-result.png)
-
-*دفعة صور منتهية: رسالة النتيجة تذكر مجلد الإخراج الحقيقي `Pictures/Sigha`.*
-
-![شاشة إعدادات صيغة وفيها اختيار السمة ومجلدات الإخراج التلقائي وتنبيهات الاكتمال ولغة OCR](docs/screenshots/settings.png)
-
-*الإعدادات: السمة ومجلدات الإخراج وتنبيهات الاكتمال ولغة OCR.*
+<table>
+  <tr>
+    <td align="center" valign="top" width="33%">
+      <img src="docs/screenshots/home-arabic-rtl.png" width="240" alt="شاشة البداية في صيغة بالعربية: تخطيط من اليمين إلى اليسار وعبارة «ملفاتك، تُحوَّل على هذا الهاتف» وزر اختيار الملفات"><br>
+      <sub><b>البداية — بالعربية (RTL)</b></sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <img src="docs/screenshots/workbench-arabic.png" width="240" alt="شاشة التحويل بالعربية مع الملف sample.txt محددًا، ولا تُعرض إلا الصيغ المتاحة PNG وJPG وPDF"><br>
+      <sub><b>التحويل — بالعربية</b></sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <img src="docs/screenshots/workbench-english.png" width="240" alt="شاشة التحويل بالإنجليزية مع الملف notes.docx محددًا وPDF هدفًا، والحفظ في Download/Sigha"><br>
+      <sub><b>التحويل — بالإنجليزية</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="33%">
+      <img src="docs/screenshots/convert-result.png" width="240" alt="تحويل صورتين PNG إلى JPG مع رسالة «All files converted · saved to Pictures/Sigha»"><br>
+      <sub><b>نتيجة دفعة — Pictures/Sigha</b></sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <img src="docs/screenshots/settings.png" width="240" alt="شاشة الإعدادات مع اختيار السمة ومجلدات الإخراج التلقائي وتنبيهات الاكتمال ولغة OCR"><br>
+      <sub><b>الإعدادات — السمة والمجلدات</b></sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <img src="docs/screenshots/ocr-pack-arabic.png" width="240" alt="نافذة تأكيد حزمة النماذج بالعربية: الإنجليزية والعربية، 28 م.ب، تُنزَّل مرة واحدة ثم تعمل دون اتصال"><br>
+      <sub><b>حزمة OCR — 28 م.ب مرة واحدة</b></sub>
+    </td>
+  </tr>
+</table>
 
 ## الصيغ المدعومة
 
