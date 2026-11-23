@@ -1,0 +1,7 @@
+# Sigha — https://ahmadmhmdsy.github.io/sigha/
+# Everything on this site is public: the landing pages, the screenshots and the docs pointers.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://ahmadmhmdsy.github.io/sigha/sitemap.xml

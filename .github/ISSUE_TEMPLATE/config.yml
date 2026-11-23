@@ -1,0 +1,17 @@
+# Issue chooser configuration for the Sigha repository.
+# `blank_issues_enabled: false` routes every report through a template so the details the project
+# needs (device, Android version, format pair, privacy confirmation) are collected up front.
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation index
+    url: https://github.com/ahmadmhmdsy/sigha/tree/main/docs
+    about: Build, verification, legal and release documentation — start with docs/README.md.
+  - name: What Sigha can and cannot convert
+    url: https://github.com/ahmadmhmdsy/sigha/blob/main/docs/product/PRODUCT.md
+    about: The capability spec — 48 recognised formats, 39 convertible sources, 25 producible targets; nine formats have no converter yet.
+  - name: Sigha website
+    url: https://ahmadmhmdsy.github.io/sigha/
+    about: Product overview, downloads and the privacy summary.
+  - name: Report a security vulnerability (private)
+    url: https://github.com/ahmadmhmdsy/sigha/security/advisories/new
+    about: Do not open a public issue for security problems — use GitHub private vulnerability reporting.

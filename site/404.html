@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found — Sigha</title>
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#F4F8F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1513" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="/sigha/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/sigha/assets/favicon-32.png" sizes="32x32" type="image/png">
+<style>
+:root{--bg:#F4F8F6;--text:#10233F;--muted:#55677C;--link:#0B6E5C;--rule:#D5E0DB;--sand:#D99A2B}
+@media (prefers-color-scheme:dark){:root{--bg:#0F1513;--text:#E9EFEC;--muted:#9EADA6;--link:#8FD6C4;--rule:#26332E}}
+*{box-sizing:border-box}
+html{background:var(--bg);color-scheme:light dark}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:2rem 1.4rem;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.65}
+.wrap{width:min(100%,44rem);display:grid;gap:2rem}
+.mark{width:44px;height:44px;color:var(--link)}
+.arrow{fill:var(--sand)}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(2rem,1.4rem+3vw,3rem);line-height:1.08;letter-spacing:-.03em;margin:.4rem 0 0}
+p{margin:.6rem 0 0;color:var(--muted);max-width:52ch}
+a{color:var(--link)}
+.actions{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.6rem}
+.btn{display:inline-flex;align-items:center;gap:.5em;padding:.75em 1.3em;border-radius:999px;border:1px solid var(--rule);color:var(--text);text-decoration:none;font-weight:600;font-size:.95rem}
+.btn--primary{background:var(--link);border-color:var(--link);color:#fff}
+@media (prefers-color-scheme:dark){.btn--primary{color:#07120F}}
+hr{border:0;border-top:1px solid var(--rule);margin:0}
+[dir="rtl"]{font-family:"Segoe UI","Noto Naskh Arabic","Noto Sans Arabic",Tahoma,Arial,sans-serif;line-height:1.85}
+[dir="rtl"] h1{line-height:1.25;letter-spacing:0}
+.h1{font-size:clamp(2rem,1.4rem+3vw,3rem);line-height:1.08;letter-spacing:-.03em;margin:.4rem 0 0}
+[dir="rtl"] .h1{line-height:1.25;letter-spacing:0}
+:focus-visible{outline:2px solid var(--link);outline-offset:3px;border-radius:4px}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div>
+    <svg class="mark" viewBox="0 0 108 108" aria-hidden="true" focusable="false"><path fill="currentColor" d="M30.51 45.45A25 25 0 0 1 77.49 45.45L70.91 47.84A18 18 0 0 0 37.09 47.84Z"/><path fill="currentColor" d="M77.49 62.55A25 25 0 0 1 30.51 62.55L37.09 60.16A18 18 0 0 0 70.91 60.16Z"/><path class="arrow" d="M79.39 41.06L75.34 51.38L66.92 47.42Z"/><path class="arrow" d="M28.61 66.94L32.66 56.62L41.08 60.58Z"/></svg>
+    <p class="code">404 &middot; Sigha</p>
+    <h1>This page is not here</h1>
+    <p>Sigha itself is fine — the link was not. The site has an English landing page and an Arabic one, and both work.</p>
+    <div class="actions">
+      <a class="btn btn--primary" href="/sigha/">Go to the English home page</a>
+      <a class="btn" href="/sigha/ar/">الصفحة العربية</a>
+      <a class="btn" href="https://github.com/ahmadmhmdsy/sigha">View the source</a>
+    </div>
+  </div>
+  <hr>
+  <div dir="rtl" lang="ar">
+    <p class="code">٤٠٤ &middot; صيغة</p>
+    <p class="h1" role="heading" aria-level="2">هذه الصفحة غير موجودة</p>
+    <p>التطبيق بخير، لكن الرابط ليس كذلك. للموقع صفحة إنجليزية وصفحة عربية، وكلتاهما تعملان.</p>
+    <div class="actions">
+      <a class="btn btn--primary" href="/sigha/ar/">إلى الصفحة العربية</a>
+      <a class="btn" href="/sigha/">English page</a>
+    </div>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, follow">
+<title>Sigha — Open Graph card</title>
+<style>
+  :root {
+    --bg: #F4F8F6; --ink: #10233F; --ink-2: #34495F; --ink-3: #55677C;
+    --emerald: #0B6E5C; --sand: #D99A2B; --rule: #CBD9D3; --tile: #FFFFFF;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --ar: "Segoe UI", Tahoma, "Noto Naskh Arabic", Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden; position: relative;
+    background: var(--bg); color: var(--ink);
+    font-family: var(--font); -webkit-font-smoothing: antialiased;
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(to right, rgba(16,35,63,.05) 1px, transparent 1px);
+    background-size: 100px 100%;
+  }
+  .watermark { position: absolute; left: 38%; top: -180px; color: var(--emerald); opacity: .045; }
+  .frame {
+    position: absolute; inset: 0; padding: 54px 64px;
+    display: grid; grid-template-columns: minmax(0, 1fr) 330px;
+    grid-template-rows: auto 1fr auto; column-gap: 26px; row-gap: 18px;
+  }
+  .top { grid-column: 1 / -1; display: flex; align-items: center; gap: 18px; }
+  .brand { font-size: 34px; font-weight: 700; letter-spacing: -.02em; }
+  .brand-ar { font-family: var(--ar); font-size: 26px; color: var(--ink-3); font-weight: 600; }
+  .mark { color: var(--emerald); flex: none; }
+  .kicker { font-family: var(--mono); font-size: 15px; letter-spacing: .15em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 16px; }
+  h1 { margin: 0; font-size: 62px; line-height: 1.03; letter-spacing: -.035em; font-weight: 660; max-width: 13ch; }
+  h1 em { font-style: normal; color: var(--emerald); }
+  .copy { grid-column: 1; grid-row: 2; align-self: center; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+  .chip {
+    font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--ink-2);
+    background: var(--tile); border: 1px solid var(--rule); border-radius: 7px;
+    padding: 7px 11px; letter-spacing: .02em;
+  }
+  .chip b { color: var(--ink); }
+  .chip i { color: var(--sand); font-style: normal; }
+  .visual { grid-column: 2; grid-row: 2 / span 2; position: relative; align-self: stretch; }
+  .phone {
+    position: absolute; top: 4px; right: 0; width: 288px;
+    background: #fff; border: 1px solid var(--rule); border-radius: 28px; padding: 8px;
+    box-shadow: 0 24px 50px -26px rgba(16,35,63,.4);
+  }
+  .phone img { width: 100%; display: block; border-radius: 21px; }
+  .foot { grid-column: 1; grid-row: 3; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-top: 1px solid var(--rule); padding-top: 18px; }
+  .claims { display: flex; gap: 22px; font-size: 17px; font-weight: 600; color: var(--ink-2); }
+  .url { font-family: var(--mono); font-size: 14px; color: var(--ink-3); }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="watermark"><svg width="860" height="860" viewBox="0 0 108 108" aria-hidden="true"><path fill="currentColor" d="M30.51 45.45A25 25 0 0 1 77.49 45.45L70.91 47.84A18 18 0 0 0 37.09 47.84Z"/><path fill="currentColor" d="M77.49 62.55A25 25 0 0 1 30.51 62.55L37.09 60.16A18 18 0 0 0 70.91 60.16Z"/><path fill="#0B6E5C" d="M79.39 41.06L75.34 51.38L66.92 47.42Z"/><path fill="#0B6E5C" d="M28.61 66.94L32.66 56.62L41.08 60.58Z"/></svg></div>
+  <div class="frame">
+    <div class="top">
+      <svg class="mark" width="52" height="52" viewBox="0 0 108 108" aria-hidden="true"><path fill="currentColor" d="M30.51 45.45A25 25 0 0 1 77.49 45.45L70.91 47.84A18 18 0 0 0 37.09 47.84Z"/><path fill="currentColor" d="M77.49 62.55A25 25 0 0 1 30.51 62.55L37.09 60.16A18 18 0 0 0 70.91 60.16Z"/><path fill="#D99A2B" d="M79.39 41.06L75.34 51.38L66.92 47.42Z"/><path fill="#D99A2B" d="M28.61 66.94L32.66 56.62L41.08 60.58Z"/></svg>
+      <span class="brand">Sigha</span>
+      <span class="brand-ar" lang="ar" dir="rtl">صيغة</span>
+      
+    </div>
+    <div class="copy">
+      <div class="kicker">Offline file converter &middot; Android</div>
+      <h1>Your files convert on your phone. <em>Nothing is uploaded.</em></h1>
+      <div class="chips"><span class="chip"><b>PDF</b> <i>&#8594;</i> JPG</span>
+        <span class="chip"><b>HEIC</b> <i>&#8594;</i> JPG</span>
+        <span class="chip"><b>DOCX</b> <i>&#8594;</i> PDF</span>
+        <span class="chip"><b>MKV</b> <i>&#8594;</i> MP4</span>
+        <span class="chip"><b>SRT</b> <i>&#8594;</i> VTT</span></div>
+    </div>
+    <div class="visual">
+      <div class="phone"><img src="shots/sigha-home-arabic.png" alt=""></div>
+    </div>
+    <div class="foot">
+      <div class="claims"><span>Free</span><span>No account</span><span>No ads</span><span>Arabic + English</span></div>
+      <div class="url">ahmadmhmdsy.github.io/sigha</div>
+    </div>
+  </div>
+</body>
+</html>

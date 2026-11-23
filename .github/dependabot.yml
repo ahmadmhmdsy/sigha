@@ -1,0 +1,44 @@
+# Dependabot configuration for Sigha.
+# Version updates only: Dependabot alerts and security updates are repository settings and must be
+# enabled in the GitHub UI (Settings → Code security). See docs/publishing-checklist.md.
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Asia/Baghdad"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build"
+    groups:
+      androidx:
+        patterns:
+          - "androidx.*"
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "org.jetbrains.kotlinx*"
+      gradle-plugins:
+        patterns:
+          - "com.android.*"
+          - "com.google.*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Asia/Baghdad"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"
+    groups:
+      actions:
+        patterns:
+          - "*"

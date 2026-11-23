@@ -1,0 +1,132 @@
+name: Bug report
+description: Something in Sigha is broken or behaves unexpectedly.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Sigha is maintained by one person, so a
+        complete report is the fastest route to a fix.
+
+        **Do not report security vulnerabilities here.** Follow
+        [SECURITY.md](https://github.com/ahmadmhmdsy/sigha/blob/main/SECURITY.md) instead.
+
+        Remove file names, folder paths and personal data from logs and screenshots before posting.
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: From the APK file name, or Settings → About. The current release is 0.2.1 (versionCode 3).
+      placeholder: "0.2.1 (versionCode 3)"
+    validations:
+      required: true
+
+  - type: input
+    id: install-source
+    attributes:
+      label: How did you install Sigha?
+      description: GitHub Releases APK, an app store, adb, or a build from source.
+      placeholder: "GitHub release Sigha-0.2.1-universal-debug.apk"
+    validations:
+      required: true
+
+  - type: input
+    id: device-model
+    attributes:
+      label: Device model
+      description: The exact model name, e.g. "Samsung Galaxy A54 5G" or "Pixel 8".
+      placeholder: "Samsung Galaxy A54 5G"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: android-version
+    attributes:
+      label: Android version
+      description: Settings → About phone → Android version.
+      options:
+        - Android 8.0 (API 26)
+        - Android 8.1 (API 27)
+        - Android 9 (API 28)
+        - Android 10 (API 29)
+        - Android 11 (API 30)
+        - Android 12 (API 31)
+        - Android 12L (API 32)
+        - Android 13 (API 33)
+        - Android 14 (API 34)
+        - Android 15 (API 35)
+        - Android 16 (API 36)
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: input
+    id: format-pair
+    attributes:
+      label: Format pair
+      description: The source format and the target you selected, e.g. "PNG → JPG" or "PDF → TXT". Write "not applicable" if no conversion was involved.
+      placeholder: "PNG → JPG"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps starting from opening the app. Include the tap sequence and any options used (quality, page range, OCR language, output folder).
+      placeholder: |
+        1. Add a 4000x3000 PNG with the system picker.
+        2. Choose JPG.
+        3. Tap Convert.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      placeholder: "The JPG lands in Pictures/Sigha and opens from the gallery."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What happened instead? Include any message the app showed, and whether it happens every time.
+      placeholder: "The row says Conversion failed. It happens every time with this file, but not with a smaller PNG."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (optional)
+      description: "If you can use adb: `adb logcat -d -s AndroidRuntime:E Sigha:*`. Otherwise leave this empty."
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or a screen recording (optional)
+      description: Drag and drop images or a short video here. Crop out file names and other personal data.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      description: This issue is public and permanent. Test files and device names can identify you.
+      options:
+        - label: "I removed personal data (file names, folder paths, account names, device serial numbers) from this report and its attachments."
+          required: true
+        - label: "I understand this issue is public and searchable, and this is not a security vulnerability report (those follow SECURITY.md)."
+          required: true
+        - label: "I would be willing to test a fix build."
+          required: false

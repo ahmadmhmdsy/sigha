@@ -1,0 +1,10 @@
+# Sigha is maintained by a single owner today. CODEOWNERS is kept explicit so review routing is
+# a one-line change when additional maintainers join.
+#
+# Syntax: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+*         @ahmadmhmdsy
+
+/docs/    @ahmadmhmdsy
+/.github/ @ahmadmhmdsy
+/site/    @ahmadmhmdsy

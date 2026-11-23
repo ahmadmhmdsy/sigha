@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>File Converter for Android — Offline, No Upload | Sigha</title>
+<meta name="description" content="Sigha converts images, PDFs, documents, audio and video on your Android phone: on-device, with no upload, no account and no ads. English and Arabic, free.">
+<link rel="canonical" href="https://ahmadmhmdsy.github.io/sigha/">
+<link rel="alternate" hreflang="en" href="https://ahmadmhmdsy.github.io/sigha/">
+<link rel="alternate" hreflang="ar" href="https://ahmadmhmdsy.github.io/sigha/ar/">
+<link rel="alternate" hreflang="x-default" href="https://ahmadmhmdsy.github.io/sigha/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="theme-color" content="#F4F8F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1513" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta name="author" content="Sigha">
+<meta name="application-name" content="Sigha">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sigha">
+<meta property="og:title" content="File Converter for Android — Offline, No Upload | Sigha">
+<meta property="og:description" content="Convert images, PDFs, documents, audio and video on your Android phone. No upload, no account, no ads — English and Arabic, free.">
+<meta property="og:url" content="https://ahmadmhmdsy.github.io/sigha/">
+<meta property="og:image" content="https://ahmadmhmdsy.github.io/sigha/assets/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sigha — offline file converter for Android. Your files convert on your phone; nothing is uploaded.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ar_IQ">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="File Converter for Android — Offline, No Upload | Sigha">
+<meta name="twitter:description" content="Convert images, PDFs, documents, audio and video on your Android phone. No upload, no account, no ads — English and Arabic, free.">
+<meta name="twitter:image" content="https://ahmadmhmdsy.github.io/sigha/assets/og-image.png">
+<meta name="twitter:image:alt" content="Sigha — offline file converter for Android. Your files convert on your phone; nothing is uploaded.">
+
+<link rel="manifest" href="site.webmanifest">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180">
+<link rel="preload" href="assets/shots/sigha-home-english.png" as="image" fetchpriority="high">
+
+<style>
+:root{--bg:#F4F8F6;--text:#10233F;--muted:#55677C;--link:#0B6E5C;--rule:#D5E0DB}
+@media (prefers-color-scheme:dark){:root{--bg:#0F1513;--text:#E9EFEC;--muted:#9EADA6;--link:#8FD6C4;--rule:#26332E}}
+html{background:var(--bg);color-scheme:light dark}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:17px;line-height:1.65}
+img{display:block;max-width:100%;height:auto}
+a{color:var(--link)}
+header{background:var(--bg);border-bottom:1px solid var(--rule)}
+h1,h2{line-height:1.06;letter-spacing:-.025em;text-wrap:balance}
+</style>
+<link rel="stylesheet" href="assets/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://ahmadmhmdsy.github.io/sigha/#app",
+      "name": "Sigha",
+      "alternateName": "صيغة",
+      "description": "Sigha is an offline, privacy-first file converter for Android. It converts images, PDFs, documents, audio, video, e-books and archives on the device, in English and Arabic, with no account, no ads and no analytics.",
+      "url": "https://ahmadmhmdsy.github.io/sigha/",
+      "operatingSystem": "Android 8.0+",
+      "applicationCategory": "UtilitiesApplication",
+      "softwareVersion": "0.2.1",
+      "inLanguage": [
+        "en",
+        "ar"
+      ],
+      "downloadUrl": "https://github.com/ahmadmhmdsy/sigha/releases/download/v0.2.1/Sigha-0.2.1-universal-debug.apk",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Sigha",
+        "url": "https://github.com/ahmadmhmdsy/sigha",
+        "sameAs": [
+          "https://github.com/ahmadmhmdsy/sigha"
+        ]
+      },
+      "screenshot": [
+        "https://ahmadmhmdsy.github.io/sigha/assets/shots/sigha-home-english.png",
+        "https://ahmadmhmdsy.github.io/sigha/assets/shots/sigha-home-arabic.png",
+        "https://ahmadmhmdsy.github.io/sigha/assets/shots/sigha-choose-target-arabic.png",
+        "https://ahmadmhmdsy.github.io/sigha/assets/shots/sigha-conversion-done-arabic.png",
+        "https://ahmadmhmdsy.github.io/sigha/assets/shots/sigha-ocr-pack-arabic.png"
+      ],
+      "featureList": [
+        "On-device file conversion with no upload",
+        "48 recognised formats: 39 convertible in, 25 producible out",
+        "PDF to JPG, PNG and text; images and text to PDF",
+        "HEIC, AVIF, WebP, BMP and GIF image input to JPG, PNG and WebP",
+        "DOCX, ODT, PPTX and XLSX text extraction; DOCX and XLSX to PDF; XLSX and ODS to CSV",
+        "Audio interchange between MP3, M4A, AAC, WAV, FLAC, OGG and OPUS",
+        "Video to MP4, WebM, MKV and GIF, with audio extraction and bitrate control",
+        "CSV, TSV and JSON data; SRT and VTT subtitles; EPUB to text or HTML; ZIP, TAR.GZ and 7Z archives",
+        "Optional OCR language pack for English and Arabic, downloaded only on request",
+        "Full Arabic right-to-left interface and English interface",
+        "No account, no ads, no analytics and no tracking SDK",
+        "Light and dark themes"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://ahmadmhmdsy.github.io/sigha/#website",
+      "url": "https://ahmadmhmdsy.github.io/sigha/",
+      "name": "Sigha — offline file converter for Android",
+      "inLanguage": [
+        "en",
+        "ar"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://ahmadmhmdsy.github.io/sigha/#faq",
+      "inLanguage": "en",
+      "url": "https://ahmadmhmdsy.github.io/sigha/",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Does Sigha work without internet?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Every conversion runs on the device. The one exception is the optional OCR language pack: a 28 MB download you start yourself, after which OCR also works offline."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Sigha free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. There is no price, no subscription, no ads and no in-app purchase in 0.2.1, and the source code is public on GitHub."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Sigha on Google Play?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Version 0.2.1 ships as a side-load QA build from GitHub Releases. It is signed with the Android debug key and 21 legal placeholders still block a Play Store release, so you install it by allowing “Install unknown apps” for the app you open the APK from. Play Protect may warn about an unknown developer; that is expected for this build."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which formats can Sigha convert?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "39 of the 48 recognised formats can be used as an input and 25 can be produced as an output, across 11 engine families. Nine recognised formats have no converter yet — TIFF, RTF, TAR, BZ2, XZ, YAML, XML, MOBI and FB2 — and “recognised” means the app can name the format, not convert it."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Sigha support Arabic?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, completely. The interface exists in Arabic and English, each laid out in its own direction, with Arabic counts and plural forms, an Arabic privacy policy, and an OCR language pack that reads Arabic."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What does Sigha send over the network?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Only the OCR language pack, and only when you tap Download. It carries no file, no usage data and no identifier. There is no analytics SDK, no ad SDK and no account system in the app."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which Android versions does Sigha support?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Android 8.0 (API 26) and newer. HEIC input needs Android 9 or newer and AVIF input needs Android 12 or newer; the app explains the limit on older devices."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where do converted files go?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Images are saved to Pictures/Sigha, documents to Download/Sigha and audio to Music/Sigha, or to a folder you grant once through the system picker. The last 50 conversions stay in History so you can reopen or share them."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="shell site-header__inner">
+    <div class="site-header__bar">
+      <a class="brand" href="./" aria-label="Sigha, home">
+        <svg class="brand__mark" viewBox="0 0 108 108" aria-hidden="true" focusable="false"><path fill="currentColor" d="M30.51 45.45A25 25 0 0 1 77.49 45.45L70.91 47.84A18 18 0 0 0 37.09 47.84Z"/><path fill="currentColor" d="M77.49 62.55A25 25 0 0 1 30.51 62.55L37.09 60.16A18 18 0 0 0 70.91 60.16Z"/><path class="mark__arrow" d="M79.39 41.06L75.34 51.38L66.92 47.42Z"/><path class="mark__arrow" d="M28.61 66.94L32.66 56.62L41.08 60.58Z"/></svg>
+        <span class="brand__name">Sigha</span>
+        <span class="brand__ar" lang="ar" dir="rtl">صيغة</span>
+      </a>
+      <div class="site-header__actions">
+        <a class="lang-switch" href="ar/" hreflang="ar" lang="ar" dir="rtl">العربية <span aria-hidden="true">&#8592;</span></a>
+        <a class="btn btn--primary btn--small" href="#download">Download APK</a>
+      </div>
+    </div>
+    <nav class="site-nav" aria-label="Sections of this page">
+      <a href="#features">Features</a>
+      <a href="#formats">Formats</a>
+      <a href="#screens">Screenshots</a>
+      <a href="#how">How it works</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#faq">FAQ</a>
+      <a href="#download">Download</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="shell hero__grid">
+      <div class="hero__copy">
+        <p class="eyebrow"><span>Android 8.0+</span><span aria-hidden="true">&middot;</span><span>Free</span><span aria-hidden="true">&middot;</span><span>English + Arabic</span></p>
+        <h1 id="hero-title">The Android file converter that never uploads your files</h1>
+        <p class="hero__lead">Sigha converts images, PDFs, documents, audio, video, e-books and archives on your phone. Choose a file, choose a format, done — no account, no ads, no analytics, and no server to send it to.</p>
+        <div class="btn-row">
+          <a class="btn btn--primary" href="https://github.com/ahmadmhmdsy/sigha/releases/download/v0.2.1/Sigha-0.2.1-universal-debug.apk" rel="noopener">Download the APK <span class="arrow" aria-hidden="true">&#8595;</span></a>
+          <a class="btn btn--ghost" href="https://github.com/ahmadmhmdsy/sigha" rel="noopener">View source <span class="arrow" aria-hidden="true">&#8599;</span></a>
+        </div>
+        <p class="hero__note"><span>115 MB universal &middot; 69 MB arm64</span><span>QA build 0.2.1</span><span>SHA-256 published</span></p>
+      </div>
+      <figure class="hero__figure">
+        <svg class="hero__ring" viewBox="0 0 108 108" aria-hidden="true" focusable="false"><path fill="currentColor" d="M30.51 45.45A25 25 0 0 1 77.49 45.45L70.91 47.84A18 18 0 0 0 37.09 47.84Z"/><path fill="currentColor" d="M77.49 62.55A25 25 0 0 1 30.51 62.55L37.09 60.16A18 18 0 0 0 70.91 60.16Z"/><path class="mark__arrow" d="M79.39 41.06L75.34 51.38L66.92 47.42Z"/><path class="mark__arrow" d="M28.61 66.94L32.66 56.62L41.08 60.58Z"/></svg>
+        <div class="phone">
+          <img src="assets/shots/sigha-home-english.png" width="1080" height="2400" alt="Sigha's English home screen: the header, the heading “Your files, converted on this phone”, a Choose files button and the Convert, History and Settings tabs." loading="eager" decoding="async" fetchpriority="high">
+        </div>
+        <figcaption>The English interface, captured from the 0.2.1 QA build. The Arabic interface is right-to-left from the first screen.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="trust" aria-label="What Sigha does not do">
+    <ul class="shell trust__list">
+      <li class="trust__item"><svg class="tick" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 10.6l3.9 3.9L16 5.5"/></svg>No account</li>
+      <li class="trust__item"><svg class="tick" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 10.6l3.9 3.9L16 5.5"/></svg>No ads</li>
+      <li class="trust__item"><svg class="tick" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 10.6l3.9 3.9L16 5.5"/></svg>No analytics</li>
+      <li class="trust__item"><svg class="tick" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 10.6l3.9 3.9L16 5.5"/></svg>Works offline</li>
+      <li class="trust__item"><svg class="tick" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 10.6l3.9 3.9L16 5.5"/></svg>Open source</li>
+      <li class="trust__item"><svg class="tick" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 10.6l3.9 3.9L16 5.5"/></svg>Built for Arabic</li>
+    </ul>
+  </section>
+
+  <section class="section section--plain" aria-labelledby="catalogue-title">
+    <div class="shell stats">
+      <p class="eyebrow"><span class="num">01</span> The catalogue, counted honestly</p>
+      <h2 id="catalogue-title">48 formats recognised. 39 convert in, 25 come out.</h2>
+      <div class="stats__grid">
+        <div class="stat"><span class="stat__n">48</span><span class="stat__k">formats the app recognises by extension and MIME type</span></div>
+        <div class="stat"><span class="stat__n">39</span><span class="stat__k">formats that can be an input to a converter</span></div>
+        <div class="stat"><span class="stat__n">25</span><span class="stat__k">formats a converter can produce as output</span></div>
+        <div class="stat"><span class="stat__n"><em>11</em></span><span class="stat__k">engine families, 10 of them productive</span></div>
+        <div class="stat"><span class="stat__n">155</span><span class="stat__k">JVM unit tests in the release gate, 0 failures</span></div>
+      </div>
+      <p class="stats__caveat">“Recognised” is not “supported”. Nine of the 48 formats — TIFF, RTF, TAR, BZ2, XZ, YAML, XML, MOBI and FB2 — have no converter at all. Sigha names them so it can tell you why nothing can be done, and the app never offers them as targets.</p>
+    </div>
+  </section>
+
+  <section class="section" id="features" aria-labelledby="features-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow"><span class="num">02</span> What it does</p>
+        <h2 id="features-title">File conversion that runs inside the phone, not inside a browser tab</h2>
+        <p class="lede">The engines ship inside the APK, so a conversion never depends on a connection or on someone else's server. These are the jobs Sigha actually finishes in 0.2.1 — and the limits of each one.</p>
+      </div>
+      <div class="features">
+        <article class="feature">
+          <span class="feature__idx">01</span>
+          <h3>PDF conversion on the device</h3>
+          <p>Export PDF pages as JPG or PNG with a page range, pull out the text layer, or turn images and plain text into a PDF. Scanned pages fall back to OCR once the language pack is installed. Sigha converts PDFs and to PDF; it does not edit, merge, split or compress them.</p>
+          <p class="chip-row"><span class="pair"><b>PDF</b><span class="to" aria-hidden="true">&#8594;</span>JPG</span><span class="pair"><b>PDF</b><span class="to" aria-hidden="true">&#8594;</span>PNG</span><span class="pair"><b>PDF</b><span class="to" aria-hidden="true">&#8594;</span>TXT</span><span class="pair"><b>IMG</b><span class="to" aria-hidden="true">&#8594;</span>PDF</span><span class="pair"><b>TXT</b><span class="to" aria-hidden="true">&#8594;</span>PDF</span></p>
+        </article>
+        <article class="feature">
+          <span class="feature__idx">02</span>
+          <h3>Image format conversion, including HEIC and AVIF</h3>
+          <p>Convert between JPG, PNG and WebP, read HEIC on Android 9+ and AVIF on Android 12+, and handle BMP and GIF. Quality is yours to set from 20 to 100, EXIF orientation is applied before conversion, and any image can become an A4 PDF page.</p>
+          <p class="chip-row"><span class="pair"><b>HEIC</b><span class="to" aria-hidden="true">&#8594;</span>JPG</span><span class="pair"><b>PNG</b><span class="to" aria-hidden="true">&#8594;</span>WEBP</span><span class="pair"><b>AVIF</b><span class="to" aria-hidden="true">&#8594;</span>PNG</span><span class="pair"><b>IMG</b><span class="to" aria-hidden="true">&#8594;</span>PDF</span></p>
+        </article>
+        <article class="feature">
+          <span class="feature__idx">03</span>
+          <h3>Office documents to PDF and text</h3>
+          <p>DOCX, ODT and PPTX become readable text; DOCX and XLSX become PDF; XLSX and ODS export to CSV. This is text and table extraction, not layout-preserving conversion: images, text boxes and exact formatting are dropped, and only the first worksheet is read.</p>
+          <p class="chip-row"><span class="pair"><b>DOCX</b><span class="to" aria-hidden="true">&#8594;</span>PDF</span><span class="pair"><b>XLSX</b><span class="to" aria-hidden="true">&#8594;</span>CSV</span><span class="pair"><b>PPTX</b><span class="to" aria-hidden="true">&#8594;</span>TXT</span><span class="pair"><b>ODT</b><span class="to" aria-hidden="true">&#8594;</span>TXT</span></p>
+        </article>
+        <article class="feature">
+          <span class="feature__idx">04</span>
+          <h3>Audio and video conversion with FFmpeg</h3>
+          <p>Swap between MP3, M4A, AAC, WAV, FLAC, OGG and OPUS; turn video into MP4, WebM, MKV or GIF; strip the audio track out of a video; choose the bitrate when the codec takes one. Metadata and chapters are dropped, and an unsupported codec fails with an explanation instead of a stack trace.</p>
+          <p class="chip-row"><span class="pair"><b>MKV</b><span class="to" aria-hidden="true">&#8594;</span>MP4</span><span class="pair"><b>VIDEO</b><span class="to" aria-hidden="true">&#8594;</span>MP3</span><span class="pair"><b>WAV</b><span class="to" aria-hidden="true">&#8594;</span>FLAC</span><span class="pair"><b>MP4</b><span class="to" aria-hidden="true">&#8594;</span>GIF</span></p>
+        </article>
+        <article class="feature">
+          <span class="feature__idx">05</span>
+          <h3>Data, subtitles, e-books and archives</h3>
+          <p>CSV, TSV and JSON interchange; SRT to VTT and back; EPUB to text or HTML; ZIP to TAR.GZ and back; 7Z to ZIP. RAR is not supported, 7Z cannot be created, and encrypted archives fail with a clear message rather than a half-written file.</p>
+          <p class="chip-row"><span class="pair"><b>CSV</b><span class="to" aria-hidden="true">&#8594;</span>JSON</span><span class="pair"><b>SRT</b><span class="to" aria-hidden="true">&#8594;</span>VTT</span><span class="pair"><b>EPUB</b><span class="to" aria-hidden="true">&#8594;</span>TXT</span><span class="pair"><b>7Z</b><span class="to" aria-hidden="true">&#8594;</span>ZIP</span></p>
+        </article>
+        <article class="feature">
+          <span class="feature__idx">06</span>
+          <h3>Optional OCR for scanned PDFs and photos</h3>
+          <p>A 28 MB pack adds optical character recognition for images and scanned PDFs in English and Arabic. Nothing is fetched until you tap the button: the size, the licence and a metered-connection warning come first, and the download is resumable and checked against a pinned SHA-256.</p>
+          <p class="chip-row"><span class="pair"><b>JPG</b><span class="to" aria-hidden="true">&#8594;</span>TXT</span><span class="pair"><b>PDF</b><span class="to" aria-hidden="true">&#8594;</span>TXT</span></p>
+        </article>
+        <article class="feature">
+          <span class="feature__idx">07</span>
+          <h3>An Arabic interface, not a translated menu</h3>
+          <p>The whole app speaks Arabic as well as English: right-to-left layout, Arabic counts and plural forms, an Arabic privacy policy, and an OCR pack that reads Arabic. Convert results and notifications are written in the language the phone is set to.</p>
+          <p class="chip-row"><span class="pair" dir="rtl" lang="ar"><b>واجهة</b><span class="to" aria-hidden="true">&#8592;</span>RTL</span></p>
+        </article>
+        <article class="feature">
+          <span class="feature__idx">08</span>
+          <h3>Results that land in your gallery, files and music apps</h3>
+          <p>Converted images go to Pictures/Sigha, documents to Download/Sigha and audio to Music/Sigha — or to a folder you grant once through the system picker. On Android 10+ no broad storage permission is requested, and the last 50 conversions stay in History.</p>
+          <p class="chip-row"><span class="pair"><b>OUT</b><span class="to" aria-hidden="true">&#8594;</span>MEDIASTORE</span><span class="pair"><b>OUT</b><span class="to" aria-hidden="true">&#8594;</span>SAF</span></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--sunk" id="formats" aria-labelledby="formats-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow"><span class="num">03</span> Supported conversions</p>
+        <h2 id="formats-title">Every format family Sigha converts, with its real edges</h2>
+        <p class="lede">32 converters create 172 directed edges over 11 engine families. The table lists what each family accepts and emits today.</p>
+      </div>
+      <div class="table-wrap" role="region" aria-label="Format conversion table" tabindex="0">
+        <table class="formats">
+          <caption class="visually-hidden">Sigha conversion families: the input formats each family accepts and the output formats it can produce</caption>
+          <thead>
+            <tr><th scope="col">Family</th><th scope="col">Converts from</th><th scope="col">Converts to</th><th scope="col">Limits worth knowing</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Images</th><td><span class="ext">JPG, PNG, WebP, BMP, GIF, HEIC, AVIF</span></td><td><span class="ext">JPG, PNG, WebP, PDF</span></td><td>HEIC needs Android 9+, AVIF Android 12+. Quality 20–100. One image per PDF.</td></tr>
+            <tr><th scope="row">PDF</th><td><span class="ext">PDF</span></td><td><span class="ext">JPG, PNG, TXT</span></td><td>Page ranges supported; 150 DPI renders. Scanned pages need the OCR pack.</td></tr>
+            <tr><th scope="row">Documents</th><td><span class="ext">DOCX, ODT, PPTX, XLSX, ODS</span></td><td><span class="ext">TXT, HTML, PDF, CSV, TSV</span></td><td>Text and tables only; first worksheet; no layout fidelity.</td></tr>
+            <tr><th scope="row">Text and data</th><td><span class="ext">TXT, Markdown, HTML, CSV, TSV, JSON</span></td><td><span class="ext">PDF, TXT, XLSX, CSV, TSV, JSON</span></td><td>UTF-8. TXT output caps at 50,000 lines and records a note.</td></tr>
+            <tr><th scope="row">Subtitles</th><td><span class="ext">SRT, VTT</span></td><td><span class="ext">SRT, VTT</span></td><td>Timing and text preserved; styling tags simplified.</td></tr>
+            <tr><th scope="row">E-books</th><td><span class="ext">EPUB</span></td><td><span class="ext">TXT, HTML</span></td><td>Unencrypted EPUB only; DRM-protected books fail with a message.</td></tr>
+            <tr><th scope="row">Archives</th><td><span class="ext">ZIP, TAR.GZ, 7Z</span></td><td><span class="ext">ZIP, TAR.GZ</span></td><td>Repacking only, no compression level. 7Z becomes ZIP; 7Z cannot be created.</td></tr>
+            <tr><th scope="row">Audio</th><td><span class="ext">MP3, M4A, AAC, WAV, FLAC, OGG, OPUS, AMR</span></td><td><span class="ext">MP3, M4A, AAC, WAV, FLAC, OGG, OPUS</span></td><td>Any input to any output; bitrate choice for lossy codecs.</td></tr>
+            <tr><th scope="row">Video</th><td><span class="ext">MP4, MKV, MOV, AVI, WebM, FLV</span></td><td><span class="ext">MP4, WebM, MKV, GIF</span></td><td>Audio extraction included. 20-minute per-file timeout.</td></tr>
+            <tr><th scope="row">OCR (optional)</th><td><span class="ext">JPG, PNG, WebP, BMP, GIF, HEIC, PDF</span></td><td><span class="ext">TXT</span></td><td>English and Arabic models only, after the 28 MB pack is installed.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <aside class="callout" aria-labelledby="not-yet-title">
+        <h3 id="not-yet-title">Nine recognised formats have no converter — and Sigha says so</h3>
+        <p>The app identifies these so it can explain why a file cannot be converted, instead of failing strangely. They are never offered as targets:</p>
+        <ul class="ext-list">
+          <li>TIFF</li><li>RTF</li><li>TAR</li><li>BZ2</li><li>XZ</li><li>YAML</li><li>XML</li><li>MOBI</li><li>FB2</li>
+        </ul>
+        <p>The eleventh engine family, upscaling, is registered but empty in 0.2.1: image upscaling is not offered, and the app does not pretend otherwise.</p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section" id="screens" aria-labelledby="screens-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow"><span class="num">04</span> Screenshots</p>
+        <h2 id="screens-title">Screens from the 0.2.1 build, in Arabic</h2>
+        <p class="lede">Captured on the emulator during the release gate — no mockups, no invented UI. The Arabic interface is shown because it is the one this product exists for; the English build is the same app with the same screens.</p>
+      </div>
+      <div class="gallery">
+        <figure class="shot">
+          <div class="shot__frame"><img src="assets/shots/sigha-home-arabic.png" width="1080" height="2400" alt="The Arabic home screen: “ملفاتك، تُحوَّل على هذا الهاتف” with a Choose files button, and the Convert, History and Settings tabs ordered right to left." loading="lazy" decoding="async"></div>
+          <figcaption><strong>Arabic home, right to left</strong>The first screen asks for one thing: choose files.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="shot__frame"><img src="assets/shots/sigha-choose-target-arabic.png" width="1080" height="2400" alt="The workbench after choosing sample.txt, showing only the target formats that file can reach: PNG, JPG and PDF." loading="lazy" decoding="async"></div>
+          <figcaption><strong>Only reachable targets</strong>A .txt file is offered PNG, JPG and PDF — nothing that would fail.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="shot__frame"><img src="assets/shots/sigha-conversion-done-arabic.png" width="1080" height="2400" alt="A finished conversion: the progress row shows sample.txt converted to PDF, marked as done, with the destination folder reported." loading="lazy" decoding="async"></div>
+          <figcaption><strong>A finished conversion</strong>The row reports the result and where it was written.</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="shot__frame"><img src="assets/shots/sigha-ocr-pack-arabic.png" width="1080" height="2400" alt="The OCR language pack confirmation dialog, stating that the English and Arabic pack is 28 MB and downloaded once." loading="lazy" decoding="async"></div>
+          <figcaption><strong>The only download in the app</strong>Size, licence and metered warning come before anything is fetched.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--sunk" id="how" aria-labelledby="how-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow"><span class="num">05</span> How it works</p>
+        <h2 id="how-title">Three steps to convert a file on your phone</h2>
+      </div>
+      <ol class="steps">
+        <li class="step">
+          <span class="step__n">01</span>
+          <h3>Pick the files</h3>
+          <p>Open the system file picker, or share a file into Sigha from another app. Images, PDFs, media and archives can sit in one batch.</p>
+          <p class="muted">The app reads the file only when you convert it.</p>
+        </li>
+        <li class="step">
+          <span class="step__n">02</span>
+          <h3>Pick the target format</h3>
+          <p>Sigha offers only the formats every selected file can reach, so a target that cannot work is never shown. It remembers your last target for images, documents, audio and video.</p>
+          <p class="muted">Options appear only where they exist: quality, bitrate, page range.</p>
+        </li>
+        <li class="step">
+          <span class="step__n">03</span>
+          <h3>Convert, then keep or share</h3>
+          <p>Conversion runs in a queue on the device. Results go to Pictures, Download or Music under a Sigha folder, and reopening or sharing is one tap.</p>
+          <p class="muted">A failed file can be retried without picking it again.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--ink" id="privacy" aria-labelledby="privacy-title">
+    <div class="shell privacy">
+      <div class="stack">
+        <p class="eyebrow"><span class="num">06</span> Privacy and legal</p>
+        <h2 id="privacy-title">No account, no upload, no analytics — and one download you control</h2>
+        <p class="lede">Privacy here is architecture, not a promise. The conversion engines are compiled into the APK, so there is no server address to send a file to and no cloud SDK that could.</p>
+        <ul class="checklist">
+          <li><svg class="tick" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 10.6l3.9 3.9L16 5.5"/></svg><div><strong>Your files stay on the phone</strong><span>Every conversion runs locally. Sigha has no upload path, no account system and no cloud storage integration.</span></div></li>
+          <li><svg class="tick" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 10.6l3.9 3.9L16 5.5"/></svg><div><strong>No ads, no analytics, no tracking SDK</strong><span>Nothing is measured, profiled or sent off the device, including crash reports.</span></div></li>
+          <li><svg class="tick" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 10.6l3.9 3.9L16 5.5"/></svg><div><strong>No broad storage permission</strong><span>On Android 10+ Sigha writes through MediaStore and a folder you grant with the system picker.</span></div></li>
+          <li><svg class="tick" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 10.6l3.9 3.9L16 5.5"/></svg><div><strong>Read the actual policy</strong><span>It is in the repository, in English and Arabic, and it is short enough to finish.</span></div></li>
+        </ul>
+        <p class="legal-links">
+          <a href="https://github.com/ahmadmhmdsy/sigha/blob/main/docs/legal/privacy-policy.md" rel="noopener">Privacy policy</a>
+          <a href="https://github.com/ahmadmhmdsy/sigha/blob/main/NOTICE.md" rel="noopener">Third-party notices</a>
+          <a href="https://github.com/ahmadmhmdsy/sigha/blob/main/docs/legal/licence-compliance.md" rel="noopener">Licence compliance</a>
+          <a href="https://github.com/ahmadmhmdsy/sigha/blob/main/docs/legal/release-blockers.md" rel="noopener">Release blockers</a>
+        </p>
+      </div>
+      <div class="network-card">
+        <p class="eyebrow"><span class="num">!</span> The one exception</p>
+        <h3>The only request the app can make</h3>
+        <p>The optional OCR language pack: English and Arabic Tesseract models, Apache-2.0, fetched only after you tap Download and confirm the size. It carries no file and no identifier, the app verifies it against a pinned SHA-256, and it resumes if the connection drops.</p>
+        <p class="bytes">28,004,325 bytes &middot; SHA-256 pinned &middot; resumable</p>
+        <p>Skip it and Sigha still converts everything except OCR targets. Install it once and OCR works offline too.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq" aria-labelledby="faq-title">
+    <div class="shell">
+      <div class="section-head">
+        <p class="eyebrow"><span class="num">07</span> Questions</p>
+        <h2 id="faq-title">Frequently asked questions</h2>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>Does Sigha work without internet?</summary>
+          <div><p>Yes. Every conversion runs on the device. The one exception is the optional OCR language pack: a 28 MB download you start yourself, after which OCR also works offline.</p></div>
+        </details>
+        <details>
+          <summary>Is Sigha free?</summary>
+          <div><p>Yes. There is no price, no subscription, no ads and no in-app purchase in 0.2.1, and the source code is public on GitHub.</p></div>
+        </details>
+        <details>
+          <summary>Is Sigha on Google Play?</summary>
+          <div><p>No. Version 0.2.1 ships as a side-load QA build from GitHub Releases. It is signed with the Android debug key and 21 legal placeholders still block a Play Store release, so you install it by allowing “Install unknown apps” for the app you open the APK from. Play Protect may warn about an unknown developer; that is expected for this build.</p></div>
+        </details>
+        <details>
+          <summary>Which formats can Sigha convert?</summary>
+          <div><p>39 of the 48 recognised formats can be used as an input and 25 can be produced as an output, across 11 engine families. Nine recognised formats have no converter yet — TIFF, RTF, TAR, BZ2, XZ, YAML, XML, MOBI and FB2 — and “recognised” means the app can name the format, not convert it.</p></div>
+        </details>
+        <details>
+          <summary>Does Sigha support Arabic?</summary>
+          <div><p>Yes, completely. The interface exists in Arabic and English, each laid out in its own direction, with Arabic counts and plural forms, an Arabic privacy policy, and an OCR language pack that reads Arabic.</p></div>
+        </details>
+        <details>
+          <summary>What does Sigha send over the network?</summary>
+          <div><p>Only the OCR language pack, and only when you tap Download. It carries no file, no usage data and no identifier. There is no analytics SDK, no ad SDK and no account system in the app.</p></div>
+        </details>
+        <details>
+          <summary>Which Android versions does Sigha support?</summary>
+          <div><p>Android 8.0 (API 26) and newer. HEIC input needs Android 9 or newer and AVIF input needs Android 12 or newer; the app explains the limit on older devices.</p></div>
+        </details>
+        <details>
+          <summary>Where do converted files go?</summary>
+          <div><p>Images are saved to Pictures/Sigha, documents to Download/Sigha and audio to Music/Sigha, or to a folder you grant once through the system picker. The last 50 conversions stay in History so you can reopen or share them.</p></div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--sunk" id="download" aria-labelledby="download-title">
+    <div class="shell download">
+      <div class="stack">
+        <p class="eyebrow"><span class="num">08</span> Download</p>
+        <h2 id="download-title">Download Sigha 0.2.1</h2>
+        <p class="lede">Two builds of the same app. The universal file runs on any supported phone; the arm64 file is smaller and covers essentially every phone sold in recent years. Both are QA builds, not store releases.</p>
+        <p class="download__meta"><span>Android 8.0+</span><span>GitHub Release v0.2.1</span><span>SHA-256 below</span></p>
+        <div class="warning">
+          <h3>This is a QA build, not a Play Store release</h3>
+          <p>The APK is signed with the Android debug key (<span class="mono">CN=Android Debug</span>) and 21 legal placeholders still block a Play release, tracked in the repository. So:</p>
+          <ol>
+            <li>Android asks you to allow “Install unknown apps” for the app you open the file from.</li>
+            <li>Play Protect may warn about an unknown developer — expected for a debug-signed build.</li>
+            <li>It cannot replace, or be replaced by, a Play Store install of the app.</li>
+          </ol>
+        </div>
+        <p class="legal-links">
+          <a href="https://github.com/ahmadmhmdsy/sigha/blob/main/dist/INSTALL-TEST.md" rel="noopener">Full install guide</a>
+          <a href="https://github.com/ahmadmhmdsy/sigha/releases/download/v0.2.1/SHA256SUMS.txt" rel="noopener">SHA256SUMS.txt</a>
+          <a href="https://github.com/ahmadmhmdsy/sigha/releases" rel="noopener">All releases</a>
+          <a href="https://github.com/ahmadmhmdsy/sigha/blob/main/CHANGELOG.md" rel="noopener">Changelog</a>
+        </p>
+        <p class="download__meta download__meta--text">Build gate: <span class="mono">scripts/verify.ps1</span> — 155 unit tests, 0 failures; lint 0 errors; 37/37 emulator feature-smoke steps. <a href="https://github.com/ahmadmhmdsy/sigha/blob/main/docs/qa/evidence/verify-20261122-215316.json" rel="noopener">Evidence</a>.</p>
+      </div>
+      <div class="build-cards">
+        <article class="build">
+          <div class="build__head">
+            <span class="build__name">Sigha-0.2.1-universal-debug.apk</span>
+            <span class="build__size">115,181,014 B</span>
+          </div>
+          <p class="build__note">Use this one if you are unsure: it carries both arm64-v8a and x86_64.</p>
+          <p class="hash"><span>SHA-256</span><span>FAED0769EE8D2B7F80083808EF860E6BE5A0F60F150FE43205AD891F2A691B4F</span></p>
+          <div class="build__actions">
+            <a class="btn btn--primary btn--small" href="https://github.com/ahmadmhmdsy/sigha/releases/download/v0.2.1/Sigha-0.2.1-universal-debug.apk" rel="noopener" download>Download universal APK</a>
+          </div>
+        </article>
+        <article class="build">
+          <div class="build__head">
+            <span class="build__name">Sigha-0.2.1-arm64-debug.apk</span>
+            <span class="build__size">68,858,338 B</span>
+          </div>
+          <p class="build__note">Same app, arm64 phones only, 46 MB smaller.</p>
+          <p class="hash"><span>SHA-256</span><span>00A7A41A98903730DE6D412234B82FAD1DFE0DAB44698E2A5326923EA060B8C5</span></p>
+          <div class="build__actions">
+            <a class="btn btn--ghost btn--small" href="https://github.com/ahmadmhmdsy/sigha/releases/download/v0.2.1/Sigha-0.2.1-arm64-debug.apk" rel="noopener" download>Download arm64 APK</a>
+          </div>
+        </article>
+        <p class="download__meta">The APK is large because the conversion engines are inside it: PDFBox, Apache POI, Tesseract and an FFmpeg build. That is what makes offline conversion possible.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="./" aria-label="Sigha, home">
+          <svg class="brand__mark" viewBox="0 0 108 108" aria-hidden="true" focusable="false"><path fill="currentColor" d="M30.51 45.45A25 25 0 0 1 77.49 45.45L70.91 47.84A18 18 0 0 0 37.09 47.84Z"/><path fill="currentColor" d="M77.49 62.55A25 25 0 0 1 30.51 62.55L37.09 60.16A18 18 0 0 0 70.91 60.16Z"/><path class="mark__arrow" d="M79.39 41.06L75.34 51.38L66.92 47.42Z"/><path class="mark__arrow" d="M28.61 66.94L32.66 56.62L41.08 60.58Z"/></svg>
+          <span class="brand__name">Sigha</span>
+          <span class="brand__ar" lang="ar" dir="rtl">صيغة</span>
+        </a>
+        <p>Offline file conversion for Android. Built in Kotlin with Jetpack Compose; no account, no ads, no analytics.</p>
+        <a class="lang-switch" href="ar/" hreflang="ar" lang="ar" dir="rtl">النسخة العربية</a>
+      </div>
+      <div class="footer__col">
+        <h2>Product</h2>
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#formats">Supported formats</a></li>
+          <li><a href="#screens">Screenshots</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#download">Download APK</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h2>Project</h2>
+        <ul>
+          <li><a href="https://github.com/ahmadmhmdsy/sigha" rel="noopener">Source on GitHub</a></li>
+          <li><a href="https://github.com/ahmadmhmdsy/sigha/releases" rel="noopener">Releases</a></li>
+          <li><a href="https://github.com/ahmadmhmdsy/sigha/blob/main/CHANGELOG.md" rel="noopener">Changelog</a></li>
+          <li><a href="https://github.com/ahmadmhmdsy/sigha#readme" rel="noopener">Documentation</a></li>
+          <li><a href="https://github.com/ahmadmhmdsy/sigha/blob/main/LICENSE" rel="noopener">License</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h2>Legal</h2>
+        <ul>
+          <li><a href="https://github.com/ahmadmhmdsy/sigha/blob/main/docs/legal/privacy-policy.md" rel="noopener">Privacy policy</a></li>
+          <li><a href="https://github.com/ahmadmhmdsy/sigha/blob/main/NOTICE.md" rel="noopener">Third-party notices</a></li>
+          <li><a href="https://github.com/ahmadmhmdsy/sigha/blob/main/docs/legal/licence-compliance.md" rel="noopener">Licence compliance</a></li>
+          <li><a href="https://github.com/ahmadmhmdsy/sigha/blob/main/docs/legal/release-blockers.md" rel="noopener">Release blockers</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>Sigha contributors. Source available on GitHub.</p>
+      <p>Not affiliated with the Play Store. Version 0.2.1 is a side-load QA build.</p>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

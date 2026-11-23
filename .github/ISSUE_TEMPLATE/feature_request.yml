@@ -1,0 +1,87 @@
+name: Feature request
+description: Propose a capability or an improvement for Sigha.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Sigha's scope is deliberate: local conversion on the phone, no account, no ads, no
+        telemetry, no uploads. Proposals that need a server, analytics or ads are out of scope —
+        see [CONTRIBUTING.md](https://github.com/ahmadmhmdsy/sigha/blob/main/CONTRIBUTING.md).
+
+        Before opening this, check the capability spec
+        ([docs/product/PRODUCT.md](https://github.com/ahmadmhmdsy/sigha/blob/main/docs/product/PRODUCT.md))
+        and the non-goals in [PRODUCT.md](https://github.com/ahmadmhmdsy/sigha/blob/main/PRODUCT.md).
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the situation on the phone, not the solution. What are you trying to get done today, and where does Sigha stop you?
+      placeholder: "I have ten photos of a receipt and need one PDF to email, and Sigha converts each image into its own PDF."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+      description: What should the app do? Keep it to what a phone user would see.
+      placeholder: "Let me add several images and produce a single PDF in the order I choose."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Conversions and formats
+        - Workbench and queue
+        - History and results
+        - Accessibility, RTL and localisation
+        - Settings, privacy and permissions
+        - Performance and storage
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: formats
+    attributes:
+      label: Formats involved (optional)
+      description: Source and target formats, if the request is about conversion, e.g. "JPG × 10 → PDF".
+      placeholder: "JPG × 10 → PDF"
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered (optional)
+      description: Workarounds you tried, or how other apps do it. Do not name a competing app's code or assets.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: scope-check
+    attributes:
+      label: Scope check
+      options:
+        - label: "This does not require uploading files, a server, analytics, ads, an account or a new network request."
+          required: true
+        - label: "I checked PRODUCT.md and docs/product/PRODUCT.md and this is not already listed as out of scope or planned."
+          required: true
+        - label: "I can help with implementation and/or testing."
+          required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context (optional)
+      description: Screenshots, mockups or links. Remove personal data first.
+    validations:
+      required: false
